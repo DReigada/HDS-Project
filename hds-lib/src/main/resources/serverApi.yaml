@@ -35,6 +35,22 @@ paths:
         schema:
           $ref: "#/definitions/SendAmountRequest"
 
+  /checkAmount:
+    post:
+      operationId: "check_amount"
+      parameters:
+      - in: "body"
+        name: "amount"
+        required: true
+        schema:
+          $ref: "#definitions/CheckAmountRequest"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: integer
+        400:
+          description: "Invalid Key"
 
 definitions:
   PublicKey:
@@ -65,3 +81,9 @@ definitions:
         $ref: "#/definitions/PublicKey"
       amount:
         type: integer
+
+  CheckAmountRequest:
+    type: object
+    properties:
+      publicKey:
+        $ref: "#/definitions/PublicKey"
