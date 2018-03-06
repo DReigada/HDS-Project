@@ -17,7 +17,13 @@ paths:
         required: true
         schema:
           $ref: "#/definitions/RegisterRequest"
-
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/RegisterResponse"
+        400:
+          description: "Invalid Key"
 
 definitions:
   PublicKey:
@@ -31,3 +37,11 @@ definitions:
     properties:
       publicKey:
         $ref: "#/definitions/PublicKey"
+
+  RegisterResponse:
+    type: object
+    properties:
+      bla:
+        type: array
+        items:
+          type: string
