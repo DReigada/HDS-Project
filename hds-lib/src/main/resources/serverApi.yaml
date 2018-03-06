@@ -53,7 +53,7 @@ paths:
           description: "Invalid Key"
 
 definitions:
-  PublicKey:
+  PubKey:
     type: object
     properties:
       value:
@@ -63,7 +63,7 @@ definitions:
     type: object
     properties:
       publicKey:
-        $ref: "#/definitions/PublicKey"
+        $ref: "#/definitions/PubKey"
   RegisterResponse:
     type: object
     properties:
@@ -76,9 +76,9 @@ definitions:
     type: object
     properties:
       sourceKey:
-        $ref: "#/definitions/PublicKey"
+        $ref: "#/definitions/PubKey"
       destKey:
-        $ref: "#/definitions/PublicKey"
+        $ref: "#/definitions/PubKey"
       amount:
         type: integer
 
@@ -86,4 +86,4 @@ definitions:
     type: object
     properties:
       publicKey:
-        $ref: "#/definitions/PublicKey"
+        $ref: "#/definitions/PubKey"
