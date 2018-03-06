@@ -19,6 +19,17 @@ paths:
           $ref: "#/definitions/RegisterRequest"
 
 
+  /sendAmount:
+    post:
+      operationId: "send_amount"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/SendAmountRequest"
+
+
 definitions:
   PublicKey:
     type: object
@@ -31,3 +42,13 @@ definitions:
     properties:
       publicKey:
         $ref: "#/definitions/PublicKey"
+
+  SendAmountRequest:
+    type: object
+    properties:
+      sourceKey:
+        $ref: "#/definitions/PublicKey"
+      destKey:
+        $ref: "#/definitions/PublicKey"
+      amount:
+        type: integer
