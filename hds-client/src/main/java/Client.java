@@ -6,66 +6,35 @@ import io.swagger.client.model.PubKey;
 import io.swagger.client.model.RegisterRequest;
 import io.swagger.client.model.SendAmountRequest;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 /**
  * Created by jp_s on 3/6/2018.
  */
 public class Client {
-    String id;
     ApiClient client;
     DefaultApi defaultApi;
-    KeyStore keyStore;
-    PubKey key = new PubKey().value("asdasdasd"); // TO BE CHANGED
+    PublicKey publicKey;
+    PrivateKey privateKey;
+    PubKey key;
 
-    public Client(String id) throws KeyStoreException{
-        this.id = id;
+    public Client() throws KeyStoreException{
         client = new ApiClient().setBasePath("http://localhost:8080");
         defaultApi = new DefaultApi(client);
-        keyStore = KeyStore.getInstance("JCEKS");
     }
 
     public void Register() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, ApiException {
-        keyStore.load(null, id.toCharArray()); //Change id if necessary to a password
-
-
-        //-------------------- Generate Key Pair -----------------------------------------------------
-        KeyPairGenerator keygen = KeyPairGenerator .getInstance("EC");
-        SecureRandom random = SecureRandom.getInstance("SHA1PRNG"); // Change After
-        keygen.initialize(112,random); // Change After
-        KeyPair mykey = keygen.generateKeyPair();
-
-        System.out.println("MyPrivKey:" + mykey.getPrivate().toString());
-
-        //-------------------- Store Private Key-----------------------------------------------------
-        /*KeyStore.PrivateKeyEntry privateKeyEntry = new KeyStore.PrivateKeyEntry(mykey.getPrivate(),new Certificate[]{cert});
-        String alias = "User:" + id; //Change After;
-        KeyStore.PasswordProtection password = new KeyStore.PasswordProtection(id.toCharArray());
-        keyStore.setEntry(alias,privateKeyEntry,password);*/
-        //------------------- Saving And Closing ----------------------------------------------------
-
-        FileOutputStream fileOutputStream = new FileOutputStream("keystorefile.jce");
-        keyStore.store(fileOutputStream, id.toCharArray());
-        fileOutputStream.close();
-
-        //------------------- Public Key to file -----------------------------------------------------
-
-        byte[] pubKeyBytes = mykey.getPublic().getEncoded();
-        File file = new File("PublicKey.txt");
-        fileOutputStream = new FileOutputStream(file);
-        fileOutputStream.write( pubKeyBytes );
-        fileOutputStream.close();
-
-        //--------------------------------------------------------------------------------------
-
+        GenerateKey();
+        key =  new PubKey().value(Base64.getEncoder().encodeToString(publicKey.getEncoded()));
+        SaveKeys();
         RegisterRequest request = new RegisterRequest().publicKey(key);
         defaultApi.register(request);
-
-        System.out.print("Invocado e criado");
     }
 
     public void SendAmount() throws ApiException {
@@ -77,6 +46,44 @@ public class Client {
     public void CheckAmount() throws ApiException {
         CheckAmountRequest checkAmountRequest = new CheckAmountRequest().publicKey(key);
         new DefaultApi(client).checkAmount(checkAmountRequest);
+    }
+
+    private void GenerateKey() throws NoSuchAlgorithmException {
+        KeyPairGenerator keygen = KeyPairGenerator .getInstance("EC");
+        SecureRandom random = SecureRandom.getInstance("SHA1PRNG"); // Change After
+        keygen.initialize(112,random); // Change After
+        KeyPair key = keygen.generateKeyPair();
+        publicKey = key.getPublic();
+        privateKey = key.getPrivate();
+    }
+
+    private void SaveKeys() throws IOException {
+        BufferedWriter out = new BufferedWriter(new FileWriter("PublicKey.txt"));
+        out.write(key.getValue());
+        out.close();
+
+        out = new BufferedWriter(new FileWriter("PrivateKey.txt"));
+        String priKey = Base64.getEncoder().encodeToString(privateKey.getEncoded());
+        out.write(priKey);
+        out.close();
+    }
+
+    public void LoadKeys() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        BufferedReader out = new BufferedReader(new FileReader("PublicKey.txt"));
+        String key = out.readLine();
+        KeyFactory  keyFactory = KeyFactory.getInstance("EC");
+        byte[] keyBytes = Base64.getDecoder().decode(key);
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+        publicKey = keyFactory.generatePublic(keySpec);
+        out.close();
+
+        out = new BufferedReader(new FileReader("PrivateKey.txt"));
+        key = out.readLine();
+        keyFactory = KeyFactory.getInstance("EC");
+        keyBytes = Base64.getDecoder().decode(key);
+        PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(keyBytes);
+        privateKey = keyFactory.generatePrivate(pkcs8EncodedKeySpec);
+        out.close();
     }
 
 }

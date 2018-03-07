@@ -24,6 +24,8 @@ public class RegisterController implements RegisterApi {
     String key = body.getPublicKey().getValue();
     log.info("Got new public key: " + key);
 
+
+
     RegisterResponse response =
         new RegisterResponse().addBlaItem("Hello").addBlaItem("user:").addBlaItem(key);
     return new ResponseEntity<>(response, HttpStatus.OK);

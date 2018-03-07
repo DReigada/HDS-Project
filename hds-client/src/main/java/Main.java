@@ -6,7 +6,7 @@ import java.util.Scanner;
 public class Main {
   public static void main(String[] args) {
     try {
-      Client client = new Client("P");
+      Client client = new Client();
       Class<?> c = Class.forName("Client");
 
       Scanner reader;
