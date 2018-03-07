@@ -1,35 +1,36 @@
-import io.swagger.client.ApiClient;
-import io.swagger.client.ApiException;
-import io.swagger.client.api.DefaultApi;
-import io.swagger.client.model.PublicKey;
-import io.swagger.client.model.RegisterRequest;
-import io.swagger.client.model.SendAmountRequest;
-import io.swagger.client.model.RegisterResponse;
-
-import java.util.stream.Collectors;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.KeyStoreException;
+import java.util.Scanner;
 
 public class Main {
   public static void main(String[] args) {
-    ApiClient client = new ApiClient().setBasePath("http://localhost:8080");
-
     try {
-      PublicKey key = new PublicKey().value("asdfsadfsaljdk");
-      RegisterRequest request = new RegisterRequest().publicKey(key);
+      Client client = new Client("P");
+      Class<?> c = Class.forName("Client");
 
-      System.out.println(request);
+      Scanner reader;
+      String command;
+      Method method;
 
-      new DefaultApi(client).register(request);
-      SendAmountRequest sendAmount = new SendAmountRequest().destKey(key).sourceKey(key).amount(1);
-      new DefaultApi(client).sendAmount(sendAmount);
-      RegisterResponse response = new DefaultApi(client).register(request);
+      while (true) {
+        reader = new Scanner(System.in);  // Reading from System.in
+        System.out.println("\nEnter a command: ");
+        command = reader.nextLine();
 
-      System.out.println("Response:");
-      System.out.println(response.getBla().stream().collect(Collectors.joining(" ")));
-    } catch (ApiException e) {
-      System.err.println("Request failed:");
-      System.err.println(e.getMessage());
+        method = c.getDeclaredMethod(command);
+        method.invoke(client);
+      }
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    } catch (KeyStoreException e) {
+      e.printStackTrace();
+    } catch (NoSuchMethodException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
     }
-
-    System.out.println("I'm a client");
   }
 }

@@ -35,9 +35,25 @@ paths:
         schema:
           $ref: "#/definitions/SendAmountRequest"
 
+  /checkAmount:
+    post:
+      operationId: "check_amount"
+      parameters:
+      - in: "body"
+        name: "amount"
+        required: true
+        schema:
+          $ref: "#definitions/CheckAmountRequest"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: integer
+        400:
+          description: "Invalid Key"
 
 definitions:
-  PublicKey:
+  PubKey:
     type: object
     properties:
       value:
@@ -47,7 +63,7 @@ definitions:
     type: object
     properties:
       publicKey:
-        $ref: "#/definitions/PublicKey"
+        $ref: "#/definitions/PubKey"
   RegisterResponse:
     type: object
     properties:
@@ -60,8 +76,14 @@ definitions:
     type: object
     properties:
       sourceKey:
-        $ref: "#/definitions/PublicKey"
+        $ref: "#/definitions/PubKey"
       destKey:
-        $ref: "#/definitions/PublicKey"
+        $ref: "#/definitions/PubKey"
       amount:
         type: integer
+
+  CheckAmountRequest:
+    type: object
+    properties:
+      publicKey:
+        $ref: "#/definitions/PubKey"
