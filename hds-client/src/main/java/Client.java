@@ -17,6 +17,8 @@ import java.util.Base64;
 /**
  * Created by jp_s on 3/6/2018.
  */
+
+
 public class Client {
     ApiClient client;
     DefaultApi defaultApi;
@@ -33,6 +35,7 @@ public class Client {
         GenerateKey();
         key =  new PubKey().value(Base64.getEncoder().encodeToString(publicKey.getEncoded()));
         SaveKeys();
+
         RegisterRequest request = new RegisterRequest().publicKey(key);
         defaultApi.register(request);
     }
@@ -68,6 +71,23 @@ public class Client {
         out.close();
     }
 
+    private String GenerateSignature() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        byte[] data = "Data to be signed".getBytes(); //MESSAGE TO BE SIGNED
+        Signature ecForSign = Signature.getInstance("SHA1withECDSA"); //TO BE CHANGED
+        ecForSign.initSign(privateKey);
+        ecForSign.update(data);
+        return Base64.getEncoder().encodeToString(ecForSign.sign());
+    }
+
+    private boolean VerifySignature(String data) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        byte[] message = "Data to be signed".getBytes(); //MESSAGE FROM BODY TO BE VERIFIED
+        Signature ecForVerify = Signature.getInstance("SHA1withECDSA");
+        ecForVerify.initVerify(publicKey);
+        byte[] dataBytes = Base64.getDecoder().decode(data);
+        ecForVerify.update(message);
+        return ecForVerify.verify(dataBytes);
+    }
+
     public void LoadKeys() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         BufferedReader out = new BufferedReader(new FileReader("PublicKey.txt"));
         String key = out.readLine();
@@ -85,5 +105,4 @@ public class Client {
         privateKey = keyFactory.generatePrivate(pkcs8EncodedKeySpec);
         out.close();
     }
-
 }
