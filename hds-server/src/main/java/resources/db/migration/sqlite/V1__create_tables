@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS accounts (
+  publicX VARCHAR(500)
+  publicY VARCHAR(500)
+  counter INTEGER
+  balance REAL
+  PRIMARY KEY (publicX, publixY));
+
+CREATE TABLE IF NOT EXISTS transactions (
+  transID INTEGER PRIMARY KEY
+  sourceX VARCHAR(500)
+  sourceY VARCHAR(500)
+  destX VARCHAR(500)
+  destY VARCHAR(500)
+  amount INTEGER);
