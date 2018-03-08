@@ -7,7 +7,7 @@ import java.sql.SQLException;
 
 public class register extends dbCommand {
 
-  public boolean register(String publicX, String publicY){
+  public boolean run(String publicX, String publicY){
     if(!checkKey(publicX, publicY)) {
       return false;
     }
@@ -39,7 +39,7 @@ public class register extends dbCommand {
   }
 
   public PreparedStatement createQuery(Connection conn, String publicX, String publicY) throws SQLException{
-    String query = "SELECT publicX, publicY FROM accounts WHERE publicX = ?, publicY = ?";
+    String query = "SELECT publicX, publicY FROM accounts WHERE publicX = ? AND publicY = ?";
     PreparedStatement stmt = conn.prepareStatement(query);
     stmt.setString(1, publicX);
     stmt.setString(2, publicY);

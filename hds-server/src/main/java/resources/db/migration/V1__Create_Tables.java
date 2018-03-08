@@ -15,7 +15,7 @@ public class V1__Create_Tables implements JdbcMigration {
       + "publicX VARCHAR(500),\n"
       + "publicY VARCHAR(500),\n"
       + "counter INTEGER,\n"
-      + "balance REAL,\n"
+      + "balance FLOAT,\n"
       + "PRIMARY KEY (publicX, publicY));";
 
     String transactions = "CREATE TABLE IF NOT EXISTS transactions (\n"
@@ -24,7 +24,8 @@ public class V1__Create_Tables implements JdbcMigration {
       + "sourceY VARCHAR(500),\n"
       + "destX VARCHAR(500),\n"
       + "destY VARCHAR(500),\n"
-      + "amount INTEGER);";
+      + "amount FLOAT,\n"
+      + "pending BOOL);";
 
     try(Statement stmt = connection.createStatement()){
       stmt.execute(accounts);
