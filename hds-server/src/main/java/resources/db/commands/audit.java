@@ -11,15 +11,15 @@ import java.util.List;
 
 public class audit extends dbCommand{
 
-  public List<Transfer> getHistory(String publicX, String publicY){
+  public List<Transfer> getHistory(String publicKey){
     List<Transfer> history = new ArrayList<>();
     try(Connection conn = this.connection();
-        PreparedStatement stmt = createTransfersQuery(conn,publicX, publicY);
+        PreparedStatement stmt = createTransfersQuery(conn, publicKey);
         ResultSet rs = stmt.executeQuery()) {
 
       while(rs.next()){
-        history.add(new Transfer(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4),
-          rs.getString(5), rs.getFloat(6), rs.getBoolean(7)));
+        history.add(new Transfer(rs.getInt(1), rs.getString(2), rs.getString(3),
+                    rs.getFloat(4), rs.getBoolean(5)));
       }
 
     } catch (SQLException e){
@@ -28,11 +28,10 @@ public class audit extends dbCommand{
     return history;
   }
 
-  public PreparedStatement createTransfersQuery(Connection conn, String publicX, String publicY) throws SQLException {
-    String query = "SELECT * FROM transfers WHERE destX = ? AND destY = ?";
+  public PreparedStatement createTransfersQuery(Connection conn, String publicKey) throws SQLException {
+    String query = "SELECT * FROM transfers WHERE destKey = ?";
     PreparedStatement stmt = conn.prepareStatement(query);
-    stmt.setString(1, publicX);
-    stmt.setString(2, publicY);
+    stmt.setString(1, publicKey);
     return stmt;
   }
 

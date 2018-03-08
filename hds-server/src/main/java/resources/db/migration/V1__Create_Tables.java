@@ -12,18 +12,14 @@ public class V1__Create_Tables implements JdbcMigration {
   @Override
   public void migrate(Connection connection) throws Exception {
     String accounts = "CREATE TABLE IF NOT EXISTS accounts (\n"
-      + "publicX VARCHAR(500),\n"
-      + "publicY VARCHAR(500),\n"
+      + "publicKey VARCHAR(500) PRIMARY KEY,\n"
       + "counter INTEGER,\n"
-      + "balance FLOAT,\n"
-      + "PRIMARY KEY (publicX, publicY));";
+      + "balance FLOAT);";
 
     String transactions = "CREATE TABLE IF NOT EXISTS transactions (\n"
       + "transID INTEGER PRIMARY KEY,"
-      + "sourceX VARCHAR(500),\n"
-      + "sourceY VARCHAR(500),\n"
-      + "destX VARCHAR(500),\n"
-      + "destY VARCHAR(500),\n"
+      + "sourceKey VARCHAR(500),\n"
+      + "destKey VARCHAR(500),\n"
       + "amount FLOAT,\n"
       + "pending BOOL);";
 

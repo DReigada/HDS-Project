@@ -12,15 +12,15 @@ import java.util.List;
 public class checkAmount extends amountCommand{
 
 
-  public List<Transfer> getPendingTransfers(String publicX, String publicY){
+  public List<Transfer> getPendingTransfers(String publicKey){
     List<Transfer> pendingTransfers = new ArrayList<>();
     try(Connection conn = this.connection();
-        PreparedStatement stmt = createPendingTransQuery(conn, publicX, publicY);
+        PreparedStatement stmt = createPendingTransQuery(conn, publicKey);
         ResultSet rs = stmt.executeQuery()){
 
       while(rs.next()){
-        pendingTransfers.add(new Transfer(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4),
-                              rs.getString(5), rs.getFloat(6), rs.getBoolean(7)));
+        pendingTransfers.add(new Transfer(rs.getInt(1), rs.getString(2), rs.getString(3),
+                            rs.getFloat(4), rs.getBoolean(5)));
       }
 
 
@@ -30,11 +30,10 @@ public class checkAmount extends amountCommand{
     return pendingTransfers;
   }
 
-  public PreparedStatement createPendingTransQuery(Connection conn, String publicX, String publicY) throws SQLException{
-    String query = "SELECT * FROM transfers WHERE destX = ? AND destY = ? AND pendint = true";
+  public PreparedStatement createPendingTransQuery(Connection conn, String publicKey) throws SQLException{
+    String query = "SELECT * FROM transfers WHERE destKey = ? AND pendint = true";
     PreparedStatement stmt = conn.prepareStatement(query);
-    stmt.setString(1, publicX);
-    stmt.setString(2, publicY);
+    stmt.setString(1, publicKey);
     return stmt;
   }
 

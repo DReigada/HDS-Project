@@ -4,24 +4,18 @@ public class Transfer {
 
   private int transID;
 
-  private String sourceX;
+  private String sourceKey;
 
-  private String sourceY;
-
-  private String destX;
-
-  private String destY;
+  private String destKey;
 
   private float amount;
 
   private boolean pending;
 
-  public Transfer(int transID, String sourceX, String sourceY, String destX, String destY, float amount, boolean pending){
+  public Transfer(int transID, String sourceKey, String destKey, float amount, boolean pending){
     this.transID = transID;
-    this.sourceX = sourceX;
-    this.sourceY = sourceY;
-    this.destX = destX;
-    this.destY = destY;
+    this.sourceKey = sourceKey;
+    this.destKey = destKey;
     this.amount = amount;
     this.pending = pending;
   }
@@ -30,20 +24,12 @@ public class Transfer {
     return transID;
   }
 
-  public String getSourceX() {
-    return sourceX;
+  public String getSourceKey() {
+    return sourceKey;
   }
 
-  public String getSourceY() {
-    return sourceY;
-  }
-
-  public String getDestX() {
-    return destX;
-  }
-
-  public String getDestY() {
-    return destY;
+  public String getDestKey() {
+    return destKey;
   }
 
   public float getAmount() {

@@ -7,12 +7,12 @@ import java.sql.SQLException;
 
 public class register extends dbCommand {
 
-  public boolean run(String publicX, String publicY){
-    if(!checkKey(publicX, publicY)) {
+  public boolean run(String publicKey){
+    if(!checkKey(publicKey)) {
       return false;
     }
     try (Connection conn = this.connection();
-         PreparedStatement stmt = createInsert(conn, publicX, publicY)) {
+         PreparedStatement stmt = createInsert(conn, publicKey)) {
       int result = stmt.executeUpdate();
       if (result == 1) {
         return true;
@@ -23,9 +23,9 @@ public class register extends dbCommand {
     return false;
   }
 
-  public boolean checkKey(String publicX, String publicY){
+  public boolean checkKey(String publicKey){
     try(Connection conn = this.connection();
-        PreparedStatement stmt = createQuery(conn, publicX, publicY);
+        PreparedStatement stmt = createQuery(conn, publicKey);
         ResultSet rs = stmt.executeQuery()){
 
       if (rs.next()) {
@@ -38,19 +38,17 @@ public class register extends dbCommand {
     return true;
   }
 
-  public PreparedStatement createQuery(Connection conn, String publicX, String publicY) throws SQLException{
-    String query = "SELECT publicX, publicY FROM accounts WHERE publicX = ? AND publicY = ?";
+  public PreparedStatement createQuery(Connection conn, String publicKey) throws SQLException{
+    String query = "SELECT publicKey FROM accounts WHERE publicKey = ?";
     PreparedStatement stmt = conn.prepareStatement(query);
-    stmt.setString(1, publicX);
-    stmt.setString(2, publicY);
+    stmt.setString(1, publicKey);
     return stmt;
   }
 
-  public PreparedStatement createInsert(Connection conn, String publicX, String publicY) throws SQLException{
-    String sql = "INSERT INTO accounts(publicX, publicY, counter, balance) VALUES(?, ?, 1, 1000) ";
+  public PreparedStatement createInsert(Connection conn, String publicKey) throws SQLException{
+    String sql = "INSERT INTO accounts(publicKey, counter, balance) VALUES(?, 1, 1000) ";
     PreparedStatement stmt = conn.prepareStatement(sql);
-    stmt.setString(1, publicX);
-    stmt.setString(2, publicY);
+    stmt.setString(1, publicKey);
     return stmt;
   }
 }
