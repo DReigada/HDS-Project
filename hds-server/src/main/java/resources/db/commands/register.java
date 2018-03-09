@@ -38,6 +38,7 @@ public class register extends dbCommand {
     return true;
   }
 
+
   public PreparedStatement createQuery(Connection conn, String publicKey) throws SQLException{
     String query = "SELECT publicKey FROM accounts WHERE publicKey = ?";
     PreparedStatement stmt = conn.prepareStatement(query);
