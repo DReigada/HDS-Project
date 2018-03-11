@@ -1,6 +1,6 @@
-package resources.db.commands;
+package com.tecnico.sec.hds.server.db.commands;
 
-import domain.Transfer;
+import com.tecnico.sec.hds.server.domain.Transfer;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

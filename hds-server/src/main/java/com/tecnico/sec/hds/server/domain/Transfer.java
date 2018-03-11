@@ -1,4 +1,4 @@
-package domain;
+package com.tecnico.sec.hds.server.domain;
 
 public class Transfer {
 

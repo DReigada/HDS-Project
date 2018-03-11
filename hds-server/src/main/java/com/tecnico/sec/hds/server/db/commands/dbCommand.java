@@ -1,4 +1,4 @@
-package resources.db.commands;
+package com.tecnico.sec.hds.server.db.commands;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
