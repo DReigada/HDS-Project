@@ -36,11 +36,11 @@ paths:
           $ref: "#/definitions/SendAmountRequest"
 
   /checkAmount:
-    post:
+    get:
       operationId: "check_amount"
       parameters:
       - in: "body"
-        name: "amount"
+        name: "body"
         required: true
         schema:
           $ref: "#definitions/CheckAmountRequest"
@@ -52,6 +52,36 @@ paths:
         400:
           description: "Invalid Key"
 
+  /receiveAmount:
+    put:
+      operationId: "receive_amount"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/ReceiveAmountRequest"
+      responses:
+        200:
+          description: "successful operation"
+        400:
+          description: "Invalid Key"
+
+  /audit:
+    get:
+      operationId: "audit"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/AuditRequest"
+      responses:
+        200:
+          description: "successful operation"
+        400:
+          description: "Invalid Key"
+
 definitions:
   PubKey:
     type: object
@@ -59,11 +89,18 @@ definitions:
       value:
         type: string
 
+  Signature:
+      type: object
+      properties:
+        value:
+          type: string
+
   RegisterRequest:
     type: object
     properties:
       publicKey:
         $ref: "#/definitions/PubKey"
+
   RegisterResponse:
     type: object
     properties:
@@ -81,9 +118,25 @@ definitions:
         $ref: "#/definitions/PubKey"
       amount:
         type: integer
+      Signature:
+        $ref: "#/definitions/Signature"
 
   CheckAmountRequest:
     type: object
     properties:
       publicKey:
         $ref: "#/definitions/PubKey"
+
+  ReceiveAmountRequest:
+    type: object
+    properties:
+      publicKey:
+        $ref: "#/definitions/PubKey"
+      Signature:
+        $ref: "#/definitions/Signature"
+
+  AuditRequest:
+      type: object
+      properties:
+        publicKey:
+          $ref: "#/definitions/PubKey"
