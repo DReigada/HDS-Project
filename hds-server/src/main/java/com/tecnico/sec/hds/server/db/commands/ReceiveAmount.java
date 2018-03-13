@@ -5,7 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class receiveAmount extends amountCommand{
+public class ReceiveAmount extends AmountCommand {
 
   public boolean receive(int transID, String publicKey){
     float amount = getTransAmount(transID, publicKey);

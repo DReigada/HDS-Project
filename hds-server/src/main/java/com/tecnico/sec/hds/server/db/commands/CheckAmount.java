@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class checkAmount extends amountCommand{
+public class CheckAmount extends AmountCommand {
 
 
   public List<Transfer> getPendingTransfers(String publicKey){

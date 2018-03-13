@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class audit extends dbCommand{
+public class Audit extends DbCommand {
 
   public List<Transfer> getHistory(String publicKey){
     List<Transfer> history = new ArrayList<>();

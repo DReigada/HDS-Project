@@ -5,7 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class amountCommand extends dbCommand{
+public class AmountCommand extends DbCommand {
 
   public float getBalance(String publicKey){
     try(Connection conn = this.connection();

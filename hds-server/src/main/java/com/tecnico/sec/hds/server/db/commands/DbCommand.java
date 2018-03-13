@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class dbCommand {
+public class DbCommand {
 
   protected Connection connection(){
     String url = "jdbc:sqlite:HDSDB.db";

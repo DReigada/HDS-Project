@@ -5,7 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class register extends dbCommand {
+public class Register extends DbCommand {
 
   public boolean run(String publicKey){
     if(!checkKey(publicKey)) {

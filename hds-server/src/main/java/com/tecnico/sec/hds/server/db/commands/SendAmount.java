@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class sendAmount extends amountCommand{
+public class SendAmount extends AmountCommand {
 
   public boolean send(String sourceKey, String destKey, float amount){
     float sourceBalance = getBalance(sourceKey);
