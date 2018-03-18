@@ -5,8 +5,11 @@ import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeThat;
 
 @RunWith(JUnitQuickcheck.class)
 public class CryptoTests {
@@ -27,8 +30,8 @@ public class CryptoTests {
 
 
   @Property
-  public void signatureShouldBeInvalid(String message) throws Exception {
-    String changedMessage = message + "asfd";
+  public void signatureShouldBeInvalidIfMessageIsChanged(String message) throws Exception {
+    String changedMessage = message + "changed";
 
     String signature = agent.generateSignature(message);
     Boolean valid = agent.verifySignature(changedMessage, signature);
@@ -36,4 +39,13 @@ public class CryptoTests {
     assertFalse(valid);
   }
 
+  @Property
+  public void signatureShouldBeInvalidIfMessagesAreDifferent(String message1, String message2) throws Exception {
+    assumeThat(message1, not(equalTo(message2)));
+
+    String signature = agent.generateSignature(message1);
+    Boolean valid = agent.verifySignature(message2, signature);
+
+    assertFalse(valid);
+  }
 }
