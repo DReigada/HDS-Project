@@ -3,11 +3,10 @@ package com.tecnico.sec.hds.server.db.commands;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.function.Function;
 
 public class QueryHelpers {
 
-  public static <A> A withTransaction(Function<Connection, A> query) throws DBException {
+  public static <A> A withTransaction(QueryRunner<Connection, A> query) throws DBException {
     try (Connection conn = connection()) {
       try {
         conn.setAutoCommit(false);
@@ -24,7 +23,7 @@ public class QueryHelpers {
     }
   }
 
-  public static <A> A withConnection(Function<Connection, A> query) throws DBException {
+  public static <A> A withConnection(QueryRunner<Connection, A> query) throws DBException {
     try (Connection conn = connection()) {
       return query.apply(conn);
     } catch (SQLException e) {

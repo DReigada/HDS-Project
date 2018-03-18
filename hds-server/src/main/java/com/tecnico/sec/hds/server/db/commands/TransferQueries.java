@@ -64,7 +64,7 @@ public class TransferQueries {
     return stmt;
   }
 
-  public float getTransAmount(int transID, String publicKey){
+  public float getTransAmount(int transID, String publicKey) throws DBException {
     float amount = 0;
     try(PreparedStatement stmt = createPendingTransQuery(transID, publicKey);
         ResultSet rs = stmt.executeQuery()){
@@ -75,6 +75,7 @@ public class TransferQueries {
 
     } catch (SQLException e){
       e.printStackTrace();
+      throw new DBException("some error", e); // TODO change error message
     }
     return amount;
   }
