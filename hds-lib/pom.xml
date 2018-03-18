@@ -36,6 +36,7 @@
             <groupId>com.pholser</groupId>
             <artifactId>junit-quickcheck-generators</artifactId>
             <version>0.8</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
