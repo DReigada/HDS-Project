@@ -10,11 +10,10 @@ import com.tecnico.sec.hds.server.db.commands.TransferQueries;
 import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withConnection;
 
 
-
 public class AuditRules {
 
-  public List<Transfer> audit(String publicKey) throws DBException{
-    return withConnection( conn -> {
+  public List<Transfer> audit(String publicKey) throws DBException {
+    return withConnection(conn -> {
 
       TransferQueries transferQueriesQueries = new TransferQueries(conn);
 

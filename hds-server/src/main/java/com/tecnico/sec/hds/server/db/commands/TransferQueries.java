@@ -18,7 +18,7 @@ public class TransferQueries {
     this.conn = conn;
   }
 
-  public List<Transfer> getHistory(String publicKey) {
+  public List<Transfer> getHistory(String publicKey) throws DBException {
     List<Transfer> history = new ArrayList<>();
     try (PreparedStatement stmt = createTransfersQuery(publicKey);
          ResultSet rs = stmt.executeQuery()) {
@@ -30,6 +30,7 @@ public class TransferQueries {
 
     } catch (SQLException e) {
       e.printStackTrace();
+      throw new DBException("some error", e);
     }
     return history;
   }
@@ -41,24 +42,25 @@ public class TransferQueries {
     return stmt;
   }
 
-  public List<Transfer> getPendingTransfers(String publicKey){
+  public List<Transfer> getPendingTransfers(String publicKey) throws DBException {
     List<Transfer> pendingTransfers = new ArrayList<>();
-    try(PreparedStatement stmt = createPendingTransQuery(publicKey);
-        ResultSet rs = stmt.executeQuery()){
+    try (PreparedStatement stmt = createPendingTransQuery(publicKey);
+         ResultSet rs = stmt.executeQuery()) {
 
-      while(rs.next()){
+      while (rs.next()) {
         pendingTransfers.add(new Transfer(rs.getInt(1), rs.getString(2), rs.getString(3),
           rs.getFloat(4), rs.getBoolean(5)));
       }
 
 
-    } catch (SQLException e){
+    } catch (SQLException e) {
       e.printStackTrace();
+      throw new DBException("some error", e);
     }
     return pendingTransfers;
   }
 
-  public PreparedStatement createPendingTransQuery(String publicKey) throws SQLException{
+  public PreparedStatement createPendingTransQuery(String publicKey) throws SQLException {
     String query = "SELECT * FROM transfers WHERE destKey = ? AND pendint = true";
     PreparedStatement stmt = conn.prepareStatement(query);
     stmt.setString(1, publicKey);
@@ -67,14 +69,14 @@ public class TransferQueries {
 
   public float getTransAmount(int transID, String publicKey) throws DBException {
     float amount = 0;
-    try(PreparedStatement stmt = createPendingTransQuery(transID, publicKey);
-        ResultSet rs = stmt.executeQuery()){
+    try (PreparedStatement stmt = createPendingTransQuery(transID, publicKey);
+         ResultSet rs = stmt.executeQuery()) {
 
-      if(rs.next()){
+      if (rs.next()) {
         amount = rs.getFloat(1);
       }
 
-    } catch (SQLException e){
+    } catch (SQLException e) {
       e.printStackTrace();
       throw new DBException("some error", e); // TODO change error message
     }
@@ -91,38 +93,37 @@ public class TransferQueries {
   }
 
 
-  public int updateTransfer(int transID){
-    try(PreparedStatement stmt = createUpdateTransfer(transID)){
+  public int updateTransfer(int transID) throws DBException {
+    try (PreparedStatement stmt = createUpdateTransfer(transID)) {
 
       return stmt.executeUpdate();
 
-    } catch (SQLException e){
+    } catch (SQLException e) {
       e.printStackTrace();
+      throw new DBException("some error", e);
     }
-    return 0;
   }
 
 
-
-  private PreparedStatement createUpdateTransfer(int transID) throws SQLException{
+  private PreparedStatement createUpdateTransfer(int transID) throws SQLException {
     String update = "UPDATE transfers SET pending = false WHERE transID = ?";
     PreparedStatement stmt = conn.prepareStatement(update);
     stmt.setInt(1, transID);
     return stmt;
   }
 
-  public int insertNewTransfer(String sourceKey, String destKey, float amount){
-    try(PreparedStatement stmt = createInsertTransferStatment(sourceKey, destKey, amount)){
+  public int insertNewTransfer(String sourceKey, String destKey, float amount) throws DBException {
+    try (PreparedStatement stmt = createInsertTransferStatment(sourceKey, destKey, amount)) {
 
       return stmt.executeUpdate();
 
     } catch (SQLException e) {
       e.printStackTrace();
+      throw new DBException("some error", e);
     }
-    return 0;
   }
 
-  public PreparedStatement createInsertTransferStatment(String sourcekey, String destKey, float amount) throws SQLException{
+  public PreparedStatement createInsertTransferStatment(String sourcekey, String destKey, float amount) throws SQLException {
     String insert = "INSERT INTO transfers(sourceKey, destKey, amount, pending) VALUES (?, ?, ?, true)";
     PreparedStatement stmt = conn.prepareStatement(insert);
     stmt.setString(1, sourcekey);
