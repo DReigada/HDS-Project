@@ -1,13 +1,13 @@
 package com.tecnico.sec.hds.server.db.rules;
 
 import com.tecnico.sec.hds.server.db.commands.AccountQueries;
-import com.tecnico.sec.hds.server.db.commands.DBException;
+import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.commands.TransferQueries;
 import com.tecnico.sec.hds.server.domain.Transfer;
 
 import java.util.List;
 
-import static com.tecnico.sec.hds.server.db.commands.QueryHelpers.withConnection;
+import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withConnection;
 
 
 public class CheckAmountRules {

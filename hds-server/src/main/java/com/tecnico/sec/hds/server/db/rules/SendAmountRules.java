@@ -1,10 +1,10 @@
 package com.tecnico.sec.hds.server.db.rules;
 
 import com.tecnico.sec.hds.server.db.commands.AccountQueries;
-import com.tecnico.sec.hds.server.db.commands.DBException;
+import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.commands.TransferQueries;
 
-import static com.tecnico.sec.hds.server.db.commands.QueryHelpers.withTransaction;
+import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withTransaction;
 
 public class SendAmountRules {
 

@@ -1,4 +1,6 @@
-package com.tecnico.sec.hds.server.db.commands;
+package com.tecnico.sec.hds.server.db.commands.util;
+
+import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

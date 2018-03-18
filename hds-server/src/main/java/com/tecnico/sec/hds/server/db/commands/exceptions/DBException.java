@@ -1,4 +1,4 @@
-package com.tecnico.sec.hds.server.db.commands;
+package com.tecnico.sec.hds.server.db.commands.exceptions;
 
 public class DBException extends Exception {
   public DBException(String message, Throwable cause) {
