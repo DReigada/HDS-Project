@@ -28,7 +28,6 @@ public class CryptoTests {
     assertTrue(valid);
   }
 
-
   @Property
   public void signatureShouldBeInvalidIfMessageIsChanged(String message) throws Exception {
     String changedMessage = message + "changed";
