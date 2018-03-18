@@ -12,7 +12,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeThat;
 
 @RunWith(JUnitQuickcheck.class)
-public class CryptoTests {
+public class CryptoAgentTest {
   private static CryptoAgent agent;
 
   @BeforeClass
