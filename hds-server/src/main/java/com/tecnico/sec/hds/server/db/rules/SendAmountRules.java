@@ -2,7 +2,7 @@ package com.tecnico.sec.hds.server.db.rules;
 
 import com.tecnico.sec.hds.server.db.commands.AccountQueries;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
-import com.tecnico.sec.hds.server.db.commands.TransferQueries;
+import com.tecnico.sec.hds.server.db.commands.TransactionQueries;
 
 import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withTransaction;
 
@@ -13,15 +13,15 @@ public class SendAmountRules {
     return withTransaction( conn -> {
 
       AccountQueries accountQueries = new AccountQueries(conn);
-      TransferQueries transferQueries = new TransferQueries(conn);
+      TransactionQueries transferQueries = new TransactionQueries(conn);
 
       float sourceBalance = accountQueries.getBalance(sourceKey);
 
-      if (amount <= sourceBalance){
+      if (amount >= sourceBalance  && amount > 0){
         int accountUpdated = accountQueries.updateAccount(sourceKey, sourceBalance - amount);
-        int insertTransfer = transferQueries.insertNewTransfer(sourceKey, destKey, amount);
+        int insertTransaction = transferQueries.insertNewTransaction(sourceKey, destKey, amount);
 
-        if ((accountUpdated == 1) && (insertTransfer == 1)){
+        if ((accountUpdated == 1) && (insertTransaction == 1)){
           return 1;
         }
       }

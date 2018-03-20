@@ -1,6 +1,5 @@
 CREATE TABLE IF NOT EXISTS accounts (
   publicKey VARCHAR PRIMARY KEY,
-  counter   INTEGER,
   balance   FLOAT
 );
 
