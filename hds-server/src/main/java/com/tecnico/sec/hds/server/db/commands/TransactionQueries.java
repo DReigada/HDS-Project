@@ -112,8 +112,9 @@ public class TransactionQueries {
     return stmt;
   }
 
-  public int insertNewTransaction(String sourceKey, String destKey, float amount) throws DBException {
-    try (PreparedStatement stmt = createInsertTransactionStatment(sourceKey, destKey, amount)) {
+  public int insertNewTransaction(String sourceKey, String destKey, float amount,
+                                  boolean pending, String signature, String hash) throws DBException {
+    try (PreparedStatement stmt = createInsertTransactionStatment(sourceKey, destKey, amount, pending, signature, hash)) {
 
       return stmt.executeUpdate();
 
@@ -123,12 +124,16 @@ public class TransactionQueries {
     }
   }
 
-  public PreparedStatement createInsertTransactionStatment(String sourcekey, String destKey, float amount) throws SQLException {
-    String insert = "INSERT INTO transactions(sourceKey, destKey, amount, pending) VALUES (?, ?, ?, true)";
+  public PreparedStatement createInsertTransactionStatment(String sourcekey, String destKey, float amount,
+                                                           boolean pending, String signature, String hash) throws SQLException {
+    String insert = "INSERT INTO transactions(sourceKey, destKey, amount, pending, signature, hash) VALUES (?, ?, ?, ?, ?, ?)";
     PreparedStatement stmt = conn.prepareStatement(insert);
     stmt.setString(1, sourcekey);
     stmt.setString(2, destKey);
     stmt.setFloat(3, amount);
+    stmt.setBoolean(4, pending);
+    stmt.setString(5, signature);
+    stmt.setString(6, hash);
     return stmt;
   }
 

@@ -8,18 +8,18 @@ import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withTrans
 
 public class ReceiveAmountRules {
 
-  public int receiveAmount(int transID, String publicKey) throws DBException {
+  public int receiveAmount(int transID, String sourceKey, String destKey, String signature, String hash) throws DBException {
     return withTransaction(conn -> {
 
       AccountQueries accountQueries = new AccountQueries(conn);
       TransactionQueries transferQueries = new TransactionQueries(conn);
 
-      float balance = accountQueries.getBalance(publicKey);
-      float amount = transferQueries.getTransAmount(transID, publicKey);
+      float balance = accountQueries.getBalance(destKey);
+      float amount = transferQueries.getTransAmount(transID, destKey);
 
 
-      int updateTrasnfer = transferQueries.updateTransaction(transID);
-      int updateAccount = accountQueries.updateAccount(publicKey, balance + amount);
+      int updateTrasnfer = transferQueries.insertNewTransaction(sourceKey, destKey, amount,false, signature, hash);
+      int updateAccount = accountQueries.updateAccount(destKey, balance + amount);
 
       if ((updateTrasnfer == 1) && (updateAccount == 1)) {
         return 1;

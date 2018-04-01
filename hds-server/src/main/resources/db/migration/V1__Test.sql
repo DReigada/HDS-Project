@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS transactions (
   destKey   VARCHAR,
   amount    FLOAT,
   pending   BOOL,
+  signature VARCHAR,
+  hash      VARCHAR,
   FOREIGN KEY (sourceKey) REFERENCES accounts (publicKey),
   FOREIGN KEY (destKey) REFERENCES accounts (publicKey)
 );
