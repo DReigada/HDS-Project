@@ -21,13 +21,14 @@ public class AccountQueries {
 
       if (rs.next()) {
         return rs.getFloat(1);
+      } else {
+        throw new DBException("failed");
       }
 
     } catch (SQLException e) {
       e.printStackTrace();
       throw new DBException("some error", e);
     }
-    return -1;
   }
 
   public PreparedStatement createBalanceQuery(String publicKey) throws SQLException {

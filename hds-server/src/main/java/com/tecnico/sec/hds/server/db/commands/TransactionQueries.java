@@ -1,7 +1,7 @@
 package com.tecnico.sec.hds.server.db.commands;
 
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
-import com.tecnico.sec.hds.server.domain.Transfer;
+import com.tecnico.sec.hds.server.domain.Transaction;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,21 +10,21 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TransferQueries {
+public class TransactionQueries {
 
   private Connection conn;
 
-  public TransferQueries(Connection conn) {
+  public TransactionQueries(Connection conn) {
     this.conn = conn;
   }
 
-  public List<Transfer> getHistory(String publicKey) throws DBException {
-    List<Transfer> history = new ArrayList<>();
-    try (PreparedStatement stmt = createTransfersQuery(publicKey);
+  public List<Transaction> getHistory(String publicKey) throws DBException {
+    List<Transaction> history = new ArrayList<>();
+    try (PreparedStatement stmt = createTransactionsQuery(publicKey);
          ResultSet rs = stmt.executeQuery()) {
 
       while (rs.next()) {
-        history.add(new Transfer(rs.getInt(1), rs.getString(2), rs.getString(3),
+        history.add(new Transaction(rs.getInt(1), rs.getString(2), rs.getString(3),
           rs.getFloat(4), rs.getBoolean(5)));
       }
 
@@ -35,20 +35,20 @@ public class TransferQueries {
     return history;
   }
 
-  public PreparedStatement createTransfersQuery(String publicKey) throws SQLException {
-    String query = "SELECT * FROM transfers WHERE destKey = ?";
+  public PreparedStatement createTransactionsQuery(String publicKey) throws SQLException {
+    String query = "SELECT * FROM transactions WHERE destKey = ?";
     PreparedStatement stmt = conn.prepareStatement(query);
     stmt.setString(1, publicKey);
     return stmt;
   }
 
-  public List<Transfer> getPendingTransfers(String publicKey) throws DBException {
-    List<Transfer> pendingTransfers = new ArrayList<>();
+  public List<Transaction> getPendingTransactions(String publicKey) throws DBException {
+    List<Transaction> pendingTransactions = new ArrayList<>();
     try (PreparedStatement stmt = createPendingTransQuery(publicKey);
          ResultSet rs = stmt.executeQuery()) {
 
       while (rs.next()) {
-        pendingTransfers.add(new Transfer(rs.getInt(1), rs.getString(2), rs.getString(3),
+        pendingTransactions.add(new Transaction(rs.getInt(1), rs.getString(2), rs.getString(3),
           rs.getFloat(4), rs.getBoolean(5)));
       }
 
@@ -57,35 +57,35 @@ public class TransferQueries {
       e.printStackTrace();
       throw new DBException("some error", e);
     }
-    return pendingTransfers;
+    return pendingTransactions;
   }
 
   public PreparedStatement createPendingTransQuery(String publicKey) throws SQLException {
-    String query = "SELECT * FROM transfers WHERE destKey = ? AND pendint = true";
+    String query = "SELECT * FROM transactions WHERE destKey = ? AND pendint = true";
     PreparedStatement stmt = conn.prepareStatement(query);
     stmt.setString(1, publicKey);
     return stmt;
   }
 
   public float getTransAmount(int transID, String publicKey) throws DBException {
-    float amount = 0;
     try (PreparedStatement stmt = createPendingTransQuery(transID, publicKey);
          ResultSet rs = stmt.executeQuery()) {
 
       if (rs.next()) {
-        amount = rs.getFloat(1);
+        return rs.getFloat(1);
+      } else {
+        throw new DBException("failed");
       }
 
     } catch (SQLException e) {
       e.printStackTrace();
       throw new DBException("some error", e); // TODO change error message
     }
-    return amount;
   }
 
 
   private PreparedStatement createPendingTransQuery(int transID, String publicKey) throws SQLException {
-    String query = "SELECT amount FROM transfers WHERE transID = ? AND destKey = ? AND pendint = true";
+    String query = "SELECT amount FROM transactions WHERE transID = ? AND destKey = ? AND pendint = true";
     PreparedStatement stmt = conn.prepareStatement(query);
     stmt.setInt(1, transID);
     stmt.setString(2, publicKey);
@@ -93,8 +93,8 @@ public class TransferQueries {
   }
 
 
-  public int updateTransfer(int transID) throws DBException {
-    try (PreparedStatement stmt = createUpdateTransfer(transID)) {
+  public int updateTransaction(int transID) throws DBException {
+    try (PreparedStatement stmt = createUpdateTransaction(transID)) {
 
       return stmt.executeUpdate();
 
@@ -105,15 +105,15 @@ public class TransferQueries {
   }
 
 
-  private PreparedStatement createUpdateTransfer(int transID) throws SQLException {
-    String update = "UPDATE transfers SET pending = false WHERE transID = ?";
+  private PreparedStatement createUpdateTransaction(int transID) throws SQLException {
+    String update = "UPDATE transactions SET pending = false WHERE transID = ?";
     PreparedStatement stmt = conn.prepareStatement(update);
     stmt.setInt(1, transID);
     return stmt;
   }
 
-  public int insertNewTransfer(String sourceKey, String destKey, float amount) throws DBException {
-    try (PreparedStatement stmt = createInsertTransferStatment(sourceKey, destKey, amount)) {
+  public int insertNewTransaction(String sourceKey, String destKey, float amount) throws DBException {
+    try (PreparedStatement stmt = createInsertTransactionStatment(sourceKey, destKey, amount)) {
 
       return stmt.executeUpdate();
 
@@ -123,8 +123,8 @@ public class TransferQueries {
     }
   }
 
-  public PreparedStatement createInsertTransferStatment(String sourcekey, String destKey, float amount) throws SQLException {
-    String insert = "INSERT INTO transfers(sourceKey, destKey, amount, pending) VALUES (?, ?, ?, true)";
+  public PreparedStatement createInsertTransactionStatment(String sourcekey, String destKey, float amount) throws SQLException {
+    String insert = "INSERT INTO transactions(sourceKey, destKey, amount, pending) VALUES (?, ?, ?, true)";
     PreparedStatement stmt = conn.prepareStatement(insert);
     stmt.setString(1, sourcekey);
     stmt.setString(2, destKey);
