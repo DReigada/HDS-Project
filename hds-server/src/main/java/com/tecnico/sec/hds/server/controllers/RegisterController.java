@@ -46,12 +46,13 @@ public class RegisterController implements RegisterApi {
     try {
       cryptoAgent.verifySignature(key,signature);
       registerRules.register(key);
-      response.addBlaItem("Registration Completed:").addBlaItem(key);
+      response.addMessageItem("Registration Completed:").addMessageItem(key);
     } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-      response.addBlaItem("Registration Fail: Invalid Keys");
+      response.addMessageItem("Registration Fail: Invalid Keys");
     } catch (DBException e) {
-      response.addBlaItem("Registration Fail: Invalid Database, Try Later");
+      response.addMessageItem("Registration Fail: Invalid Database, Try Later");
     }
+
 
     return new ResponseEntity<>(response, HttpStatus.OK);
   }

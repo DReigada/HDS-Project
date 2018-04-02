@@ -20,7 +20,7 @@ public class RegisterCommand extends AbstractCommand {
     request.signature(sign);
 
     RegisterResponse response = client.server.register(request);
-    System.out.println(response.getBla());
+    System.out.println(response.getMessage());
   }
 
   @Override

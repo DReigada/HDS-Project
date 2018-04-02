@@ -48,7 +48,7 @@ paths:
         200:
           description: "successful operation"
           schema:
-            type: integer
+            $ref: "#/definitions/CheckAmountResponse"
         400:
           description: "Invalid Key"
 
@@ -106,10 +106,18 @@ definitions:
   RegisterResponse:
     type: object
     properties:
-      bla:
+      message:
         type: array
         items:
           type: string
+
+  CheckAmountResponse:
+      type: object
+      properties:
+        message:
+          type: array
+          items:
+            type: string
 
   SendAmountRequest:
     type: object
