@@ -1,21 +1,21 @@
 package com.tecnico.sec.hds.server.db.rules;
 
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
-import com.tecnico.sec.hds.server.domain.Transfer;
+import com.tecnico.sec.hds.server.domain.Transaction;
 
 import java.util.List;
 
-import com.tecnico.sec.hds.server.db.commands.TransferQueries;
+import com.tecnico.sec.hds.server.db.commands.TransactionQueries;
 
 import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withConnection;
 
 
 public class AuditRules {
 
-  public List<Transfer> audit(String publicKey) throws DBException {
+  public List<Transaction> audit(String publicKey) throws DBException {
     return withConnection(conn -> {
 
-      TransferQueries transferQueriesQueries = new TransferQueries(conn);
+      TransactionQueries transferQueriesQueries = new TransactionQueries(conn);
 
       return transferQueriesQueries.getHistory(publicKey);
 

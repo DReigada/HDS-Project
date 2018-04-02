@@ -9,8 +9,8 @@ import java.util.Base64;
 
 public class CryptoAgent {
     private String username;
-    PublicKey publicKey;
-    PrivateKey privateKey;
+    private PublicKey publicKey;
+    private PrivateKey privateKey;
 
     public CryptoAgent(String username) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
         this.username = username;
@@ -64,7 +64,7 @@ public class CryptoAgent {
     }
 
     public boolean verifySignature(String message, String signature) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-        byte[] msg = Base64.getDecoder().decode(message);
+        byte[] msg = message.getBytes();
         Signature ecForVerify = Signature.getInstance("SHA1withECDSA");
         ecForVerify.initVerify(publicKey);
         byte[] sign = Base64.getDecoder().decode(signature);
@@ -76,7 +76,7 @@ public class CryptoAgent {
         return convertByteArrToString(publicKey.getEncoded());
     }
 
-    public String convertByteArrToString(byte[] bytes){
+    private String convertByteArrToString(byte[] bytes){
         return Base64.getEncoder().encodeToString(bytes);
     }
 

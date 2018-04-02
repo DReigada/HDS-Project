@@ -2,8 +2,8 @@ package com.tecnico.sec.hds.server.db.rules;
 
 import com.tecnico.sec.hds.server.db.commands.AccountQueries;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
-import com.tecnico.sec.hds.server.db.commands.TransferQueries;
-import com.tecnico.sec.hds.server.domain.Transfer;
+import com.tecnico.sec.hds.server.db.commands.TransactionQueries;
+import com.tecnico.sec.hds.server.domain.Transaction;
 
 import java.util.List;
 
@@ -21,11 +21,11 @@ public class CheckAmountRules {
     });
   }
 
-  public List<Transfer> getPendingTransfers(String publicKey) throws DBException {
+  public List<Transaction> getPendingTransactions(String publicKey) throws DBException {
     return withConnection(conn -> {
-      TransferQueries transferQueries = new TransferQueries(conn);
+      TransactionQueries transferQueries = new TransactionQueries(conn);
 
-      return transferQueries.getPendingTransfers(publicKey);
+      return transferQueries.getPendingTransactions(publicKey);
     });
   }
 }

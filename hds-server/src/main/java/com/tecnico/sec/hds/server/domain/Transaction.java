@@ -1,6 +1,6 @@
 package com.tecnico.sec.hds.server.domain;
 
-public class Transfer {
+public class Transaction {
 
   private int transID;
 
@@ -12,7 +12,7 @@ public class Transfer {
 
   private boolean pending;
 
-  public Transfer(int transID, String sourceKey, String destKey, float amount, boolean pending){
+  public Transaction(int transID, String sourceKey, String destKey, float amount, boolean pending){
     this.transID = transID;
     this.sourceKey = sourceKey;
     this.destKey = destKey;
