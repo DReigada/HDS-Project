@@ -22,7 +22,7 @@ public class AccountQueries {
       if (rs.next()) {
         return rs.getFloat(1);
       } else {
-        throw new DBException("failed");
+        throw new DBException("Account not found!"); // TODO maybe return optional?
       }
 
     } catch (SQLException e) {
@@ -71,7 +71,7 @@ public class AccountQueries {
 
 
   public PreparedStatement createInsertAccount(String publicKey) throws SQLException {
-    String sql = "INSERT INTO accounts(publicKey, counter, balance) VALUES(?, 1, 1000) ";
+    String sql = "INSERT INTO accounts(publicKey, balance) VALUES(?, 1000) ";
     PreparedStatement stmt = conn.prepareStatement(sql);
     stmt.setString(1, publicKey);
     return stmt;

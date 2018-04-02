@@ -12,12 +12,18 @@ public class Transaction {
 
   private boolean pending;
 
-  public Transaction(int transID, String sourceKey, String destKey, float amount, boolean pending){
+  private String signature;
+
+  private String hash;
+
+  public Transaction(int transID, String sourceKey, String destKey, float amount, boolean pending, String signature, String hash) {
     this.transID = transID;
     this.sourceKey = sourceKey;
     this.destKey = destKey;
     this.amount = amount;
     this.pending = pending;
+    this.signature = signature;
+    this.hash = hash;
   }
 
   public int getTransID() {
@@ -38,5 +44,13 @@ public class Transaction {
 
   public boolean isPending() {
     return pending;
+  }
+
+  public String getHash() {
+    return hash;
+  }
+
+  public String getSignature() {
+    return signature;
   }
 }

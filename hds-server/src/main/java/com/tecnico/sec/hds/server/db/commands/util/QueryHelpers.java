@@ -18,6 +18,9 @@ public class QueryHelpers {
       } catch (SQLException e) {
         conn.rollback();
         throw new DBException(e.getMessage(), e);
+      } catch (Exception e) {
+        conn.rollback();
+        throw e;
       }
     } catch (SQLException e) {
       e.printStackTrace();
