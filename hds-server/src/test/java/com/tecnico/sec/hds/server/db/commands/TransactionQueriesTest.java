@@ -44,7 +44,7 @@ public class TransactionQueriesTest {
       Optional<Transaction> trans = queries.getLastInsertedTransaction();
 
       assertTrue(trans.isPresent());
-      assertTransaction(trans.get(), acc1, acc2, 2, false, true, "s", "h");
+      assertTransaction(trans.get(), acc1, acc2, 1, false, true, "s", "h");
 
       return null;
     });
@@ -58,7 +58,7 @@ public class TransactionQueriesTest {
       String acc1 = createRandomAccount();
       String acc2 = createRandomAccount();
 
-      queries.insertNewTransaction(acc1, acc2, 1.1f, false, true, "s", "h");
+      queries.insertNewTransaction(acc1, acc2, 2, false, true, "s", "h");
       Optional<Transaction> trans = queries.getLastInsertedTransaction();
       assertTrue(trans.isPresent());
 
