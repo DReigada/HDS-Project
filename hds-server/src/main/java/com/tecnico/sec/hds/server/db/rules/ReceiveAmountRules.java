@@ -20,9 +20,7 @@ public class ReceiveAmountRules {
 
       Optional<Transaction> transaction = transferQueries.getTransactionByHash(transHash);
 
-      // TODO check if transaction was not accepted already
-
-      if (transaction.isPresent()) {
+      if (transaction.isPresent() && transaction.get().pending) {
         float amount = transaction.get().amount;
         String sourceKey = transaction.get().sourceKey;
         String destKey = transaction.get().destKey;

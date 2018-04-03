@@ -1,5 +1,7 @@
 package com.tecnico.sec.hds.server.rules;
 
+import com.tecnico.sec.hds.server.db.commands.AccountQueries;
+import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.commands.util.Migrations;
 import com.tecnico.sec.hds.server.db.rules.ReceiveAmountRules;
 import com.tecnico.sec.hds.server.db.rules.SendAmountRules;
@@ -11,8 +13,7 @@ import org.junit.Test;
 import java.util.Optional;
 
 import static com.tecnico.sec.hds.server.util.TestHelper.createRandomAccount;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ReceiveAmountTest {
   @BeforeClass
@@ -77,4 +78,24 @@ public class ReceiveAmountTest {
     assertEquals(hash1, sendAmountTrans.hash);
     assertEquals(hash2, receiveAmountTrans.hash);
   }
+
+  @Test
+  public void shouldNotAcceptTheSameTransactionMoreThanOnce() throws DBException {
+    SendAmountRules sendAmountRules = new SendAmountRules();
+    ReceiveAmountRules receiveAmountRules = new ReceiveAmountRules();
+
+    String destAcc = createRandomAccount();
+
+    Optional<Transaction> sendAmountTransOpt = sendAmountRules.sendAmount(createRandomAccount(), destAcc, 1, "a");
+
+    assertTrue(sendAmountTransOpt.isPresent());
+    Transaction sendAmountTrans = sendAmountTransOpt.get();
+
+    Optional<Transaction> receiveAmountTransOpt1 = receiveAmountRules.receiveAmount(sendAmountTrans.hash, "b");
+    Optional<Transaction> receiveAmountTransOpt2 = receiveAmountRules.receiveAmount(sendAmountTrans.hash, "b");
+
+    assertTrue(receiveAmountTransOpt1.isPresent());
+    assertFalse(receiveAmountTransOpt2.isPresent());
+  }
+
 }
