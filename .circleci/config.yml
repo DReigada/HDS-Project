@@ -30,6 +30,8 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
 
+      - run: mvn -DskipTests install
+
       - run: mvn dependency:go-offline
 
       - save_cache:
@@ -37,7 +39,6 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
 
-      - run: mvn compile
       # run tests!
       - run: mvn integration-test
 
