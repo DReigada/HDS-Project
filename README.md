@@ -17,5 +17,5 @@ HDS Coin - the best cryptocurrency ever created
 
 ### SUPER OPTIONAL TODO 
 1. Actualizar Intellij
+1. Linux Dual Boot
 1. Trocar para keystore
-
