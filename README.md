@@ -4,6 +4,7 @@ HDS Coin - the best cryptocurrency ever created
 ## TODO
 1. Fazer TODO
 1. Alterar Amount para inteiros - DR
+1. Remover getBalance de Account Table
 1. Verificar Assinaturas do lado do cliente e do servidor
 1. SendAmount Ligaçao - DC
 1. ReceiveAmount Ligaçao - DC
