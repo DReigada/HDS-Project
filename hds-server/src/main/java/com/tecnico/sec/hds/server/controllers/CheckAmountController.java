@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 import java.io.IOException;
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 
 /**
@@ -32,7 +30,7 @@ public class CheckAmountController implements CheckAmountApi {
     }
 
     @Override
-    public ResponseEntity<CheckAmountResponse> checkAmount(@ApiParam(required = true) @RequestBody @Valid CheckAmountRequest body) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    public ResponseEntity<CheckAmountResponse> checkAmount(@ApiParam(required = true) @RequestBody @Valid CheckAmountRequest body) {
         String publicKey = body.getPublicKey().getValue();
 
         CheckAmountResponse checkAmountResponse = new CheckAmountResponse();
@@ -44,7 +42,7 @@ public class CheckAmountController implements CheckAmountApi {
             response = "Invalid Public Key!";
         }
 
-        cryptoAgent.generateSignature(response);
+        //cryptoAgent.generateSignature(response);
         checkAmountResponse.addMessageItem(response);
 
         return new ResponseEntity<>(HttpStatus.OK);

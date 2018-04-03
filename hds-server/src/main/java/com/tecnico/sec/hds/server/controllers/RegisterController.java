@@ -35,25 +35,30 @@ public class RegisterController implements RegisterApi {
   }
 
   @Override
-  public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest body) {
+  public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest body){
     String key = body.getPublicKey().getValue();
     String signature = body.getSignature().getValue();
     log.info("Public key: " + key);
     log.info("1n Signature: " + signature);
 
     RegisterResponse response =  new RegisterResponse();
+    String message = "";
 
     try {
       cryptoAgent.verifySignature(key,signature);
       registerRules.register(key);
-      response.addMessageItem("Registration Completed:").addMessageItem(key);
-    } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-      response.addMessageItem("Registration Fail: Invalid Keys");
-    } catch (DBException e) {
-      response.addMessageItem("Registration Fail: Invalid Database, Try Later");
+      message = "Registration Completed:" + key;
+    } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | DBException e) {
+      message = "Registration Fail: Try Later";
     }
 
+    try {
+      message = cryptoAgent.generateSignature(message);
+    } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+      e.printStackTrace();
+    }
 
+    response.addMessageItem(message);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }
