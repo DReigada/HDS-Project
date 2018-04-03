@@ -4,6 +4,7 @@ import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.domain.Transaction;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.tecnico.sec.hds.server.db.commands.TransactionQueries;
 
@@ -17,7 +18,7 @@ public class AuditRules {
 
       TransactionQueries transferQueriesQueries = new TransactionQueries(conn);
 
-      return transferQueriesQueries.getHistory(publicKey);
+      return transferQueriesQueries.getHistory(publicKey, Optional.empty());
 
     });
   }

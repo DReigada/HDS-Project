@@ -2,41 +2,31 @@ package com.tecnico.sec.hds.server.domain;
 
 public class Transaction {
 
-  private int transID;
+  public final int transID;
 
-  private String sourceKey;
+  public final String sourceKey;
 
-  private String destKey;
+  public final String destKey;
 
-  private float amount;
+  public final long amount;
 
-  private boolean pending;
+  public final boolean pending;
 
-  public Transaction(int transID, String sourceKey, String destKey, float amount, boolean pending){
+  public final boolean receive;
+
+  public final String signature;
+
+  public final String hash;
+
+  public Transaction(int transID, String sourceKey, String destKey, long amount, boolean pending, boolean receive, String signature, String hash) {
     this.transID = transID;
     this.sourceKey = sourceKey;
     this.destKey = destKey;
     this.amount = amount;
     this.pending = pending;
+    this.receive = receive;
+    this.signature = signature;
+    this.hash = hash;
   }
 
-  public int getTransID() {
-    return transID;
-  }
-
-  public String getSourceKey() {
-    return sourceKey;
-  }
-
-  public String getDestKey() {
-    return destKey;
-  }
-
-  public float getAmount() {
-    return amount;
-  }
-
-  public boolean isPending() {
-    return pending;
-  }
 }

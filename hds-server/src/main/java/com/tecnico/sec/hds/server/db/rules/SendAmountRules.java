@@ -1,33 +1,44 @@
 package com.tecnico.sec.hds.server.db.rules;
 
 import com.tecnico.sec.hds.server.db.commands.AccountQueries;
-import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.commands.TransactionQueries;
+import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
+import com.tecnico.sec.hds.server.domain.Transaction;
+import com.tecnico.sec.hds.util.crypto.ChainHelper;
+
+import java.util.Optional;
 
 import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withTransaction;
 
 public class SendAmountRules {
 
-  public int sendAmount(String sourceKey, String destKey, float amount) throws DBException {
-
-    return withTransaction( conn -> {
+  public Optional<Transaction> sendAmount(String sourceKey, String destKey, long amount, String signature) throws DBException {
+    return withTransaction(conn -> {
 
       AccountQueries accountQueries = new AccountQueries(conn);
       TransactionQueries transferQueries = new TransactionQueries(conn);
 
-      float sourceBalance = accountQueries.getBalance(sourceKey);
+      Optional<Transaction> sourceLastTransfer = transferQueries.getLastTransaction(sourceKey);
+      Optional<String> sourceLastTransferHash = sourceLastTransfer.map(t -> t.hash);
 
-      if (amount >= sourceBalance  && amount > 0){
-        int accountUpdated = accountQueries.updateAccount(sourceKey, sourceBalance - amount);
-        int insertTransaction = transferQueries.insertNewTransaction(sourceKey, destKey, amount);
+      String newHash = new ChainHelper().generateTransactionHash(
+          sourceLastTransferHash,
+          sourceKey,
+          destKey,
+          amount,
+          ChainHelper.TransactionType.SEND_AMOUNT,
+          signature);
 
-        if ((accountUpdated == 1) && (insertTransaction == 1)){
-          return 1;
-        }
+      long sourceBalance = accountQueries.getBalance(sourceKey);
+
+      if (amount <= sourceBalance && amount > 0) {
+        accountQueries.updateAccount(sourceKey, sourceBalance - amount);
+        transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, false, signature, newHash);
+
+        return transferQueries.getLastInsertedTransaction();
       }
 
-      return 0;
-
+      return Optional.empty();
     });
 
   }
