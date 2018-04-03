@@ -28,7 +28,7 @@ public class ReceiveAmountRules {
         String destKey = transaction.get().destKey;
 
         Optional<Transaction> destLastTransfer = transferQueries.getLastTransaction(destKey);
-        Optional<String> destLastTransferHash = destLastTransfer.map(Transaction::getHash);
+        Optional<String> destLastTransferHash = destLastTransfer.map(t -> t.hash);
 
         String newHash = new ChainHelper().generateTransactionHash(
             destLastTransferHash,

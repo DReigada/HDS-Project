@@ -38,14 +38,14 @@ public class SendAmountTest {
     Transaction t1 = t1opt.get();
     Transaction t2 = t2opt.get();
 
-    String hash1 = new ChainHelper().generateTransactionHash(Optional.empty(), t1.getSourceKey(), t1.getDestKey(),
-        t1.getAmount(), ChainHelper.TransactionType.SEND_AMOUNT, t1.getSignature());
+    String hash1 = new ChainHelper().generateTransactionHash(Optional.empty(), t1.sourceKey, t1.destKey,
+        t1.amount, ChainHelper.TransactionType.SEND_AMOUNT, t1.signature);
 
-    String hash2 = new ChainHelper().generateTransactionHash(Optional.empty(), t2.getSourceKey(), t2.getDestKey(),
-        t2.getAmount(), ChainHelper.TransactionType.SEND_AMOUNT, t2.getSignature());
+    String hash2 = new ChainHelper().generateTransactionHash(Optional.empty(), t2.sourceKey, t2.destKey,
+        t2.amount, ChainHelper.TransactionType.SEND_AMOUNT, t2.signature);
 
-    assertEquals(hash1, t1.getHash());
-    assertEquals(hash2, t2.getHash());
+    assertEquals(hash1, t1.hash);
+    assertEquals(hash2, t2.hash);
   }
 
   @Test
@@ -63,14 +63,14 @@ public class SendAmountTest {
     Transaction t1 = t1opt.get();
     Transaction t2 = t2opt.get();
 
-    String hash1 = new ChainHelper().generateTransactionHash(Optional.empty(), t1.getSourceKey(), t1.getDestKey(),
-        t1.getAmount(), ChainHelper.TransactionType.SEND_AMOUNT, t1.getSignature());
+    String hash1 = new ChainHelper().generateTransactionHash(Optional.empty(), t1.sourceKey, t1.destKey,
+        t1.amount, ChainHelper.TransactionType.SEND_AMOUNT, t1.signature);
 
-    String hash2 = new ChainHelper().generateTransactionHash(Optional.of(t1.getHash()), t2.getSourceKey(), t2.getDestKey(),
-        t2.getAmount(), ChainHelper.TransactionType.SEND_AMOUNT, t2.getSignature());
+    String hash2 = new ChainHelper().generateTransactionHash(Optional.of(t1.hash), t2.sourceKey, t2.destKey,
+        t2.amount, ChainHelper.TransactionType.SEND_AMOUNT, t2.signature);
 
-    assertEquals(hash1, t1.getHash());
-    assertEquals(hash2, t2.getHash());
+    assertEquals(hash1, t1.hash);
+    assertEquals(hash2, t2.hash);
   }
 
 }

@@ -17,12 +17,12 @@ import static org.junit.Assert.assertTrue;
 public class TransactionQueriesTest {
   private static void assertTransaction(Transaction trans, String sourceKey, String destKey, float amount,
                                         boolean isReceive, String signature, String hash) {
-    assertEquals(trans.getSourceKey(), sourceKey);
-    assertEquals(trans.getDestKey(), destKey);
-    assertEquals(trans.getAmount(), amount, 0);
-    assertEquals(trans.isPending(), isReceive);
-    assertEquals(trans.getSignature(), signature);
-    assertEquals(trans.getHash(), hash);
+    assertEquals(trans.sourceKey, sourceKey);
+    assertEquals(trans.destKey, destKey);
+    assertEquals(trans.amount, amount, 0);
+    assertEquals(trans.pending, isReceive);
+    assertEquals(trans.signature, signature);
+    assertEquals(trans.hash, hash);
   }
 
   @BeforeClass

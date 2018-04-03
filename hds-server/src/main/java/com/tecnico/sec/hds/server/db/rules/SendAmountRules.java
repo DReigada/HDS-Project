@@ -19,7 +19,7 @@ public class SendAmountRules {
       TransactionQueries transferQueries = new TransactionQueries(conn);
 
       Optional<Transaction> sourceLastTransfer = transferQueries.getLastTransaction(sourceKey);
-      Optional<String> sourceLastTransferHash = sourceLastTransfer.map(Transaction::getHash);
+      Optional<String> sourceLastTransferHash = sourceLastTransfer.map(t -> t.hash);
 
       String newHash = new ChainHelper().generateTransactionHash(
           sourceLastTransferHash,

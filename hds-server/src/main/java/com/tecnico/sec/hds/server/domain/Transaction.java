@@ -26,31 +26,4 @@ public class Transaction {
     this.hash = hash;
   }
 
-  public int getTransID() {
-    return transID;
-  }
-
-  public String getSourceKey() {
-    return sourceKey;
-  }
-
-  public String getDestKey() {
-    return destKey;
-  }
-
-  public float getAmount() {
-    return amount;
-  }
-
-  public boolean isPending() {
-    return pending;
-  }
-
-  public String getHash() {
-    return hash;
-  }
-
-  public String getSignature() {
-    return signature;
-  }
 }
