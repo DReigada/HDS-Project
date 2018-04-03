@@ -12,7 +12,7 @@ import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withTrans
 
 public class SendAmountRules {
 
-  public Optional<Transaction> sendAmount(String sourceKey, String destKey, float amount, String signature) throws DBException {
+  public Optional<Transaction> sendAmount(String sourceKey, String destKey, long amount, String signature) throws DBException {
     return withTransaction(conn -> {
 
       AccountQueries accountQueries = new AccountQueries(conn);
@@ -29,7 +29,7 @@ public class SendAmountRules {
           ChainHelper.TransactionType.SEND_AMOUNT,
           signature);
 
-      float sourceBalance = accountQueries.getBalance(sourceKey);
+      long sourceBalance = accountQueries.getBalance(sourceKey);
 
       if (amount <= sourceBalance && amount > 0) {
         accountQueries.updateAccount(sourceKey, sourceBalance - amount);

@@ -8,7 +8,7 @@ public class Transaction {
 
   public final String destKey;
 
-  public final float amount;
+  public final long amount;
 
   public final boolean pending;
 
@@ -18,7 +18,7 @@ public class Transaction {
 
   public final String hash;
 
-  public Transaction(int transID, String sourceKey, String destKey, float amount, boolean pending, boolean receive, String signature, String hash) {
+  public Transaction(int transID, String sourceKey, String destKey, long amount, boolean pending, boolean receive, String signature, String hash) {
     this.transID = transID;
     this.sourceKey = sourceKey;
     this.destKey = destKey;

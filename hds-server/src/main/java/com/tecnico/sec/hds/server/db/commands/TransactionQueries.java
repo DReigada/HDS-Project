@@ -88,12 +88,12 @@ public class TransactionQueries {
     return stmt;
   }
 
-  public float getTransAmount(int transID, String publicKey) throws DBException {
+  public long getTransAmount(int transID, String publicKey) throws DBException {
     try (PreparedStatement stmt = createPendingTransQuery(transID, publicKey);
          ResultSet rs = stmt.executeQuery()) {
 
       if (rs.next()) {
-        return rs.getFloat(1);
+        return rs.getLong(1);
       } else {
         throw new DBException("failed");
       }
@@ -134,7 +134,7 @@ public class TransactionQueries {
     return stmt;
   }
 
-  public int insertNewTransaction(String sourceKey, String destKey, float amount,
+  public int insertNewTransaction(String sourceKey, String destKey, long amount,
                                   boolean pending, boolean isReceive, String signature, String hash) throws DBException {
     try (PreparedStatement stmt = createInsertTransactionStatment(sourceKey, destKey, amount, pending, isReceive, signature, hash)) {
 
@@ -146,13 +146,13 @@ public class TransactionQueries {
     }
   }
 
-  public PreparedStatement createInsertTransactionStatment(String sourcekey, String destKey, float amount, boolean pending,
+  public PreparedStatement createInsertTransactionStatment(String sourcekey, String destKey, long amount, boolean pending,
                                                            boolean isReceive, String signature, String hash) throws SQLException {
     String insert = "INSERT INTO transactions(sourceKey, destKey, amount, pending, receive, signature, hash) VALUES (?, ?, ?, ?, ?, ?, ?)";
     PreparedStatement stmt = conn.prepareStatement(insert);
     stmt.setString(1, sourcekey);
     stmt.setString(2, destKey);
-    stmt.setFloat(3, amount);
+    stmt.setLong(3, amount);
     stmt.setBoolean(4, pending);
     stmt.setBoolean(5, isReceive);
     stmt.setString(6, signature);
@@ -228,7 +228,7 @@ public class TransactionQueries {
 
   private Transaction createTransactionFromResultSet(ResultSet rs) throws SQLException {
     return new Transaction(rs.getInt(1), rs.getString(2), rs.getString(3),
-        rs.getFloat(4), rs.getBoolean(5), rs.getBoolean(6), rs.getString(7), rs.getString(8));
+        rs.getLong(4), rs.getBoolean(5), rs.getBoolean(6), rs.getString(7), rs.getString(8));
   }
 
 }

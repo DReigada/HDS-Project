@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TransactionQueriesTest {
-  private static void assertTransaction(Transaction trans, String sourceKey, String destKey, float amount,
+  private static void assertTransaction(Transaction trans, String sourceKey, String destKey, long amount,
                                         boolean pending, boolean isReceive, String signature, String hash) {
     assertEquals(trans.sourceKey, sourceKey);
     assertEquals(trans.destKey, destKey);
@@ -40,11 +40,11 @@ public class TransactionQueriesTest {
       String acc1 = createRandomAccount();
       String acc2 = createRandomAccount();
 
-      queries.insertNewTransaction(acc1, acc2, 1.1f, false, true, "s", "h");
+      queries.insertNewTransaction(acc1, acc2, 1, false, true, "s", "h");
       Optional<Transaction> trans = queries.getLastInsertedTransaction();
 
       assertTrue(trans.isPresent());
-      assertTransaction(trans.get(), acc1, acc2, 1.1f, false, true, "s", "h");
+      assertTransaction(trans.get(), acc1, acc2, 2, false, true, "s", "h");
 
       return null;
     });
