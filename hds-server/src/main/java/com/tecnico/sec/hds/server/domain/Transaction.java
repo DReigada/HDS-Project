@@ -2,19 +2,19 @@ package com.tecnico.sec.hds.server.domain;
 
 public class Transaction {
 
-  private int transID;
+  public final int transID;
 
-  private String sourceKey;
+  public final String sourceKey;
 
-  private String destKey;
+  public final String destKey;
 
-  private float amount;
+  public final float amount;
 
-  private boolean pending;
+  public final boolean pending;
 
-  private String signature;
+  public final String signature;
 
-  private String hash;
+  public final String hash;
 
   public Transaction(int transID, String sourceKey, String destKey, float amount, boolean pending, String signature, String hash) {
     this.transID = transID;

@@ -32,8 +32,8 @@ public class SendAmountRules {
       float sourceBalance = accountQueries.getBalance(sourceKey);
 
       if (amount <= sourceBalance && amount > 0) {
-        int accountUpdated = accountQueries.updateAccount(sourceKey, sourceBalance - amount);
-        int insertTransaction = transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, signature, newHash);
+        accountQueries.updateAccount(sourceKey, sourceBalance - amount);
+        transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, signature, newHash);
 
         return transferQueries.getLastInsertedTransaction();
       }

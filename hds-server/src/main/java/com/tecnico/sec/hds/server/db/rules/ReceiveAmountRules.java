@@ -1,30 +1,53 @@
 package com.tecnico.sec.hds.server.db.rules;
 
 import com.tecnico.sec.hds.server.db.commands.AccountQueries;
-import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.commands.TransactionQueries;
+import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
+import com.tecnico.sec.hds.server.domain.Transaction;
+import com.tecnico.sec.hds.util.crypto.ChainHelper;
+
+import java.util.Optional;
 
 import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withTransaction;
 
 public class ReceiveAmountRules {
 
-  public int receiveAmount(int transID, String sourceKey, String destKey, String signature, String hash) throws DBException {
+  public Optional<Transaction> receiveAmount(String transHash, String signature) throws DBException {
     return withTransaction(conn -> {
 
       AccountQueries accountQueries = new AccountQueries(conn);
       TransactionQueries transferQueries = new TransactionQueries(conn);
 
-      float balance = accountQueries.getBalance(destKey);
-      float amount = transferQueries.getTransAmount(transID, destKey);
+      Optional<Transaction> transaction = transferQueries.getTransactionByHash(transHash);
 
+      // TODO check if transaction was not accepted already
 
-      int updateTrasnfer = transferQueries.insertNewTransaction(sourceKey, destKey, amount,false, signature, hash);
-      int updateAccount = accountQueries.updateAccount(destKey, balance + amount);
+      if (transaction.isPresent()) {
+        float amount = transaction.get().amount;
+        String sourceKey = transaction.get().sourceKey;
+        String destKey = transaction.get().destKey;
 
-      if ((updateTrasnfer == 1) && (updateAccount == 1)) {
-        return 1;
+        Optional<Transaction> destLastTransfer = transferQueries.getLastTransaction(destKey);
+        Optional<String> destLastTransferHash = destLastTransfer.map(Transaction::getHash);
+
+        String newHash = new ChainHelper().generateTransactionHash(
+            destLastTransferHash,
+            sourceKey,
+            destKey,
+            amount,
+            ChainHelper.TransactionType.ACCEPT,
+            signature);
+
+        float balance = accountQueries.getBalance(destKey);
+
+        transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, signature, newHash);
+        accountQueries.updateAccount(destKey, balance + amount);
+
+        return transferQueries.getLastInsertedTransaction();
+
+      } else {
+        return Optional.empty();
       }
-      return 0;
     });
   }
 

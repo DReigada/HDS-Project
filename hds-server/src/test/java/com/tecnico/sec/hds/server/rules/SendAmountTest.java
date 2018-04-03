@@ -13,10 +13,11 @@ import org.junit.Test;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.tecnico.sec.hds.server.util.TestHelper.createRandomAccount;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class ChainTest {
+public class SendAmountTest {
 
   @BeforeClass
   public static void beforeClass() {
@@ -72,18 +73,4 @@ public class ChainTest {
     assertEquals(hash2, t2.getHash());
   }
 
-
-  private String createRandomAccount() throws DBException {
-    return QueryHelpers.withConnection(conn -> {
-      AccountQueries acc = new AccountQueries(conn);
-      String key = randomPublicKey();
-      acc.register(key);
-      return key;
-    });
-  }
-
-  // TODO change this for valid key
-  private String randomPublicKey() {
-    return UUID.randomUUID().toString();
-  }
 }
