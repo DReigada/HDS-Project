@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import java.util.Optional;
 
+import static com.tecnico.sec.hds.server.util.TestHelper.createRandomAccount;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -35,11 +36,14 @@ public class TransactionQueriesTest {
     QueryHelpers.withConnection(conn -> {
       TransactionQueries queries = new TransactionQueries(conn);
 
-      queries.insertNewTransaction("a", "b", 1.1f, true, "s", "h");
+      String acc1 = createRandomAccount();
+      String acc2 = createRandomAccount();
+
+      queries.insertNewTransaction(acc1, acc2, 1.1f, true, "s", "h");
       Optional<Transaction> trans = queries.getLastInsertedTransaction();
 
       assertTrue(trans.isPresent());
-      assertTransaction(trans.get(), "a", "b", 1.1f, true, "s", "h");
+      assertTransaction(trans.get(), acc1, acc2, 1.1f, true, "s", "h");
 
       return null;
     });

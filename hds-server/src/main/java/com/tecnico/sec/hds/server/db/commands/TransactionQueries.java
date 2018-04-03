@@ -219,7 +219,7 @@ public class TransactionQueries {
     String query =
         "SELECT transID, sourceKey, destKey, amount, receive, signature, hash" +
             " FROM transactions" +
-            " WHERE transID = (SELECT last_insert_rowid())";
+            " WHERE transID = (SELECT LAST_INSERT_ID())";
 
     return conn.prepareStatement(query);
   }

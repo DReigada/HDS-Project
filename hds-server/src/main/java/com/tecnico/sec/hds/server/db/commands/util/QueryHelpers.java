@@ -38,7 +38,7 @@ public class QueryHelpers {
   }
 
   private static Connection connection() throws SQLException {
-    String url = "jdbc:sqlite:HDSDB.db";
+    String url = "jdbc:h2:./HDSDB";
     return DriverManager.getConnection(url);
   }
 

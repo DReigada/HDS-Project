@@ -9,7 +9,7 @@ public class Migrations {
 
   public static void migrate() {
     Flyway flyway = new Flyway();
-    flyway.setDataSource("jdbc:sqlite:HDSDB.db", "", "");
+    flyway.setDataSource("jdbc:h2:./HDSDB", "", "");
     logger.info("Executing migrations");
     flyway.migrate();
   }
