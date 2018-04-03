@@ -40,7 +40,8 @@ public class ReceiveAmountRules {
 
         float balance = accountQueries.getBalance(destKey);
 
-        transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, signature, newHash);
+        transferQueries.updateTransactionPendingState(transHash, false);
+        transferQueries.insertNewTransaction(sourceKey, destKey, amount, false, true, signature, newHash);
         accountQueries.updateAccount(destKey, balance + amount);
 
         return transferQueries.getLastInsertedTransaction();

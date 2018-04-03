@@ -17,11 +17,12 @@ import static org.junit.Assert.assertTrue;
 
 public class TransactionQueriesTest {
   private static void assertTransaction(Transaction trans, String sourceKey, String destKey, float amount,
-                                        boolean isReceive, String signature, String hash) {
+                                        boolean pending, boolean isReceive, String signature, String hash) {
     assertEquals(trans.sourceKey, sourceKey);
     assertEquals(trans.destKey, destKey);
     assertEquals(trans.amount, amount, 0);
-    assertEquals(trans.pending, isReceive);
+    assertEquals(trans.pending, pending);
+    assertEquals(trans.receive, isReceive);
     assertEquals(trans.signature, signature);
     assertEquals(trans.hash, hash);
   }
@@ -39,11 +40,35 @@ public class TransactionQueriesTest {
       String acc1 = createRandomAccount();
       String acc2 = createRandomAccount();
 
-      queries.insertNewTransaction(acc1, acc2, 1.1f, true, "s", "h");
+      queries.insertNewTransaction(acc1, acc2, 1.1f, false, true, "s", "h");
       Optional<Transaction> trans = queries.getLastInsertedTransaction();
 
       assertTrue(trans.isPresent());
-      assertTransaction(trans.get(), acc1, acc2, 1.1f, true, "s", "h");
+      assertTransaction(trans.get(), acc1, acc2, 1.1f, false, true, "s", "h");
+
+      return null;
+    });
+  }
+
+  @Test
+  public void shouldUpdateTransactionPendingState() throws DBException {
+    QueryHelpers.withConnection(conn -> {
+      TransactionQueries queries = new TransactionQueries(conn);
+
+      String acc1 = createRandomAccount();
+      String acc2 = createRandomAccount();
+
+      queries.insertNewTransaction(acc1, acc2, 1.1f, false, true, "s", "h");
+      Optional<Transaction> trans = queries.getLastInsertedTransaction();
+      assertTrue(trans.isPresent());
+
+
+      queries.updateTransactionPendingState(trans.get().hash, true);
+
+      Optional<Transaction> updatedTrans = queries.getTransactionByHash(trans.get().hash);
+      assertTrue(updatedTrans.isPresent());
+
+      assertTrue(updatedTrans.get().pending);
 
       return null;
     });
