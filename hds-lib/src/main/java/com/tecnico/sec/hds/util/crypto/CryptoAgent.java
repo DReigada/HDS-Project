@@ -41,7 +41,7 @@ public class CryptoAgent {
     private void LoadKeys() throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
         BufferedReader out;
         try {
-            getPublicKey(username);
+            publicKey = getPublicKey(username);
 
             out = new BufferedReader(new FileReader(username + "PrivateKey.txt"));
             String key = out.readLine();
@@ -96,7 +96,8 @@ public class CryptoAgent {
         KeyFactory  keyFactory = KeyFactory.getInstance("EC");
         byte[] keyBytes = Base64.getDecoder().decode(key);
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+        PublicKey publicKey = keyFactory.generatePublic(keySpec);
         out.close();
-        return keyFactory.generatePublic(keySpec);
+        return publicKey;
     }
 }
