@@ -49,7 +49,7 @@ public class TransactionQueries {
     String bla = limit.map(integer -> " LIMIT " + integer).orElse("");
     String query =
         "SELECT * FROM transactions" +
-            " WHERE (sourceKey = ? AND receive) OR (destKey = ? AND NOT receive)" +
+            " WHERE (sourceKey = ? AND NOT receive) OR (destKey = ? AND receive)" +
             " ORDER BY transID DESC " + bla;
     PreparedStatement stmt = conn.prepareStatement(query);
     stmt.setString(1, publicKey);
