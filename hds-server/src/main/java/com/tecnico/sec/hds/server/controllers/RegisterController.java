@@ -58,7 +58,7 @@ public class RegisterController implements RegisterApi {
       e.printStackTrace();
     }
 
-    response.addMessageItem(message);
+    response.message(message);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

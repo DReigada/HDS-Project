@@ -107,17 +107,17 @@ definitions:
     type: object
     properties:
       message:
-        type: array
-        items:
-          type: string
+        type: string
+      signature:
+        $ref: "#/definitions/Signature"
 
   CheckAmountResponse:
       type: object
       properties:
         message:
-          type: array
-          items:
-            type: string
+          type: string
+        signature:
+          $ref: "#/definitions/Signature"
 
   SendAmountRequest:
     type: object

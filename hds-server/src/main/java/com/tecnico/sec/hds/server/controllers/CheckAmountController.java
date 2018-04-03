@@ -43,7 +43,7 @@ public class CheckAmountController implements CheckAmountApi {
         }
 
         //cryptoAgent.generateSignature(response);
-        checkAmountResponse.addMessageItem(response);
+        checkAmountResponse.message(response);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
