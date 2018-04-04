@@ -27,7 +27,7 @@ public class ReceiveAmountTest {
     SendAmountRules sendAmountRules = new SendAmountRules();
     ReceiveAmountRules receiveAmountRules = new ReceiveAmountRules();
 
-    Optional<Transaction> sendAmountTransOpt = sendAmountRules.sendAmount(createRandomAccount(), createRandomAccount(), 1, "a");
+    Optional<Transaction> sendAmountTransOpt = sendAmountRules.sendAmount(createRandomAccount(), createRandomAccount(), 1, "a", "");
 
     assertTrue(sendAmountTransOpt.isPresent());
     Transaction sendAmountTrans = sendAmountTransOpt.get();
@@ -55,10 +55,10 @@ public class ReceiveAmountTest {
 
     String destAcc = createRandomAccount();
 
-    Optional<Transaction> previousTransOpt = sendAmountRules.sendAmount(destAcc, createRandomAccount(), 1, "a");
+    Optional<Transaction> previousTransOpt = sendAmountRules.sendAmount(destAcc, createRandomAccount(), 1, "a", "");
     assertTrue(previousTransOpt.isPresent());
 
-    Optional<Transaction> sendAmountTransOpt = sendAmountRules.sendAmount(createRandomAccount(), destAcc, 1, "a");
+    Optional<Transaction> sendAmountTransOpt = sendAmountRules.sendAmount(createRandomAccount(), destAcc, 1, "a", "");
 
     assertTrue(sendAmountTransOpt.isPresent());
     Transaction sendAmountTrans = sendAmountTransOpt.get();
@@ -86,7 +86,7 @@ public class ReceiveAmountTest {
 
     String destAcc = createRandomAccount();
 
-    Optional<Transaction> sendAmountTransOpt = sendAmountRules.sendAmount(createRandomAccount(), destAcc, 1, "a");
+    Optional<Transaction> sendAmountTransOpt = sendAmountRules.sendAmount(createRandomAccount(), destAcc, 1, "a", "");
 
     assertTrue(sendAmountTransOpt.isPresent());
     Transaction sendAmountTrans = sendAmountTransOpt.get();
