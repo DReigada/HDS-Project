@@ -45,6 +45,10 @@ public class CryptoAgentTest {
     String signature = agent.generateSignature(message1);
     Boolean valid = agent.verifySignature(message2, signature);
 
+    if(valid){
+      System.out.println(message1);
+      System.out.println(message2);
+    }
     assertFalse(valid);
   }
 }
