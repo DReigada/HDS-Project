@@ -23,7 +23,7 @@ public class CryptoAgentTest {
   @Property
   public void signatureShouldBeValid(String message) throws Exception {
     String signature = agent.generateSignature(message);
-    Boolean valid = agent.verifySignature(message, signature);
+    Boolean valid = agent.verifyClientSignature(message, signature);
 
     assertTrue(valid);
   }
@@ -33,7 +33,7 @@ public class CryptoAgentTest {
     String changedMessage = message + "changed";
 
     String signature = agent.generateSignature(message);
-    Boolean valid = agent.verifySignature(changedMessage, signature);
+    Boolean valid = agent.verifyClientSignature(changedMessage, signature);
 
     assertFalse(valid);
   }
@@ -43,7 +43,7 @@ public class CryptoAgentTest {
     assumeThat(message1, not(equalTo(message2)));
 
     String signature = agent.generateSignature(message1);
-    Boolean valid = agent.verifySignature(message2, signature);
+    Boolean valid = agent.verifyClientSignature(message2, signature);
 
     assertFalse(valid);
   }
