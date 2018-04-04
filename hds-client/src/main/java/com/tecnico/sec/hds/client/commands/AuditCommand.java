@@ -16,6 +16,8 @@ public class AuditCommand extends AbstractCommand {
 
     AuditResponse auditResponse = client.server.audit(auditRequest);
 
+    //client.cryptoAgent.verifyBankSignature(auditReq)
+
     for(TransactionInformation transactionInformation : auditResponse.getList()){
 
     }
