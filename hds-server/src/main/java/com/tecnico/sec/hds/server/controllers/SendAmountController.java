@@ -55,7 +55,7 @@ public class SendAmountController implements SendAmountApi {
 
     try {
       if (cryptoAgent.verifySignature(sourceKey + destKey + String.valueOf(amount)
-        + lastHash, clientSignature)) {
+        + lastHash, clientSignature, sourceKey)) {
         Optional<Transaction> result = sendAmount(sourceKey, destKey, amount, lastHash, clientSignature);
         if (result.isPresent()) {
           newHash.setValue(result.get().hash);
@@ -72,7 +72,7 @@ public class SendAmountController implements SendAmountApi {
       response.setMessage(message);
       response.setSignature(signature);
 
-    } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
+    } catch (IOException | NoSuchAlgorithmException | SignatureException | InvalidKeyException | InvalidKeySpecException e) {
       e.printStackTrace();
     }
 
