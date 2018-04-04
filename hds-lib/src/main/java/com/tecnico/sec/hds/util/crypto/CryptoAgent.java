@@ -63,13 +63,8 @@ public class CryptoAgent {
         return convertByteArrToString(ecForSign.sign());
     }
 
-    public boolean verifySignature(String message, String signature) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-        byte[] msg = message.getBytes();
-        Signature ecForVerify = Signature.getInstance("SHA1withECDSA");
-        ecForVerify.initVerify(publicKey);
-        byte[] sign = Base64.getDecoder().decode(signature);
-        ecForVerify.update(msg);
-        return ecForVerify.verify(sign);
+    public boolean verifyClientSignature(String message, String signature) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        return verifySignature(message, signature, publicKey);
     }
 
     public String getPublicKey(){
@@ -82,9 +77,13 @@ public class CryptoAgent {
 
     public boolean verifyBankSignature(String message, String signature) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException {
         PublicKey bankPubKey = getPublicKey("bank");
+        return verifySignature(message, signature, bankPubKey);
+    }
+
+    private boolean verifySignature(String message, String signature, PublicKey publicKey) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
         byte[] msg = message.getBytes();
         Signature ecForVerify = Signature.getInstance("SHA1withECDSA");
-        ecForVerify.initVerify(bankPubKey);
+        ecForVerify.initVerify(publicKey);
         byte[] sign = Base64.getDecoder().decode(signature);
         ecForVerify.update(msg);
         return ecForVerify.verify(sign);
