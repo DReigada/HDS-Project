@@ -52,7 +52,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     Signature signature = new Signature();
 
     try {
-      if (cryptoAgent.verifyClientSignature(publicKey + transHash, clientSignature)) {
+      if (cryptoAgent.verifySignature(publicKey + transHash, clientSignature)) {
         Optional<Transaction> result = receiveAmount(transHash, clientSignature);
         if (result.isPresent()) {  
           newHash.setValue(result.get().hash);
