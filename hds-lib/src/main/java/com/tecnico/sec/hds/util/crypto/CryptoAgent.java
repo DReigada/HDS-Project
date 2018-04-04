@@ -80,14 +80,14 @@ public class CryptoAgent {
         return Base64.getEncoder().encodeToString(bytes);
     }
 
-    public String getBankPublicKey(){
-        try {
-            return convertByteArrToString(getPublicKey("bank").getEncoded());
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            e.printStackTrace();
-        }
-
-        return "";
+    public boolean verifyBankSignature(String message, String signature) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException {
+        PublicKey bankPubKey = getPublicKey("bank");
+        byte[] msg = message.getBytes();
+        Signature ecForVerify = Signature.getInstance("SHA1withECDSA");
+        ecForVerify.initVerify(bankPubKey);
+        byte[] sign = Base64.getDecoder().decode(signature);
+        ecForVerify.update(msg);
+        return ecForVerify.verify(sign);
     }
 
     private PublicKey getPublicKey(String username) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
