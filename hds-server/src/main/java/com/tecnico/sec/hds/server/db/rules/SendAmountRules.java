@@ -12,7 +12,7 @@ import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withTrans
 
 public class SendAmountRules {
 
-  public Optional<Transaction> sendAmount(String sourceKey, String destKey, float amount, String signature) throws DBException {
+  public Optional<Transaction> sendAmount(String sourceKey, String destKey, float amount, String signature, String lastHash) throws DBException {
     return withTransaction(conn -> {
 
       AccountQueries accountQueries = new AccountQueries(conn);
