@@ -29,8 +29,8 @@ public class SendAmountTest {
   public void hashesShouldBeValidForIndependentTransactions() throws Exception {
     SendAmountRules rules = new SendAmountRules();
 
-    Optional<Transaction> t1opt = rules.sendAmount(createRandomAccount(), createRandomAccount(), 1, "a");
-    Optional<Transaction> t2opt = rules.sendAmount(createRandomAccount(), createRandomAccount(), 2, "b");
+    Optional<Transaction> t1opt = rules.sendAmount(createRandomAccount(), createRandomAccount(), 1, "a", "");
+    Optional<Transaction> t2opt = rules.sendAmount(createRandomAccount(), createRandomAccount(), 2, "b", "");
 
     assertTrue(t1opt.isPresent());
     assertTrue(t2opt.isPresent());
@@ -54,8 +54,8 @@ public class SendAmountTest {
 
     String account = createRandomAccount();
 
-    Optional<Transaction> t1opt = rules.sendAmount(account, createRandomAccount(), 1, "a");
-    Optional<Transaction> t2opt = rules.sendAmount(account, createRandomAccount(), 2, "b");
+    Optional<Transaction> t1opt = rules.sendAmount(account, createRandomAccount(), 1, "a", "");
+    Optional<Transaction> t2opt = rules.sendAmount(account, createRandomAccount(), 2, "b", "");
 
     assertTrue(t1opt.isPresent());
     assertTrue(t2opt.isPresent());
