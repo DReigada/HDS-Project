@@ -52,7 +52,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     Signature signature = new Signature();
 
     try {
-      if (cryptoAgent.verifyClientSignature(publicKey + transHash, clientSignature)) {
+      if (cryptoAgent.verifySignature(publicKey + transHash, clientSignature, publicKey)) {
         Optional<Transaction> result = receiveAmount(transHash, clientSignature);
         if (result.isPresent()) {  
           newHash.setValue(result.get().hash);
@@ -69,7 +69,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
       response.setMessage(message);
       response.setSignature(signature);
 
-    } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+    } catch (IOException | NoSuchAlgorithmException | SignatureException | InvalidKeyException | InvalidKeySpecException e) {
       e.printStackTrace();
     }
 
