@@ -6,6 +6,13 @@ import io.swagger.client.model.AuditRequest;
 import io.swagger.client.model.AuditResponse;
 import io.swagger.client.model.TransactionInformation;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.List;
+
 public class AuditCommand extends AbstractCommand {
   private static final String name = "audit";
 
@@ -15,8 +22,13 @@ public class AuditCommand extends AbstractCommand {
     auditRequest.publicKey(client.key);
 
     AuditResponse auditResponse = client.server.audit(auditRequest);
+    List<TransactionInformation> history = auditResponse.getList();
 
-    //client.cryptoAgent.verifyBankSignature(auditReq)
+    try {
+      client.cryptoAgent.verifyBankSignature(history.toString() , auditResponse.getSignature().getValue());
+    } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException | InvalidKeyException | SignatureException e) {
+      e.printStackTrace();
+    }
 
     for(TransactionInformation transactionInformation : auditResponse.getList()){
 
