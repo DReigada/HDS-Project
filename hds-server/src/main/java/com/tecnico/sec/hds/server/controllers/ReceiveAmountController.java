@@ -54,7 +54,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     try {
       if (cryptoAgent.verifySignature(publicKey + transHash, clientSignature)) {
         Optional<Transaction> result = receiveAmount(transHash, clientSignature);
-        if (result.isPresent()) {  //FIXME: refactor this
+        if (result.isPresent()) {  
           newHash.setValue(result.get().hash);
           response.setNewHash(newHash);
           message = "Transaction Successful";

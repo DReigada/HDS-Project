@@ -44,7 +44,7 @@ public class SendAmountController implements SendAmountApi {
   public ResponseEntity<SendAmountResponse> sendAmount(@Valid @RequestBody SendAmountRequest body) {
     String sourceKey = body.getSourceKey().getValue();
     String destKey = body.getDestKey().getValue();
-    float amount = body.getAmount().floatValue();//FIXME when we change floats to int
+    long amount = body.getAmount().longValue();
     String clientSignature = body.getSignature().getValue();
     String lastHash = body.getLastHash().getValue();
 
@@ -80,7 +80,7 @@ public class SendAmountController implements SendAmountApi {
   }
 
   public Optional<Transaction> sendAmount(String sourceKey, String destKey,
-                                          float amount, String signature, String lastHash) {
+                                          long amount, String signature, String lastHash) {
     try {
       return sendAmountRules.sendAmount(sourceKey, destKey, amount, signature, lastHash);
     } catch (DBException e) {
