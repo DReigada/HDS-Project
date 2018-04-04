@@ -72,14 +72,14 @@ public class CryptoAgent {
     }
 
     public boolean verifyBankSignature(String message, String signature) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException {
-        PublicKey bankPubKey = getPublicKey("bank");
-        return verifySignature(message, signature, bankPubKey);
+        return verifySignature(message, signature, convertByteArrToString(getPublicKey("bank").getEncoded()));
     }
 
-    public boolean verifySignature(String message, String signature, PublicKey publicKey) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+    public boolean verifySignature(String message, String signature, String publicKey) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, IOException, InvalidKeySpecException {
+        PublicKey key = getPublicKey(publicKey);
         byte[] msg = message.getBytes();
         Signature ecForVerify = Signature.getInstance("SHA1withECDSA");
-        ecForVerify.initVerify(publicKey);
+        ecForVerify.initVerify(key);
         byte[] sign = Base64.getDecoder().decode(signature);
         ecForVerify.update(msg);
         return ecForVerify.verify(sign);
