@@ -88,6 +88,8 @@ paths:
       responses:
         200:
           description: "successful operation"
+          schema:
+            $ref: "#/definitions/AuditResponse"
         400:
           description: "Invalid Key"
 
@@ -110,6 +112,25 @@ definitions:
       value:
         type: string
 
+  TransactionInformation:
+    type: object
+    properties:
+      transID:
+        type: integer
+      sourceKey:
+        type: string
+      destKey:
+        type: string
+      amount:
+        type: string
+      pending:
+        type: boolean
+      receive:
+        type: boolean
+      signature:
+        $ref: "#/definitions/Signature"
+      hash:
+        $ref: "#/definitions/Hash"
 
   RegisterRequest:
     type: object
@@ -190,3 +211,13 @@ definitions:
       properties:
         publicKey:
           $ref: "#/definitions/PubKey"
+
+  AuditResponse:
+    type: object
+    properties:
+      List:
+        type: array
+        items:
+          $ref: "#/definitions/TransactionInformation"
+      Signature:
+        $ref: "#/definitions/Signature"
