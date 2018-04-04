@@ -12,7 +12,7 @@ import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withConne
 
 public class CheckAmountRules {
 
-  public float getBalance(String publicKey) throws DBException {
+  public long getBalance(String publicKey) throws DBException {
     return withConnection(conn -> {
       AccountQueries accountQueries = new AccountQueries(conn);
 

@@ -15,12 +15,12 @@ public class AccountQueries {
     this.conn = conn;
   }
 
-  public float getBalance(String publicKey) throws DBException {
+  public long getBalance(String publicKey) throws DBException {
     try (PreparedStatement stmt = createBalanceQuery(publicKey);
          ResultSet rs = stmt.executeQuery()) {
 
       if (rs.next()) {
-        return rs.getFloat(1);
+        return rs.getLong(1);
       } else {
         throw new DBException("Account not found!"); // TODO maybe return optional?
       }
@@ -38,7 +38,7 @@ public class AccountQueries {
     return stmt;
   }
 
-  public int updateAccount(String publicKey, float balance) throws DBException {
+  public int updateAccount(String publicKey, long balance) throws DBException {
     try (PreparedStatement stmt = createUpdateAccount(publicKey, balance)) {
 
       return stmt.executeUpdate();
@@ -50,10 +50,10 @@ public class AccountQueries {
     }
   }
 
-  public PreparedStatement createUpdateAccount(String publicKey, float balance) throws SQLException {
+  public PreparedStatement createUpdateAccount(String publicKey, long balance) throws SQLException {
     String update = "UPDATE accounts SET balance = ? WHERE publicKey = ?";
     PreparedStatement stmt = conn.prepareStatement(update);
-    stmt.setFloat(1, balance);
+    stmt.setLong(1, balance);
     stmt.setString(2, publicKey);
     return stmt;
   }

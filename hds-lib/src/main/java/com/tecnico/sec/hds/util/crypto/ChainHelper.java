@@ -22,7 +22,7 @@ public class ChainHelper {
   public String generateTransactionHash(Optional<String> previousTransactionHashOpt,
                                         String source,
                                         String dest,
-                                        float amount,
+                                        long amount,
                                         TransactionType transType,
                                         String signature) {
 

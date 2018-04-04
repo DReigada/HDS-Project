@@ -20,10 +20,8 @@ public class ReceiveAmountRules {
 
       Optional<Transaction> transaction = transferQueries.getTransactionByHash(transHash);
 
-      // TODO check if transaction was not accepted already
-
-      if (transaction.isPresent()) {
-        float amount = transaction.get().amount;
+      if (transaction.isPresent() && transaction.get().pending) {
+        long amount = transaction.get().amount;
         String sourceKey = transaction.get().sourceKey;
         String destKey = transaction.get().destKey;
 
@@ -38,9 +36,10 @@ public class ReceiveAmountRules {
             ChainHelper.TransactionType.ACCEPT,
             signature);
 
-        float balance = accountQueries.getBalance(destKey);
+        long balance = accountQueries.getBalance(destKey);
 
-        transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, signature, newHash);
+        transferQueries.updateTransactionPendingState(transHash, false);
+        transferQueries.insertNewTransaction(sourceKey, destKey, amount, false, true, signature, newHash);
         accountQueries.updateAccount(destKey, balance + amount);
 
         return transferQueries.getLastInsertedTransaction();
