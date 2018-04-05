@@ -43,7 +43,7 @@ public class AuditController implements AuditApi{
       StringBuilder transactionListMessage = new StringBuilder();
       for (Transaction transaction : history){
         auditResponse.addListItem(getTransactionInformation(transaction));
-        transactionListMessage.append(getTransactionListMessage(transaction));
+        transactionListMessage.append(getTransactionListMessage(transaction) + "\n");
       }
 
       Signature sign = new Signature().value(cryptoAgent.generateSignature(transactionListMessage.toString()));
@@ -73,14 +73,14 @@ public class AuditController implements AuditApi{
 
   private String getTransactionListMessage(Transaction transaction){
     String transactionListMessage = "";
-    transactionListMessage += transaction.transID + "\n";
-    transactionListMessage += transaction.sourceKey + "\n";
-    transactionListMessage += transaction.destKey + "\n";
-    transactionListMessage += transaction.amount + "\n";
-    transactionListMessage += transaction.pending + "\n";
-    transactionListMessage += transaction.receive + "\n";
-    transactionListMessage += transaction.signature + "\n";
-    transactionListMessage += transaction.hash + "\n";
+    transactionListMessage += "Transaction ID: " + transaction.transID + "\n";
+    transactionListMessage += "Source Key: " + transaction.sourceKey + "\n";
+    transactionListMessage += "Destination Key: " + transaction.destKey + "\n";
+    transactionListMessage +=  "Amount: " + transaction.amount + "\n";
+    transactionListMessage += "Pending: " + transaction.pending + "\n";
+    transactionListMessage += "Received: " + transaction.receive + "\n";
+    transactionListMessage += "Signature: " + transaction.signature + "\n";
+    transactionListMessage += "Hash: " + transaction.hash + "\n";
     return transactionListMessage;
   }
 }
