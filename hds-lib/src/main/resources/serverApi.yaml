@@ -153,6 +153,12 @@ definitions:
       properties:
         message:
           type: string
+        amount:
+          type: string
+        List:
+          type: array
+          items:
+            $ref: "#/definitions/TransactionInformation"
         signature:
           $ref: "#/definitions/Signature"
 

@@ -28,8 +28,14 @@ public class ReceiveAmountCommand extends AbstractCommand {
     signature.setValue(client.cryptoAgent.generateSignature(client.key + hash.getValue()));
 
     ReceiveAmountRequest receiveAmountRequest = new ReceiveAmountRequest();
-    receiveAmountRequest.publicKey(client.key);
+
     receiveAmountRequest.setTransHash(hash);
+
+    receiveAmountRequest.setPublicKey(client.key);
+    //receiveAmountRequest.setTransHash(client);
+
+    //Signature signature = new Signature().value(client.cryptoAgent.generateSignature(message));
+
     receiveAmountRequest.signature(signature);
 
     ReceiveAmountResponse receiveAmountResponse = client.server.receiveAmount(receiveAmountRequest);
