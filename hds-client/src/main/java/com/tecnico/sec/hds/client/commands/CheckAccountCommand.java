@@ -18,6 +18,7 @@ public class CheckAccountCommand extends AbstractCommand {
   @Override
   public void doRun(Client client, String[] args) throws ApiException {
     CheckAmountRequest checkAmountRequest = new CheckAmountRequest().publicKey(client.key);
+
     CheckAmountResponse checkAmountResponse = client.server.checkAmount(checkAmountRequest);
 
     Signature signature = checkAmountResponse.getSignature();
@@ -27,7 +28,7 @@ public class CheckAccountCommand extends AbstractCommand {
       e.printStackTrace();
     }
 
-    System.out.println(checkAmountResponse);
+    System.out.println(checkAmountResponse.getMessage());
   }
 
   @Override

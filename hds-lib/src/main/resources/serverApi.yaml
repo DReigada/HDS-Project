@@ -43,7 +43,7 @@ paths:
           description: "Invalid Key"
 
   /checkAmount:
-    get:
+    post:
       operationId: "check_amount"
       parameters:
       - in: "body"
