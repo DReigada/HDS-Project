@@ -4,6 +4,7 @@ import com.tecnico.sec.hds.client.Client;
 import io.swagger.client.ApiException;
 import io.swagger.client.model.AuditRequest;
 import io.swagger.client.model.AuditResponse;
+import io.swagger.client.model.PubKey;
 import io.swagger.client.model.TransactionInformation;
 
 import java.io.IOException;
@@ -17,19 +18,19 @@ public class AuditCommand extends AbstractCommand {
 
   @Override
   public void doRun(Client client, String[] args) throws ApiException {
-    AuditRequest auditRequest = new AuditRequest();
-    auditRequest.setPublicKey(client.key);
-
+    PubKey key = new PubKey().value(args[0]);
+    AuditRequest auditRequest = new AuditRequest().publicKey(key);
     AuditResponse auditResponse = client.server.audit(auditRequest);
 
     try {
       StringBuilder transactionListMessage = new StringBuilder();
       for(TransactionInformation transactionInformation : auditResponse.getList()){
-        transactionListMessage.append(getTransactionListMessage(transactionInformation));
+        transactionListMessage.append(getTransactionListMessage(transactionInformation) + "\n");
       }
-
-      client.cryptoAgent.verifyBankSignature(transactionListMessage.toString(), auditResponse.getSignature().getValue());
-      System.out.println(transactionListMessage);
+      if(client.cryptoAgent.verifyBankSignature(transactionListMessage.toString(), auditResponse.getSignature().getValue()))
+        System.out.println(transactionListMessage);
+      else
+        System.out.print("Enexpected error from server. \n Try Again Later.");
     } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException | InvalidKeyException | SignatureException e) {
       e.printStackTrace();
     }
@@ -43,14 +44,14 @@ public class AuditCommand extends AbstractCommand {
 
   private String getTransactionListMessage(TransactionInformation transaction){
     String transactionListMessage = "";
-    transactionListMessage += transaction.getTransID() + "\n";
-    transactionListMessage += transaction.getSourceKey() + "\n";
-    transactionListMessage += transaction.getDestKey() + "\n";
-    transactionListMessage += transaction.getAmount() + "\n";
-    transactionListMessage += transaction.isPending() + "\n";
-    transactionListMessage += transaction.isReceive() + "\n";
-    transactionListMessage += transaction.getSignature() + "\n";
-    transactionListMessage += transaction.getHash() + "\n";
+    transactionListMessage += "Transaction ID: " + transaction.getTransID() + "\n";
+    transactionListMessage += "Source Key: " + transaction.getSourceKey() + "\n";
+    transactionListMessage += "Destination Key: " + transaction.getDestKey() + "\n";
+    transactionListMessage += "Amount: " + transaction.getAmount() + "\n";
+    transactionListMessage += "Pending: " + transaction.isPending() + "\n";
+    transactionListMessage += "Received: " + transaction.isReceive() + "\n";
+    transactionListMessage += "Signature: " + transaction.getSignature().getValue() + "\n";
+    transactionListMessage += "Hash: " + transaction.getHash().getValue() + "\n";
     return transactionListMessage;
   }
 }
