@@ -4,6 +4,7 @@ import com.tecnico.sec.hds.client.commands.*;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.client.ApiClient;
 import io.swagger.client.api.DefaultApi;
+import io.swagger.client.model.Hash;
 import io.swagger.client.model.PubKey;
 
 import java.io.IOException;
@@ -20,14 +21,17 @@ public class Client {
   public final CryptoAgent cryptoAgent;
   public final PubKey key;
 
+  private Hash lastHash;
+
   private Map<String, AbstractCommand> commands;
 
   public Client(String username) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
     client = new ApiClient().setBasePath("http://localhost:8080");
     server = new DefaultApi(client);
     cryptoAgent = new CryptoAgent(username);
-
     key = new PubKey().value(cryptoAgent.getStringPublicKey());
+    lastHash = new Hash();
+    lastHash.setValue("");
   }
 
   public Map<String, AbstractCommand> getCommands() {
@@ -38,15 +42,24 @@ public class Client {
   private synchronized void createCommands() {
     if (commands == null) {
       AbstractCommand[] commandsArr = {
-          new AuditCommand(),
-          new CheckAccountCommand(),
-          new ReceiveAmountCommand(),
-          new RegisterCommand(),
-          new SendAmountCommand()
+        new AuditCommand(),
+        new CheckAccountCommand(),
+        new ReceiveAmountCommand(),
+        new RegisterCommand(),
+        new SendAmountCommand()
       };
 
       commands = Arrays.stream(commandsArr)
-          .collect(Collectors.toMap(AbstractCommand::getName, Function.identity()));
+        .collect(Collectors.toMap(AbstractCommand::getName, Function.identity()));
     }
   }
+
+  public void setLastHash(Hash lastHash) {
+    this.lastHash = lastHash;
+  }
+
+  public Hash getLastHash() {
+    return lastHash;
+  }
+
 }
