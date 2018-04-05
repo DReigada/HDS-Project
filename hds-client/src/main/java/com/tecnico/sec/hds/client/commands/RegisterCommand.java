@@ -31,8 +31,6 @@ public class RegisterCommand extends AbstractCommand {
     } catch (IOException | InvalidKeySpecException e) {
       e.printStackTrace();
     }
-
-    System.out.println(response.getMessage());
   }
 
   @Override

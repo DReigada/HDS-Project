@@ -10,7 +10,7 @@ import java.util.List;
 import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withConnection;
 
 
-public class CheckAmountRules {
+public class CheckAccountRules {
 
   public long getBalance(String publicKey) throws DBException {
     return withConnection(conn -> {

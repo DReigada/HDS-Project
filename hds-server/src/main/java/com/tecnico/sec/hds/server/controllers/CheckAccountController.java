@@ -1,12 +1,12 @@
 package com.tecnico.sec.hds.server.controllers;
 
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
-import com.tecnico.sec.hds.server.db.rules.CheckAmountRules;
+import com.tecnico.sec.hds.server.db.rules.CheckAccountRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.annotations.ApiParam;
-import io.swagger.api.CheckAmountApi;
-import io.swagger.model.CheckAmountRequest;
-import io.swagger.model.CheckAmountResponse;
+import io.swagger.api.CheckAccountApi;
+import io.swagger.model.CheckAccountRequest;
+import io.swagger.model.CheckAccountResponse;
 import io.swagger.model.Signature;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,32 +24,32 @@ import java.security.spec.InvalidKeySpecException;
  * Created by jp_s on 3/6/2018.
  */
 @Controller
-public class CheckAmountController implements CheckAmountApi {
+public class CheckAccountController implements CheckAccountApi {
 
     private CryptoAgent cryptoAgent;
-    private CheckAmountRules checkAmountRules;
+    private CheckAccountRules checkAccountRules;
 
-    public CheckAmountController() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+    public CheckAccountController() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
         cryptoAgent = new CryptoAgent("bank");
-        checkAmountRules = new CheckAmountRules();
+        checkAccountRules = new CheckAccountRules();
     }
 
     @Override
-    public ResponseEntity<CheckAmountResponse> checkAmount(@ApiParam(required = true) @RequestBody @Valid CheckAmountRequest body) {
+    public ResponseEntity<CheckAccountResponse> checkAccount(@ApiParam(required = true) @RequestBody @Valid CheckAccountRequest body) {
         String publicKey = body.getPublicKey().getValue();
-        CheckAmountResponse checkAmountResponse = new CheckAmountResponse();
+        CheckAccountResponse checkAccountResponse = new CheckAccountResponse();
         String response = "";
         try {
-            long amount = checkAmountRules.getBalance(publicKey);
+            long amount = checkAccountRules.getBalance(publicKey);
             response = "Public Key: " + publicKey + "\n" + "Balance: " + amount;
             Signature signature = new Signature().value(cryptoAgent.generateSignature(response));
-            checkAmountResponse.setSignature(signature);
+            checkAccountResponse.setSignature(signature);
         } catch (DBException | NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
             e.printStackTrace();
         }
 
-        checkAmountResponse.setMessage(response);
+        checkAccountResponse.setMessage(response);
 
-        return new ResponseEntity<>(checkAmountResponse , HttpStatus.OK);
+        return new ResponseEntity<>(checkAccountResponse , HttpStatus.OK);
     }
 }

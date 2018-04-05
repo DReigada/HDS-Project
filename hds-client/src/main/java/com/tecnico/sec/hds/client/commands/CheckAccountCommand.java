@@ -2,8 +2,8 @@ package com.tecnico.sec.hds.client.commands;
 
 import com.tecnico.sec.hds.client.Client;
 import io.swagger.client.ApiException;
-import io.swagger.client.model.CheckAmountRequest;
-import io.swagger.client.model.CheckAmountResponse;
+import io.swagger.client.model.CheckAccountRequest;
+import io.swagger.client.model.CheckAccountResponse;
 import io.swagger.client.model.Signature;
 
 import java.io.IOException;
@@ -17,9 +17,9 @@ public class CheckAccountCommand extends AbstractCommand {
 
   @Override
   public void doRun(Client client, String[] args) throws ApiException {
-    CheckAmountRequest checkAmountRequest = new CheckAmountRequest().publicKey(client.key);
+    CheckAccountRequest checkAccountRequest = new CheckAccountRequest().publicKey(client.key);
 
-    CheckAmountResponse checkAmountResponse = client.server.checkAmount(checkAmountRequest);
+    CheckAccountResponse checkAmountResponse = client.server.checkAccount(checkAccountRequest);
 
     Signature signature = checkAmountResponse.getSignature();
     try {
