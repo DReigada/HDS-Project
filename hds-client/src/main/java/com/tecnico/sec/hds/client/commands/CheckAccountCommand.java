@@ -1,6 +1,7 @@
 package com.tecnico.sec.hds.client.commands;
 
 import com.tecnico.sec.hds.client.Client;
+import com.tecnico.sec.hds.client.commands.util.TransactionGetter;
 import io.swagger.client.ApiException;
 import io.swagger.client.model.CheckAccountRequest;
 import io.swagger.client.model.CheckAccountResponse;
@@ -18,6 +19,8 @@ public class CheckAccountCommand extends AbstractCommand {
 
   @Override
   public void doRun(Client client, String[] args) throws ApiException {
+    TransactionGetter transactionGetter = new TransactionGetter();
+
     CheckAccountRequest checkAccountRequest = new CheckAccountRequest().publicKey(client.key);
 
     CheckAccountResponse checkAmountResponse = client.server.checkAccount(checkAccountRequest);
@@ -27,7 +30,7 @@ public class CheckAccountCommand extends AbstractCommand {
     try {
 
       for (TransactionInformation transactionInformation : checkAmountResponse.getList()){
-        response.append(getTransactionListMessage(transactionInformation) + "\n");
+        response.append(transactionGetter.getTransactionListMessage(transactionInformation) + "\n");
       }
 
       if(client.cryptoAgent.verifyBankSignature(response.toString() , signature.getValue()))
@@ -42,18 +45,5 @@ public class CheckAccountCommand extends AbstractCommand {
   @Override
   public String getName() {
     return name;
-  }
-
-  private String getTransactionListMessage(TransactionInformation transaction){
-    String transactionListMessage = "";
-    transactionListMessage += "Transaction ID: " + transaction.getTransID() + "\n";
-    transactionListMessage += "Source Key: " + transaction.getSourceKey() + "\n";
-    transactionListMessage += "Destination Key: " + transaction.getDestKey() + "\n";
-    transactionListMessage += "Amount: " + transaction.getAmount() + "\n";
-    transactionListMessage += "Pending: " + transaction.isPending() + "\n";
-    transactionListMessage += "Received: " + transaction.isReceive() + "\n";
-    transactionListMessage += "Signature: " + transaction.getSignature().getValue() + "\n";
-    transactionListMessage += "Hash: " + transaction.getHash().getValue() + "\n";
-    return transactionListMessage;
   }
 }

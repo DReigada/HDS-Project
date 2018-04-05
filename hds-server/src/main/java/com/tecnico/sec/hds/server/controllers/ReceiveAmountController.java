@@ -41,7 +41,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
   }
 
   @Override
-  public ResponseEntity<ReceiveAmountResponse> receiveAmount(@ApiParam(value = "", required = true) @RequestBody @Valid ReceiveAmountRequest body) {
+  public ResponseEntity<ReceiveAmountResponse> receiveAmount(@ApiParam(required = true) @RequestBody @Valid ReceiveAmountRequest body) {
     String publicKey = body.getPublicKey().getValue();
     String transHash = body.getTransHash().getValue();
     String clientSignature = body.getSignature().getValue();
@@ -73,7 +73,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
       e.printStackTrace();
     }
 
-    return new ResponseEntity<>(HttpStatus.OK);
+    return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
   public Optional<Transaction> receiveAmount(String transHash, String signature) {

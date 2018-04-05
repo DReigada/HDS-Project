@@ -16,7 +16,9 @@ public class ReceiveAmountCommand extends AbstractCommand {
   public void doRun(Client client, String[] args) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, ApiException {
     String message = "";
     ReceiveAmountRequest receiveAmountRequest = new ReceiveAmountRequest();
-    receiveAmountRequest.publicKey(client.key);
+    receiveAmountRequest.setPublicKey(client.key);
+    //receiveAmountRequest.setTransHash(client);
+
     Signature signature = new Signature().value(client.cryptoAgent.generateSignature(message));
     receiveAmountRequest.signature(signature);
     client.server.receiveAmount(receiveAmountRequest);

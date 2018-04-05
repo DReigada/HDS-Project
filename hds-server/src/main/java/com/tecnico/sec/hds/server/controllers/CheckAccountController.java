@@ -1,5 +1,6 @@
 package com.tecnico.sec.hds.server.controllers;
 
+import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.CheckAccountRules;
 import com.tecnico.sec.hds.server.domain.Transaction;
@@ -28,10 +29,12 @@ public class CheckAccountController implements CheckAccountApi {
 
     private CryptoAgent cryptoAgent;
     private CheckAccountRules checkAccountRules;
+    private TransactionFormatter transactionFormatter;
 
     public CheckAccountController() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
         cryptoAgent = new CryptoAgent("bank");
         checkAccountRules = new CheckAccountRules();
+        transactionFormatter = new TransactionFormatter();
     }
 
     @Override
@@ -45,8 +48,8 @@ public class CheckAccountController implements CheckAccountApi {
             response = new StringBuilder("Public Key: " + publicKey + "\n" + "Balance: " + amount + "\n");
             List<Transaction> transactionList = checkAccountRules.getPendingTransactions(publicKey);
             for(Transaction transaction : transactionList){
-                checkAccountResponse.addListItem(getTransactionInformation(transaction));
-                response.append(getTransactionListMessage(transaction) + "\n");
+                checkAccountResponse.addListItem(transactionFormatter.getTransactionInformation(transaction));
+                response.append(transactionFormatter.getTransactionListMessage(transaction) + "\n");
             }
 
             Signature signature = new Signature().value(cryptoAgent.generateSignature(response.toString()));
@@ -58,33 +61,5 @@ public class CheckAccountController implements CheckAccountApi {
         checkAccountResponse.setMessage(response.toString());
 
         return new ResponseEntity<>(checkAccountResponse , HttpStatus.OK);
-    }
-
-    private TransactionInformation getTransactionInformation(Transaction transaction){
-        Hash hash = new Hash().value(transaction.hash);
-        Signature signature = new Signature().value(transaction.signature);
-        TransactionInformation transactionInformation = new TransactionInformation();
-        transactionInformation.setTransID(transaction.transID);
-        transactionInformation.setSourceKey(transaction.sourceKey);
-        transactionInformation.setDestKey(transaction.destKey);
-        transactionInformation.setAmount("" + transaction.amount);
-        transactionInformation.setPending(transaction.pending);
-        transactionInformation.setReceive(transaction.receive);
-        transactionInformation.setSignature(signature);
-        transactionInformation.setHash(hash);
-        return transactionInformation;
-    }
-
-    private String getTransactionListMessage(Transaction transaction){
-        String transactionListMessage = "";
-        transactionListMessage += "Transaction ID: " + transaction.transID + "\n";
-        transactionListMessage += "Source Key: " + transaction.sourceKey + "\n";
-        transactionListMessage += "Destination Key: " + transaction.destKey + "\n";
-        transactionListMessage +=  "Amount: " + transaction.amount + "\n";
-        transactionListMessage += "Pending: " + transaction.pending + "\n";
-        transactionListMessage += "Received: " + transaction.receive + "\n";
-        transactionListMessage += "Signature: " + transaction.signature + "\n";
-        transactionListMessage += "Hash: " + transaction.hash + "\n";
-        return transactionListMessage;
     }
 }

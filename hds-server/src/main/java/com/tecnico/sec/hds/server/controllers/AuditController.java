@@ -1,5 +1,6 @@
 package com.tecnico.sec.hds.server.controllers;
 
+import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.AuditRules;
 import com.tecnico.sec.hds.server.domain.Transaction;
@@ -27,11 +28,12 @@ import java.util.List;
 public class AuditController implements AuditApi{
   private AuditRules auditRules;
   private CryptoAgent cryptoAgent;
-
+  private TransactionFormatter transactionFormatter;
 
   public AuditController() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
     cryptoAgent = new CryptoAgent("bank");
     auditRules = new AuditRules();
+    transactionFormatter = new TransactionFormatter();
   }
 
   @Override
@@ -42,8 +44,8 @@ public class AuditController implements AuditApi{
       List<Transaction> history = auditRules.audit(pubKey);
       StringBuilder transactionListMessage = new StringBuilder();
       for (Transaction transaction : history){
-        auditResponse.addListItem(getTransactionInformation(transaction));
-        transactionListMessage.append(getTransactionListMessage(transaction) + "\n");
+        auditResponse.addListItem(transactionFormatter.getTransactionInformation(transaction));
+        transactionListMessage.append(transactionFormatter.getTransactionListMessage(transaction) + "\n");
       }
 
       Signature sign = new Signature().value(cryptoAgent.generateSignature(transactionListMessage.toString()));
@@ -54,33 +56,5 @@ public class AuditController implements AuditApi{
     }
 
     return new ResponseEntity<>(auditResponse, HttpStatus.OK);
-  }
-
-  private TransactionInformation getTransactionInformation(Transaction transaction){
-    Hash hash = new Hash().value(transaction.hash);
-    Signature signature = new Signature().value(transaction.signature);
-    TransactionInformation transactionInformation = new TransactionInformation();
-    transactionInformation.setTransID(transaction.transID);
-    transactionInformation.setSourceKey(transaction.sourceKey);
-    transactionInformation.setDestKey(transaction.destKey);
-    transactionInformation.setAmount("" + transaction.amount);
-    transactionInformation.setPending(transaction.pending);
-    transactionInformation.setReceive(transaction.receive);
-    transactionInformation.setSignature(signature);
-    transactionInformation.setHash(hash);
-    return transactionInformation;
-  }
-
-  private String getTransactionListMessage(Transaction transaction){
-    String transactionListMessage = "";
-    transactionListMessage += "Transaction ID: " + transaction.transID + "\n";
-    transactionListMessage += "Source Key: " + transaction.sourceKey + "\n";
-    transactionListMessage += "Destination Key: " + transaction.destKey + "\n";
-    transactionListMessage +=  "Amount: " + transaction.amount + "\n";
-    transactionListMessage += "Pending: " + transaction.pending + "\n";
-    transactionListMessage += "Received: " + transaction.receive + "\n";
-    transactionListMessage += "Signature: " + transaction.signature + "\n";
-    transactionListMessage += "Hash: " + transaction.hash + "\n";
-    return transactionListMessage;
   }
 }
