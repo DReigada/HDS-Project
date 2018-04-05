@@ -82,7 +82,7 @@ public class TransactionQueries {
   }
 
   public PreparedStatement createPendingTransQuery(String publicKey) throws SQLException {
-    String query = "SELECT * FROM transactions WHERE destKey = ? AND pendint = TRUE";
+    String query = "SELECT * FROM transactions WHERE destKey = ? AND pending = TRUE";
     PreparedStatement stmt = conn.prepareStatement(query);
     stmt.setString(1, publicKey);
     return stmt;

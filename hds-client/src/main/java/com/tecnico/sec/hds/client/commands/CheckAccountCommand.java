@@ -5,6 +5,7 @@ import io.swagger.client.ApiException;
 import io.swagger.client.model.CheckAccountRequest;
 import io.swagger.client.model.CheckAccountResponse;
 import io.swagger.client.model.Signature;
+import io.swagger.client.model.TransactionInformation;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -20,10 +21,16 @@ public class CheckAccountCommand extends AbstractCommand {
     CheckAccountRequest checkAccountRequest = new CheckAccountRequest().publicKey(client.key);
 
     CheckAccountResponse checkAmountResponse = client.server.checkAccount(checkAccountRequest);
-
+    StringBuilder response = new StringBuilder("Public Key: " + client.key.getValue() + "\n" + "Balance: "
+        + checkAmountResponse.getAmount() + "\n");
     Signature signature = checkAmountResponse.getSignature();
     try {
-      if(client.cryptoAgent.verifyBankSignature(checkAmountResponse.getMessage(), signature.getValue()))
+
+      for (TransactionInformation transactionInformation : checkAmountResponse.getList()){
+        response.append(getTransactionListMessage(transactionInformation) + "\n");
+      }
+
+      if(client.cryptoAgent.verifyBankSignature(response.toString() , signature.getValue()))
         System.out.println(checkAmountResponse.getMessage());
       else
         System.out.print("Enexpected error from server. \n Try Again Later.");
@@ -35,5 +42,18 @@ public class CheckAccountCommand extends AbstractCommand {
   @Override
   public String getName() {
     return name;
+  }
+
+  private String getTransactionListMessage(TransactionInformation transaction){
+    String transactionListMessage = "";
+    transactionListMessage += "Transaction ID: " + transaction.getTransID() + "\n";
+    transactionListMessage += "Source Key: " + transaction.getSourceKey() + "\n";
+    transactionListMessage += "Destination Key: " + transaction.getDestKey() + "\n";
+    transactionListMessage += "Amount: " + transaction.getAmount() + "\n";
+    transactionListMessage += "Pending: " + transaction.isPending() + "\n";
+    transactionListMessage += "Received: " + transaction.isReceive() + "\n";
+    transactionListMessage += "Signature: " + transaction.getSignature().getValue() + "\n";
+    transactionListMessage += "Hash: " + transaction.getHash().getValue() + "\n";
+    return transactionListMessage;
   }
 }
