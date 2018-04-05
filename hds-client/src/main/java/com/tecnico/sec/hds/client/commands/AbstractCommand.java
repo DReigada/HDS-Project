@@ -8,6 +8,7 @@ abstract public class AbstractCommand {
       doRun(client, args);
     } catch (Exception e) {
       System.err.println("Failed to run command. Reason: " + e.getMessage());
+      e.printStackTrace();
     }
   }
 

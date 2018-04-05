@@ -60,9 +60,11 @@ public class SendAmountController implements SendAmountApi {
     Signature signature = new Signature();
 
     try {
+      log.info("before: " + clientSignature);
       if (cryptoAgent.verifySignature(sourceKey + destKey + String.valueOf(amount)
         + lastHash, clientSignature, sourceKey)) {
-        Optional<Transaction> result = sendAmount(sourceKey, destKey, amount, lastHash, clientSignature);
+        log.info("after: " + clientSignature);
+        Optional<Transaction> result = sendAmount(sourceKey, destKey, amount, clientSignature, lastHash);
         if (result.isPresent()) {
           newHash.setValue(result.get().hash);
           response.setNewHash(newHash);

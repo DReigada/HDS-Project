@@ -24,8 +24,10 @@ public class AuditCommand extends AbstractCommand {
 
     try {
       StringBuilder transactionListMessage = new StringBuilder();
-      for(TransactionInformation transactionInformation : auditResponse.getList()){
-        transactionListMessage.append(getTransactionListMessage(transactionInformation) + "\n");
+      if(auditResponse.getList() != null){
+        for(TransactionInformation transactionInformation : auditResponse.getList()){
+          transactionListMessage.append(getTransactionListMessage(transactionInformation) + "\n");
+        }
       }
       if(client.cryptoAgent.verifyBankSignature(transactionListMessage.toString(), auditResponse.getSignature().getValue()))
         System.out.println(transactionListMessage);
