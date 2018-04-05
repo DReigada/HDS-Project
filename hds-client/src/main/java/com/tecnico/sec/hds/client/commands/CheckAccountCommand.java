@@ -23,12 +23,13 @@ public class CheckAccountCommand extends AbstractCommand {
 
     Signature signature = checkAmountResponse.getSignature();
     try {
-      client.cryptoAgent.verifyBankSignature(checkAmountResponse.getMessage(), signature.getValue());
+      if(client.cryptoAgent.verifyBankSignature(checkAmountResponse.getMessage(), signature.getValue()))
+        System.out.println(checkAmountResponse.getMessage());
+      else
+        System.out.print("Enexpected error from server. \n Try Again Later.");
     } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException | InvalidKeyException | SignatureException e) {
       e.printStackTrace();
     }
-
-    System.out.println(checkAmountResponse.getMessage());
   }
 
   @Override

@@ -17,9 +17,7 @@ public class AuditCommand extends AbstractCommand {
 
   @Override
   public void doRun(Client client, String[] args) throws ApiException {
-    AuditRequest auditRequest = new AuditRequest();
-    auditRequest.setPublicKey(client.key);
-
+    AuditRequest auditRequest = new AuditRequest().publicKey(client.key);
     AuditResponse auditResponse = client.server.audit(auditRequest);
 
     try {
@@ -28,8 +26,10 @@ public class AuditCommand extends AbstractCommand {
         transactionListMessage.append(getTransactionListMessage(transactionInformation));
       }
 
-      client.cryptoAgent.verifyBankSignature(transactionListMessage.toString(), auditResponse.getSignature().getValue());
-      System.out.println(transactionListMessage);
+      if(client.cryptoAgent.verifyBankSignature(transactionListMessage.toString(), auditResponse.getSignature().getValue()))
+        System.out.println(transactionListMessage);
+      else
+        System.out.print("Enexpected error from server. \n Try Again Later.");
     } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException | InvalidKeyException | SignatureException e) {
       e.printStackTrace();
     }

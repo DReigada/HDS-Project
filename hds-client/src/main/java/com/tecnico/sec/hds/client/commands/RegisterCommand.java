@@ -19,14 +19,15 @@ public class RegisterCommand extends AbstractCommand {
   public void doRun(Client client, String[] args) throws ApiException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
     RegisterRequest request = new RegisterRequest().publicKey(client.key);
     Signature sign = new Signature().value(client.cryptoAgent.generateSignature(client.key.getValue()));
-
     request.setSignature(sign);
-    System.out.println(sign);
     RegisterResponse response = client.server.register(request);
     sign = response.getSignature();
 
     try {
-      client.cryptoAgent.verifyBankSignature(response.getMessage(),sign.getValue());
+      if(client.cryptoAgent.verifyBankSignature(response.getMessage(),sign.getValue()))
+        System.out.println(response.getMessage());
+      else
+        System.out.print("Enexpected error from server. \n Try Again Later.");
     } catch (IOException | InvalidKeySpecException e) {
       e.printStackTrace();
     }

@@ -40,21 +40,20 @@ public class AuditController implements AuditApi{
     AuditResponse auditResponse = new AuditResponse();
     try {
       List<Transaction> history = auditRules.audit(pubKey);
-      Signature sign = new Signature();
       StringBuilder transactionListMessage = new StringBuilder();
       for (Transaction transaction : history){
         auditResponse.addListItem(getTransactionInformation(transaction));
         transactionListMessage.append(getTransactionListMessage(transaction));
       }
 
-      sign.value(cryptoAgent.generateSignature(transactionListMessage.toString()));
+      Signature sign = new Signature().value(cryptoAgent.generateSignature(transactionListMessage.toString()));
       auditResponse.setSignature(sign);
 
     } catch (DBException | NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
       e.printStackTrace();
     }
 
-    return new ResponseEntity<>(HttpStatus.OK);
+    return new ResponseEntity<>(auditResponse, HttpStatus.OK);
   }
 
   private TransactionInformation getTransactionInformation(Transaction transaction){
