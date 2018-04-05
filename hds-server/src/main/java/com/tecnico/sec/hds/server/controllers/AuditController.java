@@ -41,25 +41,13 @@ public class AuditController implements AuditApi{
     try {
       List<Transaction> history = auditRules.audit(pubKey);
       Signature sign = new Signature();
-
+      StringBuilder transactionListMessage = new StringBuilder();
       for (Transaction transaction : history){
-        Hash hash = new Hash();
-        hash.value(transaction.hash);
-        Signature signature = new Signature();
-        signature.value(transaction.signature);
-        TransactionInformation transactionInformation = new TransactionInformation();
-        transactionInformation.setTransID(transaction.transID);
-        transactionInformation.setSourceKey(transaction.sourceKey);
-        transactionInformation.setDestKey(transaction.destKey);
-        transactionInformation.setAmount("" + transaction.amount);
-        transactionInformation.setPending(transaction.pending);
-        transactionInformation.setReceive(transaction.receive);
-        transactionInformation.setSignature(signature);
-        transactionInformation.setHash(hash);
-        auditResponse.addListItem(transactionInformation);
+        auditResponse.addListItem(getTransactionInformation(transaction));
+        transactionListMessage.append(getTransactionListMessage(transaction));
       }
 
-      sign.value(cryptoAgent.generateSignature(auditResponse.getList().toString()));
+      sign.value(cryptoAgent.generateSignature(transactionListMessage.toString()));
       auditResponse.setSignature(sign);
 
     } catch (DBException | NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
@@ -67,5 +55,33 @@ public class AuditController implements AuditApi{
     }
 
     return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  private TransactionInformation getTransactionInformation(Transaction transaction){
+    Hash hash = new Hash().value(transaction.hash);
+    Signature signature = new Signature().value(transaction.signature);
+    TransactionInformation transactionInformation = new TransactionInformation();
+    transactionInformation.setTransID(transaction.transID);
+    transactionInformation.setSourceKey(transaction.sourceKey);
+    transactionInformation.setDestKey(transaction.destKey);
+    transactionInformation.setAmount("" + transaction.amount);
+    transactionInformation.setPending(transaction.pending);
+    transactionInformation.setReceive(transaction.receive);
+    transactionInformation.setSignature(signature);
+    transactionInformation.setHash(hash);
+    return transactionInformation;
+  }
+
+  private String getTransactionListMessage(Transaction transaction){
+    String transactionListMessage = "";
+    transactionListMessage += transaction.transID + "\n";
+    transactionListMessage += transaction.sourceKey + "\n";
+    transactionListMessage += transaction.destKey + "\n";
+    transactionListMessage += transaction.amount + "\n";
+    transactionListMessage += transaction.pending + "\n";
+    transactionListMessage += transaction.receive + "\n";
+    transactionListMessage += transaction.signature + "\n";
+    transactionListMessage += transaction.hash + "\n";
+    return transactionListMessage;
   }
 }

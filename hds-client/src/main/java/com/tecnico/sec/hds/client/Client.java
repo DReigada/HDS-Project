@@ -27,7 +27,7 @@ public class Client {
     server = new DefaultApi(client);
     cryptoAgent = new CryptoAgent(username);
 
-    key = new PubKey().value(cryptoAgent.getPublicKey());
+    key = new PubKey().value(cryptoAgent.getStringPublicKey());
   }
 
   public Map<String, AbstractCommand> getCommands() {

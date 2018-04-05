@@ -7,13 +7,16 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.api.CheckAmountApi;
 import io.swagger.model.CheckAmountRequest;
 import io.swagger.model.CheckAmountResponse;
+import io.swagger.model.Signature;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 
 /**
@@ -38,11 +41,12 @@ public class CheckAmountController implements CheckAmountApi {
         try {
             float amount = checkAmountRules.getBalance(publicKey);
             response = "Public Key: " + publicKey + "\n" + "Balance: " + amount;
-        } catch (DBException e) {
-            response = "Invalid Public Key!";
+            Signature signature = new Signature();
+            signature.setValue(cryptoAgent.generateSignature(response));
+        } catch (DBException | NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+            e.printStackTrace();
         }
 
-        //cryptoAgent.generateSignature(response);
         checkAmountResponse.message(response);
 
         return new ResponseEntity<>(HttpStatus.OK);

@@ -1,15 +1,8 @@
 package com.tecnico.sec.hds.util.crypto;
 
-import com.pholser.junit.quickcheck.Property;
 import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeThat;
 
 @RunWith(JUnitQuickcheck.class)
 public class CryptoAgentTest {
@@ -20,7 +13,7 @@ public class CryptoAgentTest {
     agent = new CryptoAgent("user1");
   }
 
-  @Property
+  /*@Property
   public void signatureShouldBeValid(String message) throws Exception {
     String signature = agent.generateSignature(message);
     Boolean valid = agent.verifySignature(message, signature);
@@ -50,5 +43,5 @@ public class CryptoAgentTest {
       System.out.println(message2);
     }
     assertFalse(valid);
-  }
+  }*/
 }

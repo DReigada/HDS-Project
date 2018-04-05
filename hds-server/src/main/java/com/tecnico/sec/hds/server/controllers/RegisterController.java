@@ -8,6 +8,7 @@ import io.swagger.api.RegisterApi;
 import io.swagger.api.RegisterApiController;
 import io.swagger.model.RegisterRequest;
 import io.swagger.model.RegisterResponse;
+import io.swagger.model.Signature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -38,27 +39,29 @@ public class RegisterController implements RegisterApi {
   public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest body){
     String key = body.getPublicKey().getValue();
     String signature = body.getSignature().getValue();
-    log.info("Public key: " + key);
-    log.info("1n Signature: " + signature);
-
     RegisterResponse response =  new RegisterResponse();
+
     String message = "";
 
     try {
-      cryptoAgent.verifySignature(key,signature);
+      System.out.println(key + "\n" + signature);
+      cryptoAgent.verifySignature(key,signature,key);
       registerRules.register(key);
       message = "Registration Completed:" + key;
-    } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | DBException e) {
+    } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | InvalidKeySpecException | IOException | DBException e1) {
+      e1.printStackTrace();
       message = "Registration Fail: Try Later";
     }
 
     try {
-      message = cryptoAgent.generateSignature(message);
+      signature = cryptoAgent.generateSignature(message);
+      Signature signed = new Signature().value(signature);
+      response.setSignature(signed);
+      response.setMessage(message);
     } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
       e.printStackTrace();
     }
 
-    response.message(message);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

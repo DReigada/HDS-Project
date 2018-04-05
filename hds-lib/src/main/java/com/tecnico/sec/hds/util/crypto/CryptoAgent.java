@@ -29,7 +29,7 @@ public class CryptoAgent {
 
     private void SaveKeys() throws IOException {
         BufferedWriter out = new BufferedWriter(new FileWriter(username + "PublicKey.txt"));
-        out.write(getPublicKey());
+        out.write(getStringPublicKey());
         out.close();
 
         out = new BufferedWriter(new FileWriter(username + "PrivateKey.txt"));
@@ -41,7 +41,7 @@ public class CryptoAgent {
     private void LoadKeys() throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
         BufferedReader out;
         try {
-            publicKey = getPublicKey(username);
+            publicKey = getPublicKeyFromFile(username);
 
             out = new BufferedReader(new FileReader(username + "PrivateKey.txt"));
             String key = out.readLine();
@@ -63,7 +63,7 @@ public class CryptoAgent {
         return convertByteArrToString(ecForSign.sign());
     }
 
-    public String getPublicKey(){
+    public String getStringPublicKey(){
         return convertByteArrToString(publicKey.getEncoded());
     }
 
@@ -72,11 +72,13 @@ public class CryptoAgent {
     }
 
     public boolean verifyBankSignature(String message, String signature) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException {
-        return verifySignature(message, signature, convertByteArrToString(getPublicKey("bank").getEncoded()));
+        PublicKey bankPubKey = getPublicKeyFromFile("bank");
+        String key = convertByteArrToString(bankPubKey.getEncoded());
+        return verifySignature(message, signature,key);
     }
 
     public boolean verifySignature(String message, String signature, String publicKey) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, IOException, InvalidKeySpecException {
-        PublicKey key = getPublicKey(publicKey);
+        PublicKey key = getPublicKeyFromString(publicKey);
         byte[] msg = message.getBytes();
         Signature ecForVerify = Signature.getInstance("SHA1withECDSA");
         ecForVerify.initVerify(key);
@@ -85,14 +87,18 @@ public class CryptoAgent {
         return ecForVerify.verify(sign);
     }
 
-    private PublicKey getPublicKey(String username) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        BufferedReader out = new BufferedReader(new FileReader(username + "PublicKey.txt"));
+    private PublicKey getPublicKeyFromFile(String username) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        BufferedReader out = new BufferedReader(new FileReader( username + "PublicKey.txt"));
         String key = out.readLine();
+        out.close();
+        return getPublicKeyFromString(key);
+    }
+
+    private PublicKey getPublicKeyFromString(String key) throws InvalidKeySpecException, NoSuchAlgorithmException {
         KeyFactory  keyFactory = KeyFactory.getInstance("EC");
         byte[] keyBytes = Base64.getDecoder().decode(key);
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
         PublicKey publicKey = keyFactory.generatePublic(keySpec);
-        out.close();
         return publicKey;
     }
 }

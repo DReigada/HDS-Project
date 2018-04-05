@@ -11,7 +11,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.List;
 
 public class AuditCommand extends AbstractCommand {
   private static final String name = "audit";
@@ -19,24 +18,39 @@ public class AuditCommand extends AbstractCommand {
   @Override
   public void doRun(Client client, String[] args) throws ApiException {
     AuditRequest auditRequest = new AuditRequest();
-    auditRequest.publicKey(client.key);
+    auditRequest.setPublicKey(client.key);
 
     AuditResponse auditResponse = client.server.audit(auditRequest);
-    List<TransactionInformation> history = auditResponse.getList();
 
     try {
-      client.cryptoAgent.verifyBankSignature(history.toString() , auditResponse.getSignature().getValue());
+      StringBuilder transactionListMessage = new StringBuilder();
+      for(TransactionInformation transactionInformation : auditResponse.getList()){
+        transactionListMessage.append(getTransactionListMessage(transactionInformation));
+      }
+
+      client.cryptoAgent.verifyBankSignature(transactionListMessage.toString(), auditResponse.getSignature().getValue());
+      System.out.println(transactionListMessage);
     } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException | InvalidKeyException | SignatureException e) {
       e.printStackTrace();
     }
 
-    for(TransactionInformation transactionInformation : auditResponse.getList()){
-
-    }
   }
 
   @Override
   public String getName() {
     return name;
+  }
+
+  private String getTransactionListMessage(TransactionInformation transaction){
+    String transactionListMessage = "";
+    transactionListMessage += transaction.getTransID() + "\n";
+    transactionListMessage += transaction.getSourceKey() + "\n";
+    transactionListMessage += transaction.getDestKey() + "\n";
+    transactionListMessage += transaction.getAmount() + "\n";
+    transactionListMessage += transaction.isPending() + "\n";
+    transactionListMessage += transaction.isReceive() + "\n";
+    transactionListMessage += transaction.getSignature() + "\n";
+    transactionListMessage += transaction.getHash() + "\n";
+    return transactionListMessage;
   }
 }
