@@ -21,20 +21,16 @@ public class ReceiveAmountCommand extends AbstractCommand {
 
     Hash hash = new Hash();
     hash.setValue(args[0]);
-    System.out.println(hash.getValue());
 
     Signature signature = new Signature();
 
-    signature.setValue(client.cryptoAgent.generateSignature(client.key + hash.getValue()));
+    signature.setValue(client.cryptoAgent.generateSignature(client.key.getValue() + hash.getValue()));
 
     ReceiveAmountRequest receiveAmountRequest = new ReceiveAmountRequest();
 
     receiveAmountRequest.setTransHash(hash);
 
     receiveAmountRequest.setPublicKey(client.key);
-    //receiveAmountRequest.setTransHash(client);
-
-    //Signature signature = new Signature().value(client.cryptoAgent.generateSignature(message));
 
     receiveAmountRequest.signature(signature);
 
@@ -42,7 +38,8 @@ public class ReceiveAmountCommand extends AbstractCommand {
 
     hash = receiveAmountResponse.getNewHash();
 
-    if (client.cryptoAgent.verifyBankSignature(hash.getValue() + receiveAmountResponse.getMessage(),
+    if (hash.getValue() != null &&
+      client.cryptoAgent.verifyBankSignature(hash.getValue() + receiveAmountResponse.getMessage(),
       receiveAmountResponse.getSignature().getValue())) {
       client.setLastHash(hash);
       System.out.println(receiveAmountResponse.getMessage());

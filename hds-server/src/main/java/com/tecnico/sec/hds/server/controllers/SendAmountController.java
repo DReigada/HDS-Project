@@ -43,15 +43,10 @@ public class SendAmountController implements SendAmountApi {
   @Override
   public ResponseEntity<SendAmountResponse> sendAmount(@Valid @RequestBody SendAmountRequest body) {
     String sourceKey = body.getSourceKey().getValue();
-    log.info("sourceKey: " + sourceKey);
     String destKey = body.getDestKey().getValue();
-    log.info("destKey: " + destKey);
     long amount = body.getAmount().longValue();
-    log.info("amount: " + amount);
     String lastHash = body.getLastHash().getValue();
-    log.info("lastHash: " + lastHash);
     String clientSignature = body.getSignature().getValue();
-    log.info("clientSignature: " + clientSignature);
 
 
     SendAmountResponse response = new SendAmountResponse();
