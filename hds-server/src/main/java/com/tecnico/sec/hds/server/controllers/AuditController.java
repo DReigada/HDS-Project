@@ -21,9 +21,8 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 
-/**
- * Created by jp_s on 3/12/2018.
- */
+
+
 @Controller
 public class AuditController implements AuditApi{
   private AuditRules auditRules;

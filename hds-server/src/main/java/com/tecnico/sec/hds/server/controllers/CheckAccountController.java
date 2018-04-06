@@ -21,9 +21,7 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 
-/**
- * Created by jp_s on 3/6/2018.
- */
+
 @Controller
 public class CheckAccountController implements CheckAccountApi {
 
@@ -58,7 +56,6 @@ public class CheckAccountController implements CheckAccountApi {
             e.printStackTrace();
         }
 
-        checkAccountResponse.setMessage(response.toString());
 
         return new ResponseEntity<>(checkAccountResponse , HttpStatus.OK);
     }

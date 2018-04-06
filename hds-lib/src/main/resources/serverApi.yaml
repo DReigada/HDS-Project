@@ -151,8 +151,6 @@ definitions:
   CheckAccountResponse:
       type: object
       properties:
-        message:
-          type: string
         amount:
           type: string
         List:
