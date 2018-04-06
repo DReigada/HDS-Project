@@ -1,22 +1,7 @@
 package com.tecnico.sec.hds.server.rules;
 
-import com.tecnico.sec.hds.server.db.commands.AccountQueries;
-import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
-import com.tecnico.sec.hds.server.db.commands.util.Migrations;
-import com.tecnico.sec.hds.server.db.rules.ReceiveAmountRules;
-import com.tecnico.sec.hds.server.db.rules.SendAmountRules;
-import com.tecnico.sec.hds.server.domain.Transaction;
-import com.tecnico.sec.hds.util.crypto.ChainHelper;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.util.Optional;
-
-import static com.tecnico.sec.hds.server.util.TestHelper.createRandomAccount;
-import static org.junit.Assert.*;
-
 public class ReceiveAmountTest {
-  @BeforeClass
+  /*@BeforeClass
   public static void beforeClass() {
     Migrations.migrate();
   }
