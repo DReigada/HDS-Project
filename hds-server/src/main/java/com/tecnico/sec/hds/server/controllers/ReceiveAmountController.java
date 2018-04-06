@@ -44,6 +44,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
   public ResponseEntity<ReceiveAmountResponse> receiveAmount(@ApiParam(required = true) @RequestBody @Valid ReceiveAmountRequest body) {
     String publicKey = body.getPublicKey().getValue();
     String transHash = body.getTransHash().getValue();
+    String lastHash = body.getLastHash().getValue();
     String clientSignature = body.getSignature().getValue();
 
     ReceiveAmountResponse response = new ReceiveAmountResponse();
@@ -53,7 +54,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
 
     try {
       if (cryptoAgent.verifySignature(publicKey + transHash, clientSignature, publicKey)) {
-        Optional<Transaction> result = receiveAmount(transHash, clientSignature);
+        Optional<Transaction> result = receiveAmount(transHash, clientSignature ,lastHash);
         if (result.isPresent()) {  
           newHash.setValue(result.get().hash);
           response.setNewHash(newHash);
@@ -76,9 +77,9 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  public Optional<Transaction> receiveAmount(String transHash, String signature) {
+  public Optional<Transaction> receiveAmount(String transHash, String signature, String lastHash) {
     try {
-      return receiveAmountRules.receiveAmount(transHash, signature);
+      return receiveAmountRules.receiveAmount(transHash, signature, lastHash);
     } catch (DBException e) {
       e.printStackTrace();
     }

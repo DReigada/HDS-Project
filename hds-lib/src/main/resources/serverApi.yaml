@@ -199,6 +199,8 @@ definitions:
         $ref: "#/definitions/PubKey"
       transHash:
         $ref: "#/definitions/Hash"
+      lastHash:
+        $ref: "#/definitions/Hash"
       Signature:
         $ref: "#/definitions/Signature"
 

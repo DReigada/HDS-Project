@@ -25,14 +25,15 @@ public class CheckAccountCommand extends AbstractCommand {
 
     CheckAccountResponse checkAmountResponse = client.server.checkAccount(checkAccountRequest);
     StringBuilder response = new StringBuilder("Public Key: " + client.key.getValue() + "\n" + "Balance: "
-        + checkAmountResponse.getAmount() + "\n");
+      + checkAmountResponse.getAmount() + "\n");
     Signature signature = checkAmountResponse.getSignature();
     try {
 
-      for (TransactionInformation transactionInformation : checkAmountResponse.getList()){
-        response.append(transactionGetter.getTransactionListMessage(transactionInformation) + "\n");
+      if(checkAmountResponse.getList() != null) {
+        for (TransactionInformation transactionInformation : checkAmountResponse.getList()) {
+          response.append(transactionGetter.getTransactionListMessage(transactionInformation) + "\n");
+        }
       }
-
       if(client.cryptoAgent.verifyBankSignature(response.toString() , signature.getValue()))
         System.out.println(checkAmountResponse.getMessage());
       else

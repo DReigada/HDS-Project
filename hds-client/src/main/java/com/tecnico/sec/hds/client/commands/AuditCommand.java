@@ -31,8 +31,9 @@ public class AuditCommand extends AbstractCommand {
 
         if (client.cryptoAgent.verifyBankSignature(transactionListMessage.toString(), auditResponse.getSignature().getValue())) {
           System.out.println(transactionListMessage);
+          client.setLastHash(auditResponse.getList().get(auditResponse.getList().size()).getHash());
         } else {
-          System.out.print("Enexpected error from server. \n Try Again Later.");
+          System.out.print("Unexpected error from server. \n Try Again Later.");
         }
       }
     } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException | InvalidKeyException | SignatureException e) {

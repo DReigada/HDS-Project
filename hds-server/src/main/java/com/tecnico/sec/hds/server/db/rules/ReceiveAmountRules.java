@@ -12,7 +12,7 @@ import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withTrans
 
 public class ReceiveAmountRules {
 
-  public Optional<Transaction> receiveAmount(String transHash, String signature) throws DBException {
+  public Optional<Transaction> receiveAmount(String transHash, String signature, String lastHash) throws DBException {
     return withTransaction(conn -> {
 
       AccountQueries accountQueries = new AccountQueries(conn);
@@ -28,7 +28,10 @@ public class ReceiveAmountRules {
         Optional<Transaction> destLastTransfer = transferQueries.getLastTransaction(destKey);
         Optional<String> destLastTransferHash = destLastTransfer.map(t -> t.hash);
 
-        String newHash = new ChainHelper().generateTransactionHash(
+        String lastTransferHash = destLastTransferHash.orElse("");
+
+        if (lastTransferHash.equals(lastHash)) {
+          String newHash = new ChainHelper().generateTransactionHash(
             destLastTransferHash,
             sourceKey,
             destKey,
@@ -36,17 +39,16 @@ public class ReceiveAmountRules {
             ChainHelper.TransactionType.ACCEPT,
             signature);
 
-        long balance = accountQueries.getBalance(destKey);
+          long balance = accountQueries.getBalance(destKey);
 
-        transferQueries.updateTransactionPendingState(transHash, false);
-        transferQueries.insertNewTransaction(sourceKey, destKey, amount, false, true, signature, newHash);
-        accountQueries.updateAccount(destKey, balance + amount);
+          transferQueries.updateTransactionPendingState(transHash, false);
+          transferQueries.insertNewTransaction(sourceKey, destKey, amount, false, true, signature, newHash);
+          accountQueries.updateAccount(destKey, balance + amount);
 
-        return transferQueries.getLastInsertedTransaction();
-
-      } else {
-        return Optional.empty();
+          return transferQueries.getLastInsertedTransaction();
+        }
       }
+      return Optional.empty();
     });
   }
 

@@ -30,6 +30,8 @@ public class ReceiveAmountCommand extends AbstractCommand {
 
     receiveAmountRequest.setTransHash(hash);
 
+    receiveAmountRequest.setLastHash(client.getLastHash());
+
     receiveAmountRequest.setPublicKey(client.key);
 
     receiveAmountRequest.signature(signature);

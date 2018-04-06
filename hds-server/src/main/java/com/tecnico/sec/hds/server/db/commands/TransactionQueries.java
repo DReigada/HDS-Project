@@ -57,12 +57,6 @@ public class TransactionQueries {
     return stmt;
   }
 
-  public PreparedStatement createTransactionsQuery(String publicKey) throws SQLException {
-    String query = "SELECT * FROM transactions WHERE destKey = ?";
-    PreparedStatement stmt = conn.prepareStatement(query);
-    stmt.setString(1, publicKey);
-    return stmt;
-  }
 
   public List<Transaction> getPendingTransactions(String publicKey) throws DBException {
     List<Transaction> pendingTransactions = new ArrayList<>();
@@ -85,31 +79,6 @@ public class TransactionQueries {
     String query = "SELECT * FROM transactions WHERE destKey = ? AND pending = TRUE";
     PreparedStatement stmt = conn.prepareStatement(query);
     stmt.setString(1, publicKey);
-    return stmt;
-  }
-
-  public long getTransAmount(int transID, String publicKey) throws DBException {
-    try (PreparedStatement stmt = createPendingTransQuery(transID, publicKey);
-         ResultSet rs = stmt.executeQuery()) {
-
-      if (rs.next()) {
-        return rs.getLong(1);
-      } else {
-        throw new DBException("failed");
-      }
-
-    } catch (SQLException e) {
-      e.printStackTrace();
-      throw new DBException("some error", e); // TODO change error message
-    }
-  }
-
-
-  private PreparedStatement createPendingTransQuery(int transID, String publicKey) throws SQLException {
-    String query = "SELECT amount FROM transactions WHERE transID = ? AND destKey = ? AND pendint = TRUE";
-    PreparedStatement stmt = conn.prepareStatement(query);
-    stmt.setInt(1, transID);
-    stmt.setString(2, publicKey);
     return stmt;
   }
 
@@ -182,26 +151,6 @@ public class TransactionQueries {
     return stmt;
   }
 
-  public Optional<Transaction> getTransactionById(int id) throws DBException {
-    try (PreparedStatement stmt = createGetTransactionByIDQuery(id);
-         ResultSet rs = stmt.executeQuery()) {
-      if (rs.next()) {
-        return Optional.of(createTransactionFromResultSet(rs));
-      } else {
-        return Optional.empty();
-      }
-
-    } catch (SQLException e) {
-      throw new DBException("some error", e);
-    }
-  }
-
-  private PreparedStatement createGetTransactionByIDQuery(int id) throws SQLException {
-    String query = "SELECT transID, sourceKey, destKey, amount, receive, signature, hash FROM transactions WHERE transID = ?";
-    PreparedStatement stmt = conn.prepareStatement(query);
-    stmt.setInt(1, id);
-    return stmt;
-  }
 
   public Optional<Transaction> getLastInsertedTransaction() throws DBException {
     try (PreparedStatement stmt = createGetLastInsertedTransactionQuery();

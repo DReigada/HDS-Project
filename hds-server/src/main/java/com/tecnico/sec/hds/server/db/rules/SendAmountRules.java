@@ -22,7 +22,12 @@ public class SendAmountRules {
       Optional<Transaction> sourceLastTransfer = transferQueries.getLastTransaction(sourceKey);
       Optional<String> sourceLastTransferHash = sourceLastTransfer.map(t -> t.hash);
 
-      String newHash = new ChainHelper().generateTransactionHash(
+      String lastTransferHash = sourceLastTransferHash.orElse("");
+
+      if(lastTransferHash.equals(lastHash)) {
+
+
+        String newHash = new ChainHelper().generateTransactionHash(
           sourceLastTransferHash,
           sourceKey,
           destKey,
@@ -30,15 +35,15 @@ public class SendAmountRules {
           ChainHelper.TransactionType.SEND_AMOUNT,
           signature);
 
-      long sourceBalance = accountQueries.getBalance(sourceKey);
+        long sourceBalance = accountQueries.getBalance(sourceKey);
 
-      if (amount <= sourceBalance && amount > 0) {
-        accountQueries.updateAccount(sourceKey, sourceBalance - amount);
-        transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, false, signature, newHash);
+        if (amount <= sourceBalance && amount > 0) {
+          accountQueries.updateAccount(sourceKey, sourceBalance - amount);
+          transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, false, signature, newHash);
 
-        return transferQueries.getLastInsertedTransaction();
+          return transferQueries.getLastInsertedTransaction();
+        }
       }
-
       return Optional.empty();
     });
 
