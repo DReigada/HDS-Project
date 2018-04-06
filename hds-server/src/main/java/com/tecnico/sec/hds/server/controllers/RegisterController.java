@@ -16,12 +16,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 
 @Controller
 public class RegisterController implements RegisterApi {
@@ -30,8 +36,8 @@ public class RegisterController implements RegisterApi {
   private CryptoAgent cryptoAgent;
   private RegisterRules registerRules;
 
-  public RegisterController() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-    cryptoAgent = new CryptoAgent("bank");
+  public RegisterController() throws InvalidParameterSpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException {
+    cryptoAgent = new CryptoAgent("bank", "strongPassword");
     registerRules = new RegisterRules();
   }
 
@@ -48,7 +54,7 @@ public class RegisterController implements RegisterApi {
       cryptoAgent.verifySignature(key,signature,key);
       registerRules.register(key);
       message = "Registration Completed:" + key;
-    } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | InvalidKeySpecException | IOException | DBException e1) {
+    } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | InvalidKeySpecException | DBException e1) {
       e1.printStackTrace();
       message = "Registration Fail: Try Later";
     }

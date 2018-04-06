@@ -1,8 +1,21 @@
 package com.tecnico.sec.hds.server.rules;
 
+import com.tecnico.sec.hds.server.db.commands.util.Migrations;
+import com.tecnico.sec.hds.server.db.rules.SendAmountRules;
+import com.tecnico.sec.hds.server.domain.Transaction;
+import com.tecnico.sec.hds.util.crypto.ChainHelper;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.Optional;
+
+import static com.tecnico.sec.hds.server.util.TestHelper.createRandomAccount;
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
+
 public class SendAmountTest {
 
- /* @BeforeClass
+  @BeforeClass
   public static void beforeClass() {
     Migrations.migrate();
   }
@@ -38,12 +51,11 @@ public class SendAmountTest {
     String account = createRandomAccount();
 
     Optional<Transaction> t1opt = rules.sendAmount(account, createRandomAccount(), 1, "a", "");
-    Optional<Transaction> t2opt = rules.sendAmount(account, createRandomAccount(), 2, "b", "");
-
     assertTrue(t1opt.isPresent());
-    assertTrue(t2opt.isPresent());
-
     Transaction t1 = t1opt.get();
+
+    Optional<Transaction> t2opt = rules.sendAmount(account, createRandomAccount(), 2, "b", t1opt.get().hash);
+    assertTrue(t2opt.isPresent());
     Transaction t2 = t2opt.get();
 
     String hash1 = new ChainHelper().generateTransactionHash(Optional.empty(), t1.sourceKey, t1.destKey,
@@ -54,6 +66,5 @@ public class SendAmountTest {
 
     assertEquals(hash1, t1.hash);
     assertEquals(hash2, t2.hash);
-  }*/
-
+  }
 }

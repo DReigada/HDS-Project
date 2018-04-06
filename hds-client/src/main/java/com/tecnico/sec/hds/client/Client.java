@@ -7,9 +7,16 @@ import io.swagger.client.api.DefaultApi;
 import io.swagger.client.model.Hash;
 import io.swagger.client.model.PubKey;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
@@ -25,10 +32,10 @@ public class Client {
 
   private Map<String, AbstractCommand> commands;
 
-  public Client(String username) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+  public Client(String username, String password) throws InvalidParameterSpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException {
     client = new ApiClient().setBasePath("http://localhost:8080");
     server = new DefaultApi(client);
-    cryptoAgent = new CryptoAgent(username);
+    cryptoAgent = new CryptoAgent(username, password);
     key = new PubKey().value(cryptoAgent.getStringPublicKey());
     lastHash = new Hash();
     lastHash.setValue("");

@@ -1,22 +1,48 @@
 # HDS-Project
 HDS Coin - the best cryptocurrency ever created
 
-## TODO
-1. Fazer TODO
-1. Alterar Amount para inteiros - DR
-1. Remover getBalance de Account Table
-1. Verificar Assinaturas do lado do cliente e do servidor
-1. SendAmount Ligaçao - DC
-1. ReceiveAmount Ligaçao - DC
-1. Audit Ligaçao - JP 
-1. ReceiveAmount HASH - DR 
-1. Funcionar 100%
+## Compiling and running the tests
 
-## OPTIONAL TODO
-1. Attacks tests
-1. Trocar para strings dos algoritmos para valores prefixos -JP
+`mvn clean install test`
 
-### SUPER OPTIONAL TODO 
-1. Actualizar Intellij
-1. Linux Dual Boot
-1. Trocar para keystore
+## Running the server
+
+`mvn -pl hds-server exec:java`
+
+## Running the client
+
+`mvn -pl hds-client exec:java`
+
+### Client commands
+
+When you start the client you will be asked for a username and a password. The username will be used to identify the
+files with the keys and the password will be used to cipher your private key.
+If it is the first time using an account use register before any other command.
+If the command Send Amount or Receive Amount fail you might need to use the Audit command with your public key
+to get your most recent transaction hash.
+
+## Caution
+If you use the Audit command with the public key of someone else be sure to
+use it again with your public key as this command rewrites the last hash.
+
+
+#### Register
+
+`register`
+
+#### Send Amount
+
+`send_amount <destination address> <amount>`
+
+#### Check Account
+
+`check_account`
+
+#### Receive Amount
+
+`receive_amount <transaction ID>`
+
+#### Audit
+
+`audit <public key>`
+
