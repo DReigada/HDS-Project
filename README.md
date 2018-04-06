@@ -15,9 +15,9 @@ HDS Coin - the best cryptocurrency ever created
 
 ### Client commands
 
-When you start the client you will be asked for a username and a password. They username will be used to identify the
+When you start the client you will be asked for a username and a password. The username will be used to identify the
 files with the keys and the password will be used to cipher your private key.
-If it is the first time using a account use register before any other command.
+If it is the first time using an account use register before any other command.
 If the command Send Amount or Receive Amount fail you might need to use the Audit command with your public key
 to get your most recent transaction hash.
 
