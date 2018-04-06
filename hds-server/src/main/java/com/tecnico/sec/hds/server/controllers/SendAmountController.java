@@ -17,12 +17,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 import java.util.Optional;
 
 @Controller
@@ -35,8 +41,8 @@ public class SendAmountController implements SendAmountApi {
 
   private SendAmountRules sendAmountRules;
 
-  public SendAmountController() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-    cryptoAgent = new CryptoAgent("bank");
+  public SendAmountController() throws UnsupportedEncodingException, InvalidParameterSpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException {
+    cryptoAgent = new CryptoAgent("bank", "strongPassword");
     sendAmountRules = new SendAmountRules();
   }
 
@@ -75,7 +81,7 @@ public class SendAmountController implements SendAmountApi {
       response.setMessage(message);
       response.setSignature(signature);
 
-    } catch (IOException | NoSuchAlgorithmException | SignatureException | InvalidKeyException | InvalidKeySpecException e) {
+    } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | InvalidKeySpecException e) {
       e.printStackTrace();
     }
 

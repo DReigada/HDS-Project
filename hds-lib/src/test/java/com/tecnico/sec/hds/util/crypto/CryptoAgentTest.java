@@ -10,7 +10,7 @@ public class CryptoAgentTest {
 
   @BeforeClass
   public static void before() throws Exception {
-    agent = new CryptoAgent("user1");
+    //agent = new CryptoAgent("user1");
   }
 
   /*@Property

@@ -14,9 +14,11 @@ public class ClientApp {
     Scanner reader = new Scanner(System.in);  // Reading from System.in
     System.out.println("\nEnter Username: ");
     String username = reader.nextLine();
+    System.out.println("\nEnter Password:");
+    String password = reader.nextLine();
 
     try {
-      Client client = new Client(username);
+      Client client = new Client(username, password);
 
       while (true) {
         System.out.println("\nEnter a command: ");
@@ -34,7 +36,7 @@ public class ClientApp {
         }
       }
 
-    } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
 

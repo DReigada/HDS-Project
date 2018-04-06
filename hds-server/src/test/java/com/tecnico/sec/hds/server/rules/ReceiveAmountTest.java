@@ -21,7 +21,7 @@ public class ReceiveAmountTest {
     Migrations.migrate();
   }
 
-
+/*
   @Test
   public void hashesShouldBeValidForIndependentTransactions() throws Exception {
     SendAmountRules sendAmountRules = new SendAmountRules();
@@ -96,6 +96,6 @@ public class ReceiveAmountTest {
 
     assertTrue(receiveAmountTransOpt1.isPresent());
     assertFalse(receiveAmountTransOpt2.isPresent());
-  }
+  }*/
 
 }

@@ -13,12 +13,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 import java.util.List;
 
 
@@ -29,8 +35,9 @@ public class AuditController implements AuditApi{
   private CryptoAgent cryptoAgent;
   private TransactionFormatter transactionFormatter;
 
-  public AuditController() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-    cryptoAgent = new CryptoAgent("bank");
+  public AuditController() throws InvalidParameterSpecException, InvalidAlgorithmParameterException,
+    NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException {
+    cryptoAgent = new CryptoAgent("bank", "strongPassword");
     auditRules = new AuditRules();
     transactionFormatter = new TransactionFormatter();
   }
