@@ -4,6 +4,7 @@
 1. Keystores - Joao
 1. Fix invalid amount bug - Diogo
 1. Fix receive amount hash - Diogo
+1. Last hash fix - Daniel ? maybe
 
 # Part 2
 1. create TODO
