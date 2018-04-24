@@ -10,11 +10,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,10 +22,10 @@ public class SendAmountControllerTest {
   private static SendAmountController sendAmountController;
 
   @BeforeClass
-  public static void populate() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, SignatureException, InvalidKeyException {
+  public static void populate() throws Exception {
     Migrations.migrate();
-    agent1 = new CryptoAgent("user123456");
-    agent2 = new CryptoAgent("user234567");
+    agent1 = new CryptoAgent("user123456", "pilas");
+    agent2 = new CryptoAgent("user234567", "morepilas");
     RegisterController registerController = new RegisterController();
     RegisterRequest registerRequest1 = new RegisterRequest().publicKey(new PubKey().value(agent1.getStringPublicKey()));
     registerRequest1.setSignature(new Signature().value(agent1.generateSignature(agent1.getStringPublicKey())));
@@ -53,9 +48,9 @@ public class SendAmountControllerTest {
   }
 
   @Test
-  public void ReplayAttack() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-    for(SendAmountRequest request : transactions) {
-      for (int i = 0 ; i< 10; i++) {
+  public void ReplayAttack() throws Exception {
+    for (SendAmountRequest request : transactions) {
+      for (int i = 0; i < 10; i++) {
         sendAmountController.sendAmount(request);
       }
     }
@@ -66,7 +61,7 @@ public class SendAmountControllerTest {
     clean();
   }
 
-  private void clean(){
+  private void clean() {
     File file = new File("HDSDB.mv.db");
     file.delete();
   }
