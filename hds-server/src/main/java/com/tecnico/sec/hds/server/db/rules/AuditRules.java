@@ -16,9 +16,9 @@ public class AuditRules {
   public List<Transaction> audit(String publicKey) throws DBException {
     return withConnection(conn -> {
 
-      TransactionQueries transferQueriesQueries = new TransactionQueries(conn);
+      TransactionQueries transferQueries= new TransactionQueries(conn);
 
-      return transferQueriesQueries.getHistory(publicKey, Optional.empty());
+      return transferQueries.getHistory(publicKey, Optional.empty());
 
     });
   }
