@@ -210,11 +210,17 @@ definitions:
   ReceiveAmountRequest:
     type: object
     properties:
-      publicKey:
+      sourceKey:
         $ref: "#/definitions/PubKey"
-      transHash:
-        $ref: "#/definitions/Hash"
+      destKey:
+        $ref: "#/definitions/PubKey"
+      amount:
+        type: integer
       lastHash:
+        $ref: "#/definitions/Hash"
+      transSignature:
+        $ref: "#/definitions/Signature"
+      transHash:
         $ref: "#/definitions/Hash"
       Signature:
         $ref: "#/definitions/Signature"

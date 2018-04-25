@@ -5,6 +5,7 @@ import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.GetTransactionRules;
 import com.tecnico.sec.hds.server.domain.Transaction;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
+import io.swagger.annotations.ApiParam;
 import io.swagger.api.GetTransactionApi;
 import io.swagger.model.GetTransactionRequest;
 import io.swagger.model.GetTransactionResponse;
@@ -13,6 +14,7 @@ import io.swagger.model.Signature;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -42,7 +44,7 @@ public class GetTransactionController implements GetTransactionApi {
   }
 
   @Override
-  public ResponseEntity<GetTransactionResponse> getTransaction(@Valid GetTransactionRequest body) {
+  public ResponseEntity<GetTransactionResponse> getTransaction(@ApiParam(required = true) @RequestBody @Valid GetTransactionRequest body) {
     String hash = body.getHash().getValue();
 
     GetTransactionResponse getTransactionResponse = new GetTransactionResponse();

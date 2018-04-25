@@ -48,19 +48,22 @@ public class ReceiveAmountController implements ReceiveAmountApi {
 
   @Override
   public ResponseEntity<ReceiveAmountResponse> receiveAmount(@ApiParam(required = true) @RequestBody @Valid ReceiveAmountRequest body) {
-    String publicKey = body.getPublicKey().getValue();
-    String transHash = body.getTransHash().getValue();
+    String sourceKey = body.getSourceKey().getValue();
+    String destKey = body.getDestKey().getValue();
+    long amount = body.getAmount();
     String lastHash = body.getLastHash().getValue();
+    String transSignature = body.getTransSignature().getValue();
+    String transHash = body.getTransHash().getValue();
     String clientSignature = body.getSignature().getValue();
 
     ReceiveAmountResponse response = new ReceiveAmountResponse();
     String message;
     Hash newHash = new Hash();
     Signature signature = new Signature();
-
     try {
-      if (cryptoAgent.verifySignature(publicKey + transHash, clientSignature, publicKey)) {
-        Optional<Transaction> result = receiveAmount(transHash, clientSignature ,lastHash);
+      if (cryptoAgent.verifySignature(sourceKey + destKey + amount + lastHash, transSignature, destKey)
+        && cryptoAgent.verifySignature(transSignature + transHash, clientSignature, destKey)) {
+        Optional<Transaction> result = receiveAmount(sourceKey, destKey, amount, lastHash, transSignature, transHash);
         if (result.isPresent()) {  
           newHash.setValue(result.get().hash);
           response.setNewHash(newHash);
@@ -83,9 +86,10 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  public Optional<Transaction> receiveAmount(String transHash, String signature, String lastHash) {
+  public Optional<Transaction> receiveAmount(String sourceKey, String destKey, long amount, String lastHash,
+                                             String signature, String transHash) {
     try {
-      return receiveAmountRules.receiveAmount(transHash, signature, lastHash);
+      return receiveAmountRules.receiveAmount(transHash, sourceKey, destKey, amount, lastHash, signature);
     } catch (DBException e) {
       e.printStackTrace();
     }
