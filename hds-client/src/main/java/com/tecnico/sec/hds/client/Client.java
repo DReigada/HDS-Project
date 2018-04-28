@@ -2,8 +2,6 @@ package com.tecnico.sec.hds.client;
 
 import com.tecnico.sec.hds.client.commands.*;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
-import io.swagger.client.ApiClient;
-import io.swagger.client.api.DefaultApi;
 import io.swagger.client.model.Hash;
 import io.swagger.client.model.PubKey;
 
@@ -11,7 +9,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -23,8 +20,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Client {
-  private final ApiClient client;
-  public final DefaultApi server;
+  public final ServersWrapper server;
   public final CryptoAgent cryptoAgent;
   public final PubKey key;
 
@@ -33,8 +29,7 @@ public class Client {
   private Map<String, AbstractCommand> commands;
 
   public Client(String username, String password) throws InvalidParameterSpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException {
-    client = new ApiClient().setBasePath("http://localhost:8080");
-    server = new DefaultApi(client);
+    server = new ServersWrapper();
     cryptoAgent = new CryptoAgent(username, password);
     key = new PubKey().value(cryptoAgent.getStringPublicKey());
     lastHash = new Hash();
@@ -49,24 +44,24 @@ public class Client {
   private synchronized void createCommands() {
     if (commands == null) {
       AbstractCommand[] commandsArr = {
-        new AuditCommand(),
-        new CheckAccountCommand(),
-        new ReceiveAmountCommand(),
-        new RegisterCommand(),
-        new SendAmountCommand()
+          new AuditCommand(),
+          new CheckAccountCommand(),
+          new ReceiveAmountCommand(),
+          new RegisterCommand(),
+          new SendAmountCommand()
       };
 
       commands = Arrays.stream(commandsArr)
-        .collect(Collectors.toMap(AbstractCommand::getName, Function.identity()));
+          .collect(Collectors.toMap(AbstractCommand::getName, Function.identity()));
     }
-  }
-
-  public void setLastHash(Hash lastHash) {
-    this.lastHash = lastHash;
   }
 
   public Hash getLastHash() {
     return lastHash;
+  }
+
+  public void setLastHash(Hash lastHash) {
+    this.lastHash = lastHash;
   }
 
 }
