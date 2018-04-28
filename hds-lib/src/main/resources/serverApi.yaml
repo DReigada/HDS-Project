@@ -194,6 +194,8 @@ definitions:
   SendAmountResponse:
     type: object
     properties:
+      success:
+        type: boolean
       message:
         type: string
       newHash:
@@ -228,6 +230,8 @@ definitions:
   ReceiveAmountResponse:
     type: object
     properties:
+      success:
+        type: boolean
       message:
         type: string
       newHash:

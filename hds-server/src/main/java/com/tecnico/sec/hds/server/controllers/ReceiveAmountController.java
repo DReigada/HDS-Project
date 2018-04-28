@@ -52,24 +52,29 @@ public class ReceiveAmountController implements ReceiveAmountApi {
 
     ReceiveAmountResponse response = new ReceiveAmountResponse();
     String message;
+    boolean success;
     Hash newHash = new Hash();
     Signature signature = new Signature();
     try {
       if (cryptoAgent.verifySignature(sourceKey + destKey + amount + lastHash, transSignature, destKey)
-        && cryptoAgent.verifySignature(transSignature + transHash, clientSignature, destKey)) {
+          && cryptoAgent.verifySignature(transSignature + transHash, clientSignature, destKey)) {
         Optional<Transaction> result = receiveAmount(sourceKey, destKey, amount, lastHash, transSignature, transHash);
-        if (result.isPresent()) {  
+        if (result.isPresent()) {
           newHash.setValue(result.get().hash);
           response.setNewHash(newHash);
+          success = true;
           message = "Transaction Successful";
         } else {
+          success = false;
           message = "Transaction Failed";
         }
         response.setNewHash(newHash);
       } else {
+        success = false;
         message = "Nice try Hacker wanna be";
       }
       signature.setValue(cryptoAgent.generateSignature(newHash.getValue() + message));
+      response.setSuccess(success);
       response.setMessage(message);
       response.setSignature(signature);
 

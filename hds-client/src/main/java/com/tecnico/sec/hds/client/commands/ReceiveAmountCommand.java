@@ -73,9 +73,11 @@ public class ReceiveAmountCommand extends AbstractCommand {
     hash = receiveAmountResponse.getNewHash();
 
     if (hash.getValue() != null &&
-      client.cryptoAgent.verifyBankSignature(hash.getValue() + receiveAmountResponse.getMessage(),
-      receiveAmountResponse.getSignature().getValue())) {
-      client.setLastHash(hash);
+        client.cryptoAgent.verifyBankSignature(hash.getValue() + receiveAmountResponse.getMessage(),
+            receiveAmountResponse.getSignature().getValue())) {
+      if (receiveAmountResponse.isSuccess()) {
+        client.setLastHash(hash);
+      }
       System.out.println(receiveAmountResponse.getMessage());
     } else {
       System.out.println("I caught you fake!!");
