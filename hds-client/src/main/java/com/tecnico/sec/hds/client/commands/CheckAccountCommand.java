@@ -9,9 +9,8 @@ import io.swagger.client.model.Signature;
 import io.swagger.client.model.TransactionInformation;
 
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
 public class CheckAccountCommand extends AbstractCommand {
@@ -25,20 +24,20 @@ public class CheckAccountCommand extends AbstractCommand {
 
     CheckAccountResponse checkAmountResponse = client.server.checkAccount(checkAccountRequest);
     StringBuilder response = new StringBuilder("Public Key: " + client.key.getValue() + "\n" + "Balance: "
-      + checkAmountResponse.getAmount() + "\n");
+        + checkAmountResponse.getAmount() + "\n");
     Signature signature = checkAmountResponse.getSignature();
     try {
 
-      if(checkAmountResponse.getList() != null) {
+      if (checkAmountResponse.getList() != null) {
         for (TransactionInformation transactionInformation : checkAmountResponse.getList()) {
           response.append(transactionGetter.getTransactionListMessage(transactionInformation) + "\n");
         }
       }
-      if(client.cryptoAgent.verifyBankSignature(response.toString() , signature.getValue()))
+      if (client.cryptoAgent.verifyBankSignature(response.toString(), signature.getValue()))
         System.out.println(response);
       else
         System.out.print("Unexpected error from server. \n Try Again Later.");
-    } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException | InvalidKeyException | SignatureException e) {
+    } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException | InvalidKeyException | SignatureException | CertificateException | UnrecoverableKeyException | KeyStoreException e) {
       e.printStackTrace();
     }
   }

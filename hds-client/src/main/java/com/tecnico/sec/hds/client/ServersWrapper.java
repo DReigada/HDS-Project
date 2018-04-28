@@ -87,6 +87,12 @@ public class ServersWrapper {
         .get(0);
   }
 
+  public GetTransactionResponse getTransaction(GetTransactionRequest body) {
+    return forEachServer(server -> server.getTransaction(body))
+        .collect(Collectors.toList())
+        .get(0);
+  }
+
   private <A> Stream<A> forEachServer(ApiCenas<A> serverCall) {
     return servers.entrySet().stream().parallel()
         .flatMap(entry -> {

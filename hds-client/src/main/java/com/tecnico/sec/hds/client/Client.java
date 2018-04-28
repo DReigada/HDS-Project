@@ -4,16 +4,13 @@ import com.tecnico.sec.hds.client.commands.*;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.client.model.Hash;
 import io.swagger.client.model.PubKey;
+import org.bouncycastle.operator.OperatorCreationException;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
@@ -28,7 +25,8 @@ public class Client {
 
   private Map<String, AbstractCommand> commands;
 
-  public Client(String username, String password) throws InvalidParameterSpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException {
+  public Client(String username, String password)
+      throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
     server = new ServersWrapper();
     cryptoAgent = new CryptoAgent(username, password);
     key = new PubKey().value(cryptoAgent.getStringPublicKey());

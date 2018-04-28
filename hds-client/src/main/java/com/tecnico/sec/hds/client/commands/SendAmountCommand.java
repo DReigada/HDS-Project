@@ -1,20 +1,19 @@
 package com.tecnico.sec.hds.client.commands;
 
 import com.tecnico.sec.hds.client.Client;
-import io.swagger.client.ApiException;
 import io.swagger.client.model.*;
+import io.swagger.client.model.Signature;
 
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
 public class SendAmountCommand extends AbstractCommand {
   private static final String name = "send_amount";
 
   @Override
-  public void doRun(Client client, String[] args) throws ApiException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, IOException, InvalidKeySpecException {
+  public void doRun(Client client, String[] args) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, IOException, InvalidKeySpecException, CertificateException, KeyStoreException, UnrecoverableKeyException {
     PubKey destKey = new PubKey();
 
     destKey.setValue(args[0]);
@@ -41,7 +40,7 @@ public class SendAmountCommand extends AbstractCommand {
 
 
     if (client.cryptoAgent.verifyBankSignature(lastHash.getValue() + sendAmountResponse.getMessage(), bankSignature.getValue())) {
-      if(lastHash.getValue() != null) {
+      if (lastHash.getValue() != null) {
         client.setLastHash(lastHash);
       }
       System.out.println(sendAmountResponse.getMessage());

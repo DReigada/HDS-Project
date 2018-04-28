@@ -7,16 +7,15 @@ import io.swagger.client.model.RegisterResponse;
 import io.swagger.client.model.Signature;
 
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
 public class RegisterCommand extends AbstractCommand {
   private static final String name = "register";
 
   @Override
-  public void doRun(Client client, String[] args) throws ApiException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+  public void doRun(Client client, String[] args) throws ApiException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
     RegisterRequest request = new RegisterRequest().publicKey(client.key);
     Signature sign = new Signature().value(client.cryptoAgent.generateSignature(client.key.getValue()));
     request.setSignature(sign);
@@ -24,7 +23,7 @@ public class RegisterCommand extends AbstractCommand {
     sign = response.getSignature();
 
     try {
-      if(client.cryptoAgent.verifyBankSignature(response.getMessage(),sign.getValue()))
+      if (client.cryptoAgent.verifyBankSignature(response.getMessage(), sign.getValue()))
         System.out.println(response.getMessage());
       else
         System.out.print("Enexpected error from server. \n Try Again Later.");

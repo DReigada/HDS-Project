@@ -4,18 +4,19 @@ import com.tecnico.sec.hds.client.Client;
 import com.tecnico.sec.hds.client.commands.util.TransactionGetter;
 import io.swagger.client.ApiException;
 import io.swagger.client.model.*;
+import io.swagger.client.model.Signature;
 
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
 public class ReceiveAmountCommand extends AbstractCommand {
   private static final String name = "receive_amount";
 
   @Override
-  public void doRun(Client client, String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, SignatureException, ApiException {
+  public void doRun(Client client, String[] args)
+      throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
     TransactionGetter transactionGetter = new TransactionGetter();
     Hash hash = new Hash();
     hash.setValue(args[0]);

@@ -9,24 +9,17 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.api.GetTransactionApi;
 import io.swagger.model.GetTransactionRequest;
 import io.swagger.model.GetTransactionResponse;
-import io.swagger.model.Hash;
 import io.swagger.model.Signature;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.util.Optional;
 
 @Controller
@@ -36,10 +29,10 @@ public class GetTransactionController implements GetTransactionApi {
   private CryptoAgent cryptoAgent;
   private TransactionFormatter transactionFormatter;
 
-  public GetTransactionController() throws InvalidParameterSpecException, InvalidAlgorithmParameterException,
-    NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException {
+  public GetTransactionController() throws
+      NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
     getTransactionRules = new GetTransactionRules();
-    cryptoAgent = new CryptoAgent("bank", "strongPassword");
+    cryptoAgent = new CryptoAgent("bank", "pass");
     transactionFormatter = new TransactionFormatter();
   }
 
