@@ -35,7 +35,7 @@ public class SendAmountRules {
           ChainHelper.TransactionType.SEND_AMOUNT,
           signature);
 
-        long sourceBalance = accountQueries.getBalance(sourceKey);
+        long sourceBalance = transferQueries.getBalance(sourceKey);
 
         if (amount <= sourceBalance && amount > 0) {
           accountQueries.updateAccount(sourceKey, sourceBalance - amount);

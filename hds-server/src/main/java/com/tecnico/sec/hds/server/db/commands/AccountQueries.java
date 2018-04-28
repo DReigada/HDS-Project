@@ -15,29 +15,6 @@ public class AccountQueries {
     this.conn = conn;
   }
 
-  public long getBalance(String publicKey) throws DBException {
-    try (PreparedStatement stmt = createBalanceQuery(publicKey);
-         ResultSet rs = stmt.executeQuery()) {
-
-      if (rs.next()) {
-        return rs.getLong(1);
-      } else {
-        throw new DBException("Account not found!"); // TODO maybe return optional?
-      }
-
-    } catch (SQLException e) {
-      e.printStackTrace();
-      throw new DBException("some error", e);
-    }
-  }
-
-  public PreparedStatement createBalanceQuery(String publicKey) throws SQLException {
-    String query = "SELECT balance FROM accounts WHERE publicKey = ?";
-    PreparedStatement stmt = conn.prepareStatement(query);
-    stmt.setString(1, publicKey);
-    return stmt;
-  }
-
   public int updateAccount(String publicKey, long balance) throws DBException {
     try (PreparedStatement stmt = createUpdateAccount(publicKey, balance)) {
 
@@ -77,7 +54,7 @@ public class AccountQueries {
     return stmt;
   }
 
-  public int remove(String publicKey){
+  public int remove(String publicKey) {
     try (PreparedStatement stmt = removeAccount(publicKey)) {
       return stmt.executeUpdate();
     } catch (SQLException e) {
@@ -86,7 +63,7 @@ public class AccountQueries {
     return -1;
   }
 
-  private PreparedStatement removeAccount(String publicKey) throws SQLException{
+  private PreparedStatement removeAccount(String publicKey) throws SQLException {
     String sql = "DELETE FROM accounts WHERE publicKey = ?";
     PreparedStatement stmt = conn.prepareStatement(sql);
     stmt.setString(1, publicKey);
