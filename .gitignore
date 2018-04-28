@@ -1,6 +1,8 @@
 *.db
 *.txt
 *.jce
+*.ini
+*.exe
 
 # Created by .ignore support plugin (hsz.mobi)
 ### JetBrains template
