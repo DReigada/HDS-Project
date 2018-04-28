@@ -19,21 +19,18 @@ public class AuditCommand extends AbstractCommand {
   @Override
   public void doRun(Client client, String[] args) throws ApiException {
     PubKey key = new PubKey().value(args[0]);
-    TransactionGetter transactionGetter = new TransactionGetter();
     AuditRequest auditRequest = new AuditRequest().publicKey(key);
     AuditResponse auditResponse = client.server.audit(auditRequest);
 
     try {
-      StringBuilder transactionListMessage = new StringBuilder();
-
       if (auditResponse.getList() != null) {
-        for (TransactionInformation transactionInformation : auditResponse.getList()) {
-          transactionListMessage.append(transactionGetter.getTransactionListMessage(transactionInformation) + "\n");
-        }
+        StringBuilder transactionListMessage = createMessageList(auditResponse);
 
         if (client.cryptoAgent.verifyBankSignature(transactionListMessage.toString(), auditResponse.getSignature().getValue())) {
           System.out.println(transactionListMessage);
-          client.setLastHash(auditResponse.getList().get(0).getHash());
+          if (key.equals(client.key)) {
+            client.setLastHash(auditResponse.getList().get(0).getHash());
+          }
         } else {
           System.out.print("Unexpected error from server. \n Try Again Later.");
         }
@@ -47,5 +44,15 @@ public class AuditCommand extends AbstractCommand {
   @Override
   public String getName() {
     return name;
+  }
+
+  private StringBuilder createMessageList(AuditResponse auditResponse) {
+    StringBuilder transactionListMessage = new StringBuilder();
+    for (TransactionInformation transactionInformation : auditResponse.getList()) {
+      transactionListMessage
+          .append(new TransactionGetter().getTransactionListMessage(transactionInformation))
+          .append("\n");
+    }
+    return transactionListMessage;
   }
 }
