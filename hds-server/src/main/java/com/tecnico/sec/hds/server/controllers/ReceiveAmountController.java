@@ -10,7 +10,6 @@ import io.swagger.model.Hash;
 import io.swagger.model.ReceiveAmountRequest;
 import io.swagger.model.ReceiveAmountResponse;
 import io.swagger.model.Signature;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -35,7 +34,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
 
   private ReceiveAmountRules receiveAmountRules;
 
-  public ReceiveAmountController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
+  public ReceiveAmountController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, KeyStoreException {
     cryptoAgent = new CryptoAgent("bank", "bank");
     receiveAmountRules = new ReceiveAmountRules();
   }

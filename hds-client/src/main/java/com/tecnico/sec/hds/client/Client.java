@@ -4,7 +4,6 @@ import com.tecnico.sec.hds.client.commands.*;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.client.model.Hash;
 import io.swagger.client.model.PubKey;
-import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
 import java.security.KeyStoreException;
@@ -26,7 +25,7 @@ public class Client {
   private Map<String, AbstractCommand> commands;
 
   public Client(String username, String password)
-      throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
+      throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, KeyStoreException {
     server = new ServersWrapper();
     cryptoAgent = new CryptoAgent(username, password);
     key = new PubKey().value(cryptoAgent.getStringPublicKey());

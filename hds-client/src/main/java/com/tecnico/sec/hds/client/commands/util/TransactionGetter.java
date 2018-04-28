@@ -1,5 +1,6 @@
 package com.tecnico.sec.hds.client.commands.util;
 
+import domain.Transaction;
 import io.swagger.client.model.TransactionInformation;
 
 import java.util.List;
@@ -15,4 +16,16 @@ public class TransactionGetter {
     return transaction.toString();
   }
 
+  public static List<Transaction> InformationToTransaction(List<TransactionInformation> transactions){
+    return transactions.stream().parallel().map(s ->
+    new Transaction(s.getTransID(),
+        s.getSourceKey(),
+        s.getDestKey(),
+        Long.valueOf(s.getAmount()),
+        s.isPending(),
+        s.isReceive(),
+        s.getSignature().getValue(),
+        s.getHash().getValue())
+    ).collect(Collectors.toList());
+  }
 }

@@ -1,9 +1,12 @@
 package com.tecnico.sec.hds.util.crypto;
 
+import domain.Transaction;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 public class ChainHelper {
@@ -35,9 +38,22 @@ public class ChainHelper {
     return Base64.getEncoder().encodeToString(hash);
   }
 
-  /*public boolean verifyTransaction(List<String> transactions){
-    return null;
-  }*/
+  public boolean verifyTransaction(List<Transaction> transactions){
+    String newTransactionHash = "";
+    for(Transaction transaction : transactions){
+      newTransactionHash = generateTransactionHash(Optional.of(newTransactionHash),
+          transaction.sourceKey,
+          transaction.destKey,
+          transaction.amount,
+          transaction.pending ? TransactionType.SEND_AMOUNT : TransactionType.ACCEPT,
+          transaction.signature);
+
+      if(newTransactionHash != transaction.hash){
+        return false;
+      }
+    }
+    return true;
+  }
 
 
 
