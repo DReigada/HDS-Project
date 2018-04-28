@@ -24,8 +24,8 @@ public class SendAmountControllerTest {
   @BeforeClass
   public static void populate() throws Exception {
     Migrations.migrate();
-    agent1 = new CryptoAgent("user123456", "pilas");
-    agent2 = new CryptoAgent("user234567", "morepilas");
+    agent1 = new CryptoAgent("user123456", "bla");
+    agent2 = new CryptoAgent("user234567", "blabla");
     RegisterController registerController = new RegisterController();
     RegisterRequest registerRequest1 = new RegisterRequest().publicKey(new PubKey().value(agent1.getStringPublicKey()));
     registerRequest1.setSignature(new Signature().value(agent1.generateSignature(agent1.getStringPublicKey())));

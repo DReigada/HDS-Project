@@ -35,7 +35,11 @@ public class ChainHelper {
     return Base64.getEncoder().encodeToString(hash);
   }
 
+
+
+
+
   public enum TransactionType {
-    SEND_AMOUNT, ACCEPT;
+    SEND_AMOUNT, ACCEPT
   }
 }
