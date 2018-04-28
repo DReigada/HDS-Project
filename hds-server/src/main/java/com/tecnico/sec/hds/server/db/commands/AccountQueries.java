@@ -15,26 +15,6 @@ public class AccountQueries {
     this.conn = conn;
   }
 
-  public int updateAccount(String publicKey, long balance) throws DBException {
-    try (PreparedStatement stmt = createUpdateAccount(publicKey, balance)) {
-
-      return stmt.executeUpdate();
-
-
-    } catch (SQLException e) {
-      e.printStackTrace();
-      throw new DBException("some error", e);
-    }
-  }
-
-  public PreparedStatement createUpdateAccount(String publicKey, long balance) throws SQLException {
-    String update = "UPDATE accounts SET balance = ? WHERE publicKey = ?";
-    PreparedStatement stmt = conn.prepareStatement(update);
-    stmt.setLong(1, balance);
-    stmt.setString(2, publicKey);
-    return stmt;
-  }
-
   public int register(String publicKey) throws DBException {
     try (PreparedStatement stmt = createInsertAccount(publicKey)) {
 
@@ -48,7 +28,7 @@ public class AccountQueries {
 
 
   public PreparedStatement createInsertAccount(String publicKey) throws SQLException {
-    String sql = "INSERT INTO accounts(publicKey, balance) VALUES(?, 1000) ";
+    String sql = "INSERT INTO accounts(publicKey) VALUES(?) ";
     PreparedStatement stmt = conn.prepareStatement(sql);
     stmt.setString(1, publicKey);
     return stmt;

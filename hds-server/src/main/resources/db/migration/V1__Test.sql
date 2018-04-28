@@ -16,3 +16,5 @@ CREATE TABLE IF NOT EXISTS transactions (
   FOREIGN KEY (sourceKey) REFERENCES accounts (publicKey),
   FOREIGN KEY (destKey) REFERENCES accounts (publicKey)
 );
+
+INSERT INTO accounts(publicKey) VALUES('0');

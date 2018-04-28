@@ -3,6 +3,7 @@ package com.tecnico.sec.hds.server.rules;
 import com.tecnico.sec.hds.server.db.commands.util.Migrations;
 import com.tecnico.sec.hds.server.db.rules.SendAmountRules;
 import com.tecnico.sec.hds.server.domain.Transaction;
+import com.tecnico.sec.hds.server.util.Tuple;
 import com.tecnico.sec.hds.util.crypto.ChainHelper;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -25,8 +26,11 @@ public class SendAmountTest {
   public void hashesShouldBeValidForIndependentTransactions() throws Exception {
     SendAmountRules rules = new SendAmountRules();
 
-    Optional<Transaction> t1opt = rules.sendAmount(createRandomAccount(), createRandomAccount(), 1, "a", "");
-    Optional<Transaction> t2opt = rules.sendAmount(createRandomAccount(), createRandomAccount(), 2, "b", "");
+    Tuple<String, String> firstAccount = createRandomAccount();
+    Tuple<String, String> secondAccount = createRandomAccount();
+
+    Optional<Transaction> t1opt = rules.sendAmount(firstAccount.first, createRandomAccount().first, 1, "a", firstAccount.second);
+    Optional<Transaction> t2opt = rules.sendAmount(secondAccount.first, createRandomAccount().first, 2, "b", secondAccount.second);
 
     assertTrue(t1opt.isPresent());
     assertTrue(t2opt.isPresent());
@@ -34,10 +38,10 @@ public class SendAmountTest {
     Transaction t1 = t1opt.get();
     Transaction t2 = t2opt.get();
 
-    String hash1 = new ChainHelper().generateTransactionHash(Optional.empty(), t1.sourceKey, t1.destKey,
+    String hash1 = new ChainHelper().generateTransactionHash(Optional.of(firstAccount.second), t1.sourceKey, t1.destKey,
         t1.amount, ChainHelper.TransactionType.SEND_AMOUNT, t1.signature);
 
-    String hash2 = new ChainHelper().generateTransactionHash(Optional.empty(), t2.sourceKey, t2.destKey,
+    String hash2 = new ChainHelper().generateTransactionHash(Optional.of(secondAccount.second), t2.sourceKey, t2.destKey,
         t2.amount, ChainHelper.TransactionType.SEND_AMOUNT, t2.signature);
 
     assertEquals(hash1, t1.hash);
@@ -48,17 +52,17 @@ public class SendAmountTest {
   public void hashesShouldBeValidForSequentialTransactions() throws Exception {
     SendAmountRules rules = new SendAmountRules();
 
-    String account = createRandomAccount();
+    Tuple<String, String> account = createRandomAccount();
 
-    Optional<Transaction> t1opt = rules.sendAmount(account, createRandomAccount(), 1, "a", "");
+    Optional<Transaction> t1opt = rules.sendAmount(account.first, createRandomAccount().first, 1, "a", account.second);
     assertTrue(t1opt.isPresent());
     Transaction t1 = t1opt.get();
 
-    Optional<Transaction> t2opt = rules.sendAmount(account, createRandomAccount(), 2, "b", t1opt.get().hash);
+    Optional<Transaction> t2opt = rules.sendAmount(account.first, createRandomAccount().first, 2, "b", t1opt.get().hash);
     assertTrue(t2opt.isPresent());
     Transaction t2 = t2opt.get();
 
-    String hash1 = new ChainHelper().generateTransactionHash(Optional.empty(), t1.sourceKey, t1.destKey,
+    String hash1 = new ChainHelper().generateTransactionHash(Optional.of(account.second), t1.sourceKey, t1.destKey,
         t1.amount, ChainHelper.TransactionType.SEND_AMOUNT, t1.signature);
 
     String hash2 = new ChainHelper().generateTransactionHash(Optional.of(t1.hash), t2.sourceKey, t2.destKey,

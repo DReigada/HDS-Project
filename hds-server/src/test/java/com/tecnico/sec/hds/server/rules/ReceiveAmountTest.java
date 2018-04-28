@@ -5,6 +5,7 @@ import com.tecnico.sec.hds.server.db.commands.util.Migrations;
 import com.tecnico.sec.hds.server.db.rules.ReceiveAmountRules;
 import com.tecnico.sec.hds.server.db.rules.SendAmountRules;
 import com.tecnico.sec.hds.server.domain.Transaction;
+import com.tecnico.sec.hds.server.util.Tuple;
 import com.tecnico.sec.hds.util.crypto.ChainHelper;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -28,21 +29,24 @@ public class ReceiveAmountTest {
     SendAmountRules sendAmountRules = new SendAmountRules();
     ReceiveAmountRules receiveAmountRules = new ReceiveAmountRules();
 
-    Optional<Transaction> sendAmountTransOpt = sendAmountRules.sendAmount(createRandomAccount(), createRandomAccount(), 1, "a", "");
+    Tuple<String, String> account = createRandomAccount();
+    Tuple<String, String> destAcc = createRandomAccount();
+
+    Optional<Transaction> sendAmountTransOpt = sendAmountRules.sendAmount(account.first, destAcc.first, 1, "a", account.second);
 
     assertTrue(sendAmountTransOpt.isPresent());
     Transaction sendAmountTrans = sendAmountTransOpt.get();
 
-    Optional<Transaction> receiveAmountTransOpt = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, "", "qwerty");
+    Optional<Transaction> receiveAmountTransOpt = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, destAcc.second, "qwerty");
 
     assertTrue(receiveAmountTransOpt.isPresent());
     Transaction receiveAmountTrans = receiveAmountTransOpt.get();
 
-    String hash1 = new ChainHelper().generateTransactionHash(Optional.empty(), sendAmountTrans.sourceKey, sendAmountTrans.destKey,
-        sendAmountTrans.amount, ChainHelper.TransactionType.SEND_AMOUNT, sendAmountTrans.signature);
+    String hash1 = new ChainHelper().generateTransactionHash(Optional.of(account.second), sendAmountTrans.sourceKey, sendAmountTrans.destKey,
+      sendAmountTrans.amount, ChainHelper.TransactionType.SEND_AMOUNT, sendAmountTrans.signature);
 
-    String hash2 = new ChainHelper().generateTransactionHash(Optional.empty(), receiveAmountTrans.sourceKey, receiveAmountTrans.destKey,
-        receiveAmountTrans.amount, ChainHelper.TransactionType.ACCEPT, receiveAmountTrans.signature);
+    String hash2 = new ChainHelper().generateTransactionHash(Optional.of(destAcc.second), receiveAmountTrans.sourceKey, receiveAmountTrans.destKey,
+      receiveAmountTrans.amount, ChainHelper.TransactionType.ACCEPT, receiveAmountTrans.signature);
 
     assertEquals(hash1, sendAmountTrans.hash);
     assertEquals(hash2, receiveAmountTrans.hash);
@@ -54,12 +58,16 @@ public class ReceiveAmountTest {
     SendAmountRules sendAmountRules = new SendAmountRules();
     ReceiveAmountRules receiveAmountRules = new ReceiveAmountRules();
 
-    String destAcc = createRandomAccount();
+    Tuple<String, String> sendAcc = createRandomAccount();
+    
+    Tuple<String, String> destAcc = createRandomAccount();
 
-    Optional<Transaction> previousTransOpt = sendAmountRules.sendAmount(destAcc, createRandomAccount(), 1, "a", "");
+    Optional<Transaction> previousTransOpt = sendAmountRules.sendAmount(destAcc.first, createRandomAccount().first, 1, "a", destAcc.second);
     assertTrue(previousTransOpt.isPresent());
 
-    Optional<Transaction> sendAmountTransOpt = sendAmountRules.sendAmount(createRandomAccount(), destAcc, 1, "a", "");
+    Tuple<String, String> oneAccount = createRandomAccount();
+
+    Optional<Transaction> sendAmountTransOpt = sendAmountRules.sendAmount(oneAccount.first, destAcc.first, 1, "a", oneAccount.second);
 
     assertTrue(sendAmountTransOpt.isPresent());
     Transaction sendAmountTrans = sendAmountTransOpt.get();
@@ -69,12 +77,12 @@ public class ReceiveAmountTest {
     assertTrue(receiveAmountTransOpt.isPresent());
     Transaction receiveAmountTrans = receiveAmountTransOpt.get();
 
-    String hash1 = new ChainHelper().generateTransactionHash(Optional.empty(), sendAmountTrans.sourceKey, sendAmountTrans.destKey,
-        sendAmountTrans.amount, ChainHelper.TransactionType.SEND_AMOUNT, sendAmountTrans.signature);
+    String hash1 = new ChainHelper().generateTransactionHash(Optional.of(oneAccount.second), sendAmountTrans.sourceKey, sendAmountTrans.destKey,
+      sendAmountTrans.amount, ChainHelper.TransactionType.SEND_AMOUNT, sendAmountTrans.signature);
 
     String hash2 = new ChainHelper().generateTransactionHash(previousTransOpt.map(t -> t.hash),
-        receiveAmountTrans.sourceKey, receiveAmountTrans.destKey,
-        receiveAmountTrans.amount, ChainHelper.TransactionType.ACCEPT, receiveAmountTrans.signature);
+      receiveAmountTrans.sourceKey, receiveAmountTrans.destKey,
+      receiveAmountTrans.amount, ChainHelper.TransactionType.ACCEPT, receiveAmountTrans.signature);
 
     assertEquals(hash1, sendAmountTrans.hash);
     assertEquals(hash2, receiveAmountTrans.hash);
@@ -85,15 +93,17 @@ public class ReceiveAmountTest {
     SendAmountRules sendAmountRules = new SendAmountRules();
     ReceiveAmountRules receiveAmountRules = new ReceiveAmountRules();
 
-    String destAcc = createRandomAccount();
+    Tuple<String, String> sourceAcc = createRandomAccount();
 
-    Optional<Transaction> sendAmountTransOpt = sendAmountRules.sendAmount(createRandomAccount(), destAcc, 1, "a", "");
+    Tuple<String, String> destAcc = createRandomAccount();
+
+    Optional<Transaction> sendAmountTransOpt = sendAmountRules.sendAmount(sourceAcc.first, destAcc.first, 1, "a", sourceAcc.second);
 
     assertTrue(sendAmountTransOpt.isPresent());
     Transaction sendAmountTrans = sendAmountTransOpt.get();
 
-    Optional<Transaction> receiveAmountTransOpt1 = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, "", "qwerty");
-    Optional<Transaction> receiveAmountTransOpt2 = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, "", "qwerty");
+    Optional<Transaction> receiveAmountTransOpt1 = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, destAcc.second, "qwerty");
+    Optional<Transaction> receiveAmountTransOpt2 = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, destAcc.second, "qwerty");
 
     assertTrue(receiveAmountTransOpt1.isPresent());
     assertFalse(receiveAmountTransOpt2.isPresent());

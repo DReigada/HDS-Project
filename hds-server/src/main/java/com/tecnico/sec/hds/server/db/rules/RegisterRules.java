@@ -27,7 +27,7 @@ public class RegisterRules {
 
       accountQueries.register(publicKey);
 
-      transactionQueries.insertNewTransaction("", publicKey, 1000, false, true, "",newHash);
+      transactionQueries.insertNewTransaction("0", publicKey, 1000, false, true, "",newHash);
 
       return newHash;
     });
