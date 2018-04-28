@@ -6,7 +6,6 @@ import io.swagger.client.ApiException;
 import io.swagger.client.model.AuditRequest;
 import io.swagger.client.model.AuditResponse;
 import io.swagger.client.model.PubKey;
-import io.swagger.client.model.TransactionInformation;
 
 import java.io.IOException;
 import java.security.*;
@@ -24,9 +23,9 @@ public class AuditCommand extends AbstractCommand {
 
     try {
       if (auditResponse.getList() != null) {
-        StringBuilder transactionListMessage = createMessageList(auditResponse);
+        String transactionListMessage = TransactionGetter.getTransactionListMessage(auditResponse.getList());
 
-        if (client.cryptoAgent.verifyBankSignature(transactionListMessage.toString(), auditResponse.getSignature().getValue())) {
+        if (client.cryptoAgent.verifyBankSignature(transactionListMessage, auditResponse.getSignature().getValue())) {
           System.out.println(transactionListMessage);
           if (key.equals(client.key)) {
             client.setLastHash(auditResponse.getList().get(0).getHash());
@@ -44,15 +43,5 @@ public class AuditCommand extends AbstractCommand {
   @Override
   public String getName() {
     return name;
-  }
-
-  private StringBuilder createMessageList(AuditResponse auditResponse) {
-    StringBuilder transactionListMessage = new StringBuilder();
-    for (TransactionInformation transactionInformation : auditResponse.getList()) {
-      transactionListMessage
-          .append(new TransactionGetter().getTransactionListMessage(transactionInformation))
-          .append("\n");
-    }
-    return transactionListMessage;
   }
 }

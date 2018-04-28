@@ -3,7 +3,7 @@ package com.tecnico.sec.hds.server.controllers;
 import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.GetTransactionRules;
-import com.tecnico.sec.hds.server.domain.Transaction;
+import domain.Transaction;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.annotations.ApiParam;
 import io.swagger.api.GetTransactionApi;
@@ -27,13 +27,11 @@ public class GetTransactionController implements GetTransactionApi {
 
   private GetTransactionRules getTransactionRules;
   private CryptoAgent cryptoAgent;
-  private TransactionFormatter transactionFormatter;
 
   public GetTransactionController() throws
       NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
     getTransactionRules = new GetTransactionRules();
-    cryptoAgent = new CryptoAgent("bank", "pass");
-    transactionFormatter = new TransactionFormatter();
+    cryptoAgent = new CryptoAgent("bank", "bank");
   }
 
   @Override
@@ -46,9 +44,9 @@ public class GetTransactionController implements GetTransactionApi {
       Optional<Transaction> transaction = getTransactionRules.getTransaction(hash);
 
       if (transaction.isPresent()) {
-        getTransactionResponse.setTransaction(transactionFormatter.getTransactionInformation(transaction.get()));
+        getTransactionResponse.setTransaction(TransactionFormatter.getTransactionInformation(transaction.get()));
         Signature signature = new Signature();
-        signature.setValue(cryptoAgent.generateSignature(transactionFormatter.getTransactionListMessage(transaction.get())));
+        signature.setValue(cryptoAgent.generateSignature(TransactionFormatter.getTransactionInformation(transaction.get()).toString()));
         getTransactionResponse.setSignature(signature);
       }
 

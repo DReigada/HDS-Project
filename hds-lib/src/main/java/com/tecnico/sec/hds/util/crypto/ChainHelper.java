@@ -35,7 +35,9 @@ public class ChainHelper {
     return Base64.getEncoder().encodeToString(hash);
   }
 
-
+  /*public boolean verifyTransaction(List<String> transactions){
+    return null;
+  }*/
 
 
 

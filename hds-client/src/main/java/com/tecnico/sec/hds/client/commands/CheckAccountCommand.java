@@ -6,7 +6,6 @@ import io.swagger.client.ApiException;
 import io.swagger.client.model.CheckAccountRequest;
 import io.swagger.client.model.CheckAccountResponse;
 import io.swagger.client.model.Signature;
-import io.swagger.client.model.TransactionInformation;
 
 import java.io.IOException;
 import java.security.*;
@@ -18,7 +17,6 @@ public class CheckAccountCommand extends AbstractCommand {
 
   @Override
   public void doRun(Client client, String[] args) throws ApiException {
-    TransactionGetter transactionGetter = new TransactionGetter();
 
     CheckAccountRequest checkAccountRequest = new CheckAccountRequest().publicKey(client.key);
 
@@ -29,10 +27,9 @@ public class CheckAccountCommand extends AbstractCommand {
     try {
 
       if (checkAmountResponse.getList() != null) {
-        for (TransactionInformation transactionInformation : checkAmountResponse.getList()) {
-          response.append(transactionGetter.getTransactionListMessage(transactionInformation) + "\n");
-        }
+          response.append(TransactionGetter.getTransactionListMessage(checkAmountResponse.getList()));
       }
+
       if (client.cryptoAgent.verifyBankSignature(response.toString(), signature.getValue()))
         System.out.println(response);
       else

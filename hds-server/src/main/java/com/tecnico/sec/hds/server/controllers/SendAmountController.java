@@ -2,7 +2,7 @@ package com.tecnico.sec.hds.server.controllers;
 
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.SendAmountRules;
-import com.tecnico.sec.hds.server.domain.Transaction;
+import domain.Transaction;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.api.SendAmountApi;
 import io.swagger.api.SendAmountApiController;
@@ -36,7 +36,7 @@ public class SendAmountController implements SendAmountApi {
   private SendAmountRules sendAmountRules;
 
   public SendAmountController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
-    cryptoAgent = new CryptoAgent("bank", "strongPassword");
+    cryptoAgent = new CryptoAgent("bank", "bank");
     sendAmountRules = new SendAmountRules();
   }
 
