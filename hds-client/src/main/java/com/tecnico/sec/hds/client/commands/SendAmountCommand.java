@@ -40,7 +40,7 @@ public class SendAmountCommand extends AbstractCommand {
 
 
     if (client.cryptoAgent.verifyBankSignature(lastHash.getValue() + sendAmountResponse.getMessage(), bankSignature.getValue())) {
-      if (lastHash.getValue() != null) {
+      if (sendAmountResponse.isSuccess()) {
         client.setLastHash(lastHash);
       }
       System.out.println(sendAmountResponse.getMessage());
