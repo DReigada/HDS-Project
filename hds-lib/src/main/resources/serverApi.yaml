@@ -93,6 +93,23 @@ paths:
         400:
           description: "Invalid Key"
 
+  /getTransaction:
+      post:
+        operationId: "getTransaction"
+        parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/GetTransactionRequest"
+        responses:
+          200:
+            description: "successful operation"
+            schema:
+              $ref: "#/definitions/GetTransactionResponse"
+          400:
+            description: "Invalid Key"
+
 definitions:
   PubKey:
     type: object
@@ -193,11 +210,17 @@ definitions:
   ReceiveAmountRequest:
     type: object
     properties:
-      publicKey:
+      sourceKey:
         $ref: "#/definitions/PubKey"
-      transHash:
-        $ref: "#/definitions/Hash"
+      destKey:
+        $ref: "#/definitions/PubKey"
+      amount:
+        type: integer
       lastHash:
+        $ref: "#/definitions/Hash"
+      transSignature:
+        $ref: "#/definitions/Signature"
+      transHash:
         $ref: "#/definitions/Hash"
       Signature:
         $ref: "#/definitions/Signature"
@@ -226,4 +249,18 @@ definitions:
         items:
           $ref: "#/definitions/TransactionInformation"
       Signature:
+        $ref: "#/definitions/Signature"
+
+  GetTransactionRequest:
+    type: object
+    properties:
+      hash:
+        $ref: "#/definitions/Hash"
+
+  GetTransactionResponse:
+    type: object
+    properties:
+      transaction:
+        $ref: "#/definitions/TransactionInformation"
+      signature:
         $ref: "#/definitions/Signature"

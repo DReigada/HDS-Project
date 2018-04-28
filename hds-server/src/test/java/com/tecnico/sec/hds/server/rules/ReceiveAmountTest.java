@@ -33,7 +33,7 @@ public class ReceiveAmountTest {
     assertTrue(sendAmountTransOpt.isPresent());
     Transaction sendAmountTrans = sendAmountTransOpt.get();
 
-    Optional<Transaction> receiveAmountTransOpt = receiveAmountRules.receiveAmount(sendAmountTrans.hash, "b", "");
+    Optional<Transaction> receiveAmountTransOpt = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, "", "qwerty");
 
     assertTrue(receiveAmountTransOpt.isPresent());
     Transaction receiveAmountTrans = receiveAmountTransOpt.get();
@@ -64,7 +64,7 @@ public class ReceiveAmountTest {
     assertTrue(sendAmountTransOpt.isPresent());
     Transaction sendAmountTrans = sendAmountTransOpt.get();
 
-    Optional<Transaction> receiveAmountTransOpt = receiveAmountRules.receiveAmount(sendAmountTrans.hash, "b", previousTransOpt.get().hash);
+    Optional<Transaction> receiveAmountTransOpt = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, previousTransOpt.get().hash, "qwerty");
 
     assertTrue(receiveAmountTransOpt.isPresent());
     Transaction receiveAmountTrans = receiveAmountTransOpt.get();
@@ -92,8 +92,8 @@ public class ReceiveAmountTest {
     assertTrue(sendAmountTransOpt.isPresent());
     Transaction sendAmountTrans = sendAmountTransOpt.get();
 
-    Optional<Transaction> receiveAmountTransOpt1 = receiveAmountRules.receiveAmount(sendAmountTrans.hash, "b", "");
-    Optional<Transaction> receiveAmountTransOpt2 = receiveAmountRules.receiveAmount(sendAmountTrans.hash, "b", "");
+    Optional<Transaction> receiveAmountTransOpt1 = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, "", "qwerty");
+    Optional<Transaction> receiveAmountTransOpt2 = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, "", "qwerty");
 
     assertTrue(receiveAmountTransOpt1.isPresent());
     assertFalse(receiveAmountTransOpt2.isPresent());

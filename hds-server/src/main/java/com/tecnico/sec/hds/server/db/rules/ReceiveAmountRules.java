@@ -12,7 +12,8 @@ import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withTrans
 
 public class ReceiveAmountRules {
 
-  public Optional<Transaction> receiveAmount(String transHash, String signature, String lastHash) throws DBException {
+  public Optional<Transaction> receiveAmount(String transHash, String sourceKey, String destKey,
+                                             long amount, String lastHash, String signature) throws DBException {
     return withTransaction(conn -> {
 
       AccountQueries accountQueries = new AccountQueries(conn);
@@ -21,16 +22,17 @@ public class ReceiveAmountRules {
       Optional<Transaction> transaction = transferQueries.getTransactionByHash(transHash);
 
       if (transaction.isPresent() && transaction.get().pending) {
-        long amount = transaction.get().amount;
-        String sourceKey = transaction.get().sourceKey;
-        String destKey = transaction.get().destKey;
+        long transAmount = transaction.get().amount;
+        String transSourceKey = transaction.get().sourceKey;
+        String transDestKey = transaction.get().destKey;
 
         Optional<Transaction> destLastTransfer = transferQueries.getLastTransaction(destKey);
         Optional<String> destLastTransferHash = destLastTransfer.map(t -> t.hash);
 
         String lastTransferHash = destLastTransferHash.orElse("");
 
-        if (lastTransferHash.equals(lastHash)) {
+        if (transSourceKey.equals(sourceKey) && transDestKey.equals(destKey) && transAmount == amount
+            && lastTransferHash.equals(lastHash)) {
           String newHash = new ChainHelper().generateTransactionHash(
             destLastTransferHash,
             sourceKey,
