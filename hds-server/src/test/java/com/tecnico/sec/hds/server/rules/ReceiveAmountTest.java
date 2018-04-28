@@ -64,7 +64,7 @@ public class ReceiveAmountTest {
     assertTrue(sendAmountTransOpt.isPresent());
     Transaction sendAmountTrans = sendAmountTransOpt.get();
 
-    Optional<Transaction> receiveAmountTransOpt = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, "", "qwerty");
+    Optional<Transaction> receiveAmountTransOpt = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, previousTransOpt.get().hash, "qwerty");
 
     assertTrue(receiveAmountTransOpt.isPresent());
     Transaction receiveAmountTrans = receiveAmountTransOpt.get();
