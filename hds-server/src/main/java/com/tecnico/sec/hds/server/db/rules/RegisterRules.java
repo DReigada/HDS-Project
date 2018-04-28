@@ -19,6 +19,7 @@ public class RegisterRules {
 
       String newHash = new ChainHelper().generateTransactionHash(
         Optional.empty(),
+        Optional.empty(),
         "",
         publicKey,
         1000,
@@ -27,7 +28,7 @@ public class RegisterRules {
 
       accountQueries.register(publicKey);
 
-      transactionQueries.insertNewTransaction("0", publicKey, 1000, false, true, "",newHash);
+      transactionQueries.insertNewTransaction("0", publicKey, 1000, false, true, "", newHash, Optional.empty());
 
       return newHash;
     });

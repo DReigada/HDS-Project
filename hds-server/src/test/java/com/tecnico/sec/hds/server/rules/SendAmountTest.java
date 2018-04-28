@@ -38,10 +38,10 @@ public class SendAmountTest {
     Transaction t1 = t1opt.get();
     Transaction t2 = t2opt.get();
 
-    String hash1 = new ChainHelper().generateTransactionHash(Optional.of(firstAccount.second), t1.sourceKey, t1.destKey,
+    String hash1 = new ChainHelper().generateTransactionHash(Optional.of(firstAccount.second), Optional.empty(),t1.sourceKey, t1.destKey,
         t1.amount, ChainHelper.TransactionType.SEND_AMOUNT, t1.signature);
 
-    String hash2 = new ChainHelper().generateTransactionHash(Optional.of(secondAccount.second), t2.sourceKey, t2.destKey,
+    String hash2 = new ChainHelper().generateTransactionHash(Optional.of(secondAccount.second), Optional.empty(),t2.sourceKey, t2.destKey,
         t2.amount, ChainHelper.TransactionType.SEND_AMOUNT, t2.signature);
 
     assertEquals(hash1, t1.hash);
@@ -62,10 +62,10 @@ public class SendAmountTest {
     assertTrue(t2opt.isPresent());
     Transaction t2 = t2opt.get();
 
-    String hash1 = new ChainHelper().generateTransactionHash(Optional.of(account.second), t1.sourceKey, t1.destKey,
+    String hash1 = new ChainHelper().generateTransactionHash(Optional.of(account.second), Optional.empty(),t1.sourceKey, t1.destKey,
         t1.amount, ChainHelper.TransactionType.SEND_AMOUNT, t1.signature);
 
-    String hash2 = new ChainHelper().generateTransactionHash(Optional.of(t1.hash), t2.sourceKey, t2.destKey,
+    String hash2 = new ChainHelper().generateTransactionHash(Optional.of(t1.hash), Optional.empty(),t2.sourceKey, t2.destKey,
         t2.amount, ChainHelper.TransactionType.SEND_AMOUNT, t2.signature);
 
     assertEquals(hash1, t1.hash);

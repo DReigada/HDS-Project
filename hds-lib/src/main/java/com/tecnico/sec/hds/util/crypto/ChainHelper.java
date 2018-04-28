@@ -20,6 +20,7 @@ public class ChainHelper {
   }
 
   public String generateTransactionHash(Optional<String> previousTransactionHashOpt,
+                                        Optional<String> receiveHash,
                                         String source,
                                         String dest,
                                         long amount,
@@ -28,7 +29,7 @@ public class ChainHelper {
 
     String previousTransactionHash = previousTransactionHashOpt.orElse(SEED_HASH);
 
-    String text = previousTransactionHash + source + dest + amount + transType + signature;
+    String text = previousTransactionHash + receiveHash.orElse("") + source + dest + amount + transType + signature;
 
     byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
 

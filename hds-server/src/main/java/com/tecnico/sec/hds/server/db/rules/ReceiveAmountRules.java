@@ -28,13 +28,14 @@ public class ReceiveAmountRules {
 
         Optional<Transaction> destLastTransfer = transferQueries.getLastTransaction(destKey);
         Optional<String> destLastTransferHash = destLastTransfer.map(t -> t.hash);
-
+        Optional<String> receiveHash = Optional.of(transHash);
         String lastTransferHash = destLastTransferHash.orElse("");
 
         if (transSourceKey.equals(sourceKey) && transDestKey.equals(destKey) && transAmount == amount
             && lastTransferHash.equals(lastHash)) {
           String newHash = new ChainHelper().generateTransactionHash(
             destLastTransferHash,
+            receiveHash,
             sourceKey,
             destKey,
             amount,
@@ -44,7 +45,7 @@ public class ReceiveAmountRules {
           long balance = transferQueries.getBalance(destKey);
 
           transferQueries.updateTransactionPendingState(transHash, false);
-          transferQueries.insertNewTransaction(sourceKey, destKey, amount, false, true, signature, newHash);
+          transferQueries.insertNewTransaction(sourceKey, destKey, amount, false, true, signature, newHash, receiveHash);
 
           return transferQueries.getLastInsertedTransaction();
         }

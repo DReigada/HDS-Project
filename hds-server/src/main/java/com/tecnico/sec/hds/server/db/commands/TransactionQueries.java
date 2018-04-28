@@ -111,8 +111,8 @@ public class TransactionQueries {
   }
 
   public int insertNewTransaction(String sourceKey, String destKey, long amount,
-                                  boolean pending, boolean isReceive, String signature, String hash) throws DBException {
-    try (PreparedStatement stmt = createInsertTransactionStatment(sourceKey, destKey, amount, pending, isReceive, signature, hash)) {
+                                  boolean pending, boolean isReceive, String signature, String hash, Optional<String> receiveHash) throws DBException {
+    try (PreparedStatement stmt = createInsertTransactionStatment(sourceKey, destKey, amount, pending, isReceive, signature, hash, receiveHash)) {
 
       return stmt.executeUpdate();
 
@@ -123,8 +123,8 @@ public class TransactionQueries {
   }
 
   public PreparedStatement createInsertTransactionStatment(String sourcekey, String destKey, long amount, boolean pending,
-                                                           boolean isReceive, String signature, String hash) throws SQLException {
-    String insert = "INSERT INTO transactions(sourceKey, destKey, amount, pending, receive, signature, hash) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                                                           boolean isReceive, String signature, String hash, Optional<String> receiveHash) throws SQLException {
+    String insert = "INSERT INTO transactions(sourceKey, destKey, amount, pending, receive, signature, hash, receive_hash) VALUES (?, ?, ?, ?, ?, ?, ?,?)";
     PreparedStatement stmt = conn.prepareStatement(insert);
     stmt.setString(1, sourcekey);
     stmt.setString(2, destKey);
@@ -133,6 +133,7 @@ public class TransactionQueries {
     stmt.setBoolean(5, isReceive);
     stmt.setString(6, signature);
     stmt.setString(7, hash);
+    stmt.setString(8, receiveHash.orElse(""));
     return stmt;
   }
 

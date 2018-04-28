@@ -222,8 +222,6 @@ definitions:
         type: integer
       lastHash:
         $ref: "#/definitions/Hash"
-      transSignature:
-        $ref: "#/definitions/Signature"
       transHash:
         $ref: "#/definitions/Hash"
       Signature:

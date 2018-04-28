@@ -42,7 +42,7 @@ public class TransactionQueriesTest {
       Tuple<String, String> acc1 = createRandomAccount();
       Tuple<String, String> acc2 = createRandomAccount();
 
-      queries.insertNewTransaction(acc1.first, acc2.first, 1, false, true, "s", acc1.second);
+      queries.insertNewTransaction(acc1.first, acc2.first, 1, false, true, "s", acc1.second, Optional.empty());
       Optional<Transaction> trans = queries.getLastInsertedTransaction();
 
       assertTrue(trans.isPresent());
@@ -60,7 +60,7 @@ public class TransactionQueriesTest {
       Tuple<String, String> acc1 = createRandomAccount();
       Tuple<String, String> acc2 = createRandomAccount();
 
-      queries.insertNewTransaction(acc1.first, acc2.first, 2, false, true, "s", acc1.second);
+      queries.insertNewTransaction(acc1.first, acc2.first, 2, false, true, "s", acc1.second, Optional.empty());
       Optional<Transaction> trans = queries.getLastInsertedTransaction();
       assertTrue(trans.isPresent());
 
@@ -85,9 +85,9 @@ public class TransactionQueriesTest {
       Tuple<String, String> acc2 = createRandomAccount();
       Tuple<String, String> acc3 = createRandomAccount();
 
-      queries.insertNewTransaction(mainAccount.first, acc2.first, 1, false, false, "s1", "1");
-      queries.insertNewTransaction(mainAccount.first, acc2.first, 2, true, false, "s2", "2");
-      queries.insertNewTransaction(mainAccount.first, acc3.first, 3, false, false, "s3", "3");
+      queries.insertNewTransaction(mainAccount.first, acc2.first, 1, false, false, "s1", "1", Optional.empty());
+      queries.insertNewTransaction(mainAccount.first, acc2.first, 2, true, false, "s2", "2", Optional.empty());
+      queries.insertNewTransaction(mainAccount.first, acc3.first, 3, false, false, "s3", "3", Optional.empty());
 
       List<Transaction> history = queries.getHistory(mainAccount.first, Optional.empty());
 
@@ -110,9 +110,9 @@ public class TransactionQueriesTest {
       Tuple<String, String> acc2 = createRandomAccount();
       Tuple<String, String> acc3 = createRandomAccount();
 
-      queries.insertNewTransaction(acc2.first, mainAccount.first, 1, false, true, "s1", "1");
-      queries.insertNewTransaction(acc2.first, mainAccount.first, 2, true, true, "s2", "2");
-      queries.insertNewTransaction(acc3.first, mainAccount.first, 3, false, true, "s3", "3");
+      queries.insertNewTransaction(acc2.first, mainAccount.first, 1, false, true, "s1", "1", Optional.empty());
+      queries.insertNewTransaction(acc2.first, mainAccount.first, 2, true, true, "s2", "2", Optional.empty());
+      queries.insertNewTransaction(acc3.first, mainAccount.first, 3, false, true, "s3", "3", Optional.empty());
 
       List<Transaction> history = queries.getHistory(mainAccount.first, Optional.empty());
 
@@ -135,10 +135,10 @@ public class TransactionQueriesTest {
       Tuple<String, String> acc2 = createRandomAccount();
       Tuple<String, String> acc3 = createRandomAccount();
 
-      queries.insertNewTransaction(mainAccount.first, acc2.first, 1, false, false, "s1", "1");
-      queries.insertNewTransaction(mainAccount.first, acc2.first, 1, false, true, "s1", "1"); // Should not appear
-      queries.insertNewTransaction(acc2.first, mainAccount.first, 2, true, true, "s2", "2");
-      queries.insertNewTransaction(acc3.first, mainAccount.first, 3, false, true, "s3", "3");
+      queries.insertNewTransaction(mainAccount.first, acc2.first, 1, false, false, "s1", "1", Optional.empty());
+      queries.insertNewTransaction(mainAccount.first, acc2.first, 1, false, true, "s1", "1", Optional.empty()); // Should not appear
+      queries.insertNewTransaction(acc2.first, mainAccount.first, 2, true, true, "s2", "2", Optional.empty());
+      queries.insertNewTransaction(acc3.first, mainAccount.first, 3, false, true, "s3", "3", Optional.empty());
 
       List<Transaction> history = queries.getHistory(mainAccount.first, Optional.empty());
 
