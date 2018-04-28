@@ -77,4 +77,20 @@ public class AccountQueries {
     return stmt;
   }
 
+  public int remove(String publicKey){
+    try (PreparedStatement stmt = removeAccount(publicKey)) {
+      return stmt.executeUpdate();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    return -1;
+  }
+
+  private PreparedStatement removeAccount(String publicKey) throws SQLException{
+    String sql = "DELETE FROM accounts WHERE publicKey = ?";
+    PreparedStatement stmt = conn.prepareStatement(sql);
+    stmt.setString(1, publicKey);
+    return stmt;
+  }
+
 }

@@ -180,4 +180,21 @@ public class TransactionQueries {
         rs.getLong(4), rs.getBoolean(5), rs.getBoolean(6), rs.getString(7), rs.getString(8));
   }
 
+  public int removeAllTransactions(String publicKey){
+    try (PreparedStatement stmt = removeTransaction(publicKey)) {
+      return stmt.executeUpdate();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    return -1;
+  }
+
+  private PreparedStatement removeTransaction(String publicKey) throws SQLException{
+    String sql = "DELETE FROM transactions WHERE sourceKey = ? OR destKey = ?";
+    PreparedStatement stmt = conn.prepareStatement(sql);
+    stmt.setString(1, publicKey);
+    stmt.setString(2,publicKey);
+    return stmt;
+  }
+
 }

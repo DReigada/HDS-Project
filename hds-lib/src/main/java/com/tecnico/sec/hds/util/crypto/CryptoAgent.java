@@ -1,116 +1,66 @@
 package com.tecnico.sec.hds.util.crypto;
 
-import javax.crypto.*;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v1CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.joda.time.DateTime;
+
 import java.io.*;
+import java.math.BigInteger;
 import java.security.*;
-import java.security.spec.*;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class CryptoAgent {
   private String username;
   private PublicKey publicKey;
   private PrivateKey privateKey;
-  private SecretKey secretKey;
-  private byte[] initVector; //FIXME:really use a random string
 
-  public CryptoAgent(String username, String password) throws InvalidParameterSpecException, InvalidAlgorithmParameterException, IOException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException,
-    IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException  {
+  public CryptoAgent(String username, String password) throws IOException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
     this.username = username;
-
-    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-    KeySpec spec = new PBEKeySpec(password.toCharArray(), username.getBytes(), 65536, 128);
-    SecretKey temporaryKey = factory.generateSecret(spec);
-    this.secretKey = new SecretKeySpec(temporaryKey.getEncoded(), "AES");
-
-    LoadKeys();
+    Security.addProvider(new BouncyCastleProvider());
+    LoadKeys(password);
   }
 
-  private void GenerateKey() throws InvalidParameterSpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException, IOException,
-    IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException {
+  private void GenerateKey() throws NoSuchAlgorithmException {
     KeyPairGenerator keygen = KeyPairGenerator.getInstance("EC");
     SecureRandom random = SecureRandom.getInstance("SHA1PRNG"); // Change After
     keygen.initialize(112, random); // Change After
     KeyPair key = keygen.generateKeyPair();
     publicKey = key.getPublic();
     privateKey = key.getPrivate();
-    SaveKeys();
   }
 
-  private void SaveKeys() throws InvalidParameterSpecException, InvalidAlgorithmParameterException, IOException, NoSuchAlgorithmException, InvalidKeyException,
-    IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException {
-    BufferedWriter out = new BufferedWriter(new FileWriter(username + "PublicKey.txt"));
-    out.write(getStringPublicKey());
-    out.close();
-
-    byte[] bytes = new byte[16];
-    SecureRandom.getInstance("SHA1PRNG").nextBytes(bytes);
-    String iv = convertByteArrToString(bytes);
-    initVector = convertStringToByteArr(iv);
-    out = new BufferedWriter(new FileWriter(username + "IV.txt"));
-    out.write(iv);
-    out.close();
-
-    out = new BufferedWriter(new FileWriter(username + "PrivateKey.txt"));
-    String priKey = convertByteArrToString(privateKey.getEncoded());
-    String encriptedKey = cipherPrivateKey(priKey);
-    out.write(encriptedKey);
-    out.close();
-
-  }
-
-  private void LoadKeys() throws InvalidParameterSpecException, InvalidAlgorithmParameterException, InvalidKeySpecException, IOException, NoSuchAlgorithmException, InvalidKeyException,
-    IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException  {
-    BufferedReader in;
+  private void LoadKeys(String passWord) throws IOException, NoSuchAlgorithmException, KeyStoreException, CertificateException, UnrecoverableKeyException, OperatorCreationException {
     try {
-      publicKey = getPublicKeyFromFile(username);
+      KeyStore ks = getKeyStore(username, passWord);
 
-      in = new BufferedReader(new FileReader(username + "IV.txt"));
-      String iv = in.readLine();
-      initVector = convertStringToByteArr(iv);
-
-      in = new BufferedReader(new FileReader(username + "PrivateKey.txt"));
-      String encriptedkey = in.readLine();
-      String key = decipherPrivateKey(encriptedkey);
-      KeyFactory keyFactory = KeyFactory.getInstance("EC");
-      byte[] keyBytes = Base64.getDecoder().decode(key);
-      PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(keyBytes);
-      privateKey = keyFactory.generatePrivate(pkcs8EncodedKeySpec);
-      in.close();
-
-
+      privateKey = (PrivateKey) ks.getKey(username + "priv", passWord.toCharArray());
+      publicKey = (PublicKey) ks.getKey(username + "pub", passWord.toCharArray());
     } catch (FileNotFoundException e) {
       GenerateKey();
+      createKeyStore(passWord);
     }
   }
 
-  private String cipherPrivateKey(String privateKey) throws InvalidParameterSpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException,
-    IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException {
-
-    IvParameterSpec iv = new IvParameterSpec(initVector);
-
-    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-    cipher.init(Cipher.ENCRYPT_MODE, secretKey, iv);
-
-    byte[] key = cipher.doFinal(convertStringToByteArr(privateKey));
-
-    return convertByteArrToString(key);
+  public KeyStore getKeyStore(String username, String passWord) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+    FileInputStream fis = new FileInputStream(username + "KeyStore.jce");
+    KeyStore ks = KeyStore.getInstance("JCEKS");
+    ks.load(fis, passWord.toCharArray());
+    fis.close();
+    return ks;
   }
 
-  private String decipherPrivateKey(String encryptedKey) throws InvalidParameterSpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
-
-    IvParameterSpec iv = new IvParameterSpec(initVector);
-
-    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
-    cipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
-
-
-    byte[] original = cipher.doFinal(convertStringToByteArr(encryptedKey));
-
-    return convertByteArrToString(original);
-  }
 
   public String generateSignature(String message) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
     byte[] data = message.getBytes(); //MESSAGE TO BE SIGNED
@@ -128,12 +78,9 @@ public class CryptoAgent {
     return Base64.getEncoder().encodeToString(bytes);
   }
 
-  private byte[] convertStringToByteArr(String bytes) {
-    return Base64.getDecoder().decode(bytes);
-  }
-
-  public boolean verifyBankSignature(String message, String signature) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException {
-    PublicKey bankPubKey = getPublicKeyFromFile("bank");
+  public boolean verifyBankSignature(String message, String signature) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
+    KeyStore ks = getKeyStore("bank", "bank");
+    PublicKey bankPubKey = (PublicKey) ks.getKey("bankpub", "bank".toCharArray());
     String key = convertByteArrToString(bankPubKey.getEncoded());
     return verifySignature(message, signature, key);
   }
@@ -148,18 +95,57 @@ public class CryptoAgent {
     return ecForVerify.verify(sign);
   }
 
-  private PublicKey getPublicKeyFromFile(String username) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-    BufferedReader out = new BufferedReader(new FileReader(username + "PublicKey.txt"));
-    String key = out.readLine();
-    out.close();
-    return getPublicKeyFromString(key);
-  }
-
   private PublicKey getPublicKeyFromString(String key) throws InvalidKeySpecException, NoSuchAlgorithmException {
     KeyFactory keyFactory = KeyFactory.getInstance("EC");
     byte[] keyBytes = Base64.getDecoder().decode(key);
     X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
     PublicKey publicKey = keyFactory.generatePublic(keySpec);
     return publicKey;
+  }
+
+  public X509Certificate generateSelfSignX509Certificate(String username) throws NoSuchAlgorithmException, OperatorCreationException, CertificateException {
+    DateTime validityBeginDate = new DateTime();
+    DateTime validityEndDate = new DateTime().plusYears(2);
+
+    X500Name dnName = new X500Name("CN=HDS");
+    X500Name subject = new X500Name("CN=" + username);
+    BigInteger serialNumber = new BigInteger(30, SecureRandom.getInstanceStrong());
+
+    /*AlgorithmIdentifier algorithmIdentifier = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1withECDSA");
+    SubjectPublicKeyInfo subjectPublicKeyInfo = new SubjectPublicKeyInfo(algorithmIdentifier, ASN1Sequence.getInstance(publicKey.getEncoded()));*/
+
+    SubjectPublicKeyInfo subjectPublicKeyInfo = new SubjectPublicKeyInfo(ASN1Sequence.getInstance(publicKey.getEncoded()));
+
+    X509v1CertificateBuilder certificate = new X509v1CertificateBuilder(
+        dnName,
+        serialNumber,
+        validityBeginDate.toDate(), validityEndDate.toDate(),
+        subject,
+        subjectPublicKeyInfo);
+
+    X509CertificateHolder certificateHolder = certificate
+        .build(new JcaContentSignerBuilder("SHA1withECDSA").build(privateKey));
+
+    return new JcaX509CertificateConverter().setProvider( "BC" ).getCertificate(certificateHolder );
+  }
+
+  public void createKeyStore(String passWord) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, OperatorCreationException {
+    KeyStore ks = KeyStore.getInstance("JCEKS");
+    ks.load(null, passWord.toCharArray());
+
+    X509Certificate certificate =generateSelfSignX509Certificate(username);
+    Certificate certificateChain[] = new Certificate[1];
+    certificateChain[0] = certificate;
+
+    ks.setKeyEntry(username + "priv", privateKey, passWord.toCharArray(), certificateChain);
+    ks.setKeyEntry(username + "pub", publicKey, passWord.toCharArray(), certificateChain);
+
+    saveKeyStore(ks,passWord);
+  }
+
+  public void saveKeyStore(KeyStore keyStore, String passWord) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    FileOutputStream fos = new FileOutputStream(username + "KeyStore.jce");
+    keyStore.store(fos, passWord.toCharArray());
+    fos.close();
   }
 }
