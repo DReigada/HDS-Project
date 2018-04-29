@@ -32,7 +32,7 @@ public class GetTransactionController implements GetTransactionApi {
   public GetTransactionController() throws
       NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
     getTransactionRules = new GetTransactionRules();
-    cryptoAgent = new CryptoAgent("bank", "pass");
+    cryptoAgent = new CryptoAgent("bank", "bank");
     transactionFormatter = new TransactionFormatter();
   }
 
