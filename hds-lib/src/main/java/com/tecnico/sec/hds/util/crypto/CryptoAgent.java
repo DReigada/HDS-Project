@@ -11,7 +11,10 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.joda.time.DateTime;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.Certificate;
@@ -103,7 +106,7 @@ public class CryptoAgent {
     return publicKey;
   }
 
-  public X509Certificate generateSelfSignX509Certificate(String username) throws NoSuchAlgorithmException, OperatorCreationException, CertificateException {
+  public X509Certificate generateSelfSignX509Certificate(String username) throws NoSuchAlgorithmException, OperatorCreationException, CertificateException, IOException {
     DateTime validityBeginDate = new DateTime();
     DateTime validityEndDate = new DateTime().plusYears(2);
 

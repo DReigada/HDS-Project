@@ -41,16 +41,18 @@ public class ChainHelper {
   public boolean verifyTransaction(List<Transaction> transactions){
     String newTransactionHash = "";
     for(Transaction transaction : transactions){
+      if(!newTransactionHash.equals(transaction.hash)){
+        return false;
+      }
+
+      System.out.println("\n Calculaating Hash...");
+
       newTransactionHash = generateTransactionHash(Optional.of(newTransactionHash),
           transaction.sourceKey,
           transaction.destKey,
           transaction.amount,
           transaction.pending ? TransactionType.SEND_AMOUNT : TransactionType.ACCEPT,
           transaction.signature);
-
-      if(newTransactionHash != transaction.hash){
-        return false;
-      }
     }
     return true;
   }
@@ -60,4 +62,5 @@ public class ChainHelper {
   public enum TransactionType {
     SEND_AMOUNT, ACCEPT
   }
+
 }
