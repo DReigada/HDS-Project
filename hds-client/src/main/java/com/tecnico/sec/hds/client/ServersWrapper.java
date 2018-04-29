@@ -1,5 +1,6 @@
 package com.tecnico.sec.hds.client;
 
+import com.tecnico.sec.hds.client.commands.util.QuorumHelper;
 import io.swagger.client.ApiClient;
 import io.swagger.client.ApiException;
 import io.swagger.client.api.DefaultApi;
@@ -12,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -58,9 +60,24 @@ public class ServersWrapper {
   }
 
   public AuditResponse audit(AuditRequest body) {
-    return forEachServer(server -> server.audit(body))
-        .findFirst()
-        .get();
+    Stream<AuditResponse> responses = forEachServer(server -> server.audit(body));
+
+    // TODO verify signatures
+
+    List<AuditResponse> responsesList = responses.collect(Collectors.toList());
+
+    List<AuditResponse> naoSeiOquelhechamar =
+        QuorumHelper.getTransactionsQuorum(responsesList, AuditResponse::getList, getServersThreshold())
+            .collect(Collectors.toList());
+
+    AuditResponse quorumResponse = naoSeiOquelhechamar.get(0);
+
+    //TODO implement writeBack
+    //naoSeiOquelhechamar.stream()
+    //    .skip(1)  // skip the quorum response
+    //    .forEach(writeBack);
+
+    return quorumResponse;
   }
 
   public CheckAccountResponse checkAccount(CheckAccountRequest body) {
@@ -93,7 +110,15 @@ public class ServersWrapper {
         .get(0);
   }
 
-  private <A> Stream<A> forEachServer(ApiCenas<A> serverCall) {
+  private int getServersThreshold() {
+    return (int) ((servers.size() + getNumberOfFaults(servers.size())) / 2.0);
+  }
+
+  private int getNumberOfFaults(int serversNumber) {
+    return 1; // TODO change this
+  }
+
+  private <A> Stream<A> forEachServer(ServerCall<A> serverCall) {
     return servers.entrySet().stream().parallel()
         .flatMap(entry -> {
           try {
@@ -106,7 +131,7 @@ public class ServersWrapper {
   }
 
   @FunctionalInterface
-  private interface ApiCenas<R> {
+  private interface ServerCall<R> {
     R apply(DefaultApi t) throws ApiException;
   }
 }
