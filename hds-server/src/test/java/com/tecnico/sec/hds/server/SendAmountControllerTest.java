@@ -9,7 +9,6 @@ import io.swagger.model.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,8 +61,8 @@ public class SendAmountControllerTest {
   }
 
   private void clean() {
-    File file = new File("HDSDB.mv.db");
-    file.delete();
+    //File file = new File("HDSDB.mv.db");
+    //file.delete();
   }
 
 }

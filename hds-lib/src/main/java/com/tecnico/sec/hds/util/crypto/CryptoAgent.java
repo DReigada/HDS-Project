@@ -1,5 +1,6 @@
 package com.tecnico.sec.hds.util.crypto;
 
+import domain.Transaction;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -23,6 +24,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.List;
 
 public class CryptoAgent {
   private String username;
@@ -151,4 +153,17 @@ public class CryptoAgent {
     keyStore.store(fos, passWord.toCharArray());
     fos.close();
   }
+
+  public boolean verifyTransactionsSignature(List<Transaction> transactions) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidKeySpecException {
+    String hash = "";
+    for (Transaction t : transactions) {
+      String message = generateSignature(t.sourceKey + t.destKey + t.amount + hash);
+      if(!verifySignature(message,t.signature, getStringPublicKey())){
+        return false;
+      }
+      hash = t.hash;
+    }
+    return true;
+  }
+
 }

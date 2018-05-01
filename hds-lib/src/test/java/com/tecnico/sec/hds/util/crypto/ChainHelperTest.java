@@ -46,6 +46,6 @@ public class ChainHelperTest {
 
   @Test
   public void ChainVerificationWithTransactionsMixed(){
-    assertTrue("Not True", chainHelper.verifyTransaction(transactionsMixed));
+    assertTrue("Not True", chainHelper.verifyTransaction(transactionsMixed, "User1"));
   }
 }

@@ -38,21 +38,22 @@ public class ChainHelper {
     return Base64.getEncoder().encodeToString(hash);
   }
 
-  public boolean verifyTransaction(List<Transaction> transactions){
+  public boolean verifyTransaction(List<Transaction> transactions, String key){
     String newTransactionHash = "";
     for(Transaction transaction : transactions){
-      if(!newTransactionHash.equals(transaction.hash)){
-        return false;
-      }
-
-      System.out.println("\n Calculaating Hash...");
-
       newTransactionHash = generateTransactionHash(Optional.of(newTransactionHash),
           transaction.sourceKey,
           transaction.destKey,
           transaction.amount,
-          transaction.pending ? TransactionType.SEND_AMOUNT : TransactionType.ACCEPT,
+          key.equals(transaction.sourceKey) ? TransactionType.SEND_AMOUNT : TransactionType.ACCEPT,
           transaction.signature);
+
+      System.out.println(newTransactionHash);
+      System.out.println(transaction.hash);
+
+      if(!newTransactionHash.equals(transaction.hash)){
+        return false;
+      }
     }
     return true;
   }
