@@ -119,7 +119,7 @@ public class ServersWrapper {
    * @return list tuple that contains the quorum response and the servers that are missing transactions (to be used in the write back)
    */
   private <A> Tuple<A, List<Tuple<DefaultApi, A>>> serverReadWithQuorums(ServerCall<A> serverCall, Function<A, List<TransactionInformation>> responseToList) {
-    List<Tuple<DefaultApi, A>> serversWithResponses = forEachServer(serverCall).collect(Collectors.toList());
+    List<Tuple<DefaultApi, A>> serversWithResponses = forEachServer(serverCall).collect(Collectors.toList()); // TODO should we call all servers??
 
     List<Tuple<DefaultApi, A>> bla = QuorumHelper.getTransactionsQuorum(serversWithResponses, a -> responseToList.apply(a.second), getServersThreshold())
         .collect(Collectors.toList());
