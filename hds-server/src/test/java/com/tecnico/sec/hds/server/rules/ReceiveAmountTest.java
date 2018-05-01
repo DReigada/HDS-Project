@@ -19,7 +19,7 @@ import static org.junit.Assert.assertFalse;
 public class ReceiveAmountTest {
   @BeforeClass
   public static void beforeClass() {
-    Migrations.migrate();
+        Migrations.migrate();
   }
 
 

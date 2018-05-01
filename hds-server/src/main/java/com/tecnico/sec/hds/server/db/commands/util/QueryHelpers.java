@@ -8,6 +8,11 @@ import java.sql.SQLException;
 
 public class QueryHelpers {
 
+  public static String getDBUrl() {
+    String suffix = System.getProperty("server.port", "8080");
+    return "jdbc:h2:./HDSDB" + suffix;
+  }
+
   public static <A> A withTransaction(QueryRunner<Connection, A> query) throws DBException {
     try (Connection conn = connection()) {
       try {
@@ -38,7 +43,7 @@ public class QueryHelpers {
   }
 
   private static Connection connection() throws SQLException {
-    String url = "jdbc:h2:./HDSDB";
+    String url = getDBUrl();
     return DriverManager.getConnection(url);
   }
 
