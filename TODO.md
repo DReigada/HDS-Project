@@ -14,8 +14,8 @@
     1. Tests ?
     1. Servers should use differente databases
 1. Register 
-    1. Read the book 🤷‍♀️
-    1. Verificar Hash chain on read 
+    1. Read the book ¯\_(ツ)_/¯
+    1. Verificar Hash chain on read 
     1. Trocar check account para receber transacoes todas (no cliente)
     1. Funcao para escolher a maioria ✅
     1. Write-back
