@@ -3,8 +3,8 @@ package com.tecnico.sec.hds.server.controllers;
 import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.AuditRules;
-import domain.Transaction;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
+import domain.Transaction;
 import io.swagger.annotations.ApiParam;
 import io.swagger.api.AuditApi;
 import io.swagger.model.AuditRequest;
@@ -20,12 +20,12 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.List;
 
 
-
 @Controller
-public class AuditController implements AuditApi{
+public class AuditController implements AuditApi {
   private AuditRules auditRules;
   private CryptoAgent cryptoAgent;
 
@@ -39,16 +39,16 @@ public class AuditController implements AuditApi{
     String pubKey = body.getPublicKey().getValue();
     AuditResponse auditResponse = new AuditResponse();
     try {
+      auditResponse.setList(new ArrayList<>());
       List<Transaction> history = auditRules.audit(pubKey);
-      for (Transaction transaction : history){
+      for (Transaction transaction : history) {
         auditResponse.addListItem(TransactionFormatter.getTransactionInformation(transaction));
       }
       Signature sign;
-      if (auditResponse.getList() != null){
+      if (auditResponse.getList() != null) {
         sign = new Signature().value(cryptoAgent.generateSignature(
             TransactionFormatter.convertTransactionsToString(auditResponse.getList())));
-      }
-      else {
+      } else {
         sign = new Signature().value(cryptoAgent.generateSignature(""));
       }
       auditResponse.setSignature(sign);
