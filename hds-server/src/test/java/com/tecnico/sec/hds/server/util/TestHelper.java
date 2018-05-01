@@ -1,19 +1,16 @@
 package com.tecnico.sec.hds.server.util;
 
-import com.tecnico.sec.hds.server.db.commands.AccountQueries;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
-import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
+import com.tecnico.sec.hds.server.db.rules.RegisterRules;
 
 import java.util.UUID;
 
 public class TestHelper {
-  public static String createRandomAccount() throws DBException {
-    return QueryHelpers.withConnection(conn -> {
-      AccountQueries acc = new AccountQueries(conn);
-      String key = randomPublicKey();
-      acc.register(key);
-      return key;
-    });
+  public static Tuple<String, String> createRandomAccount() throws DBException {
+    RegisterRules registerRules = new RegisterRules();
+    String key = randomPublicKey();
+    String hash = registerRules.register(key);
+    return new Tuple(key,hash);
   }
 
   // TODO change this for valid key

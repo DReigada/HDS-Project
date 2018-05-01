@@ -24,6 +24,7 @@ public class ChainHelperTest {
       if(i != 0) {
         hash = chainHelper.generateTransactionHash(
             Optional.of(hash),
+            Optional.empty(),
             "User1",
             "User2",
             i-1,

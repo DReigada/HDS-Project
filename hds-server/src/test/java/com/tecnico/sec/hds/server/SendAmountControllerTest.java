@@ -1,3 +1,4 @@
+
 package com.tecnico.sec.hds.server;
 
 import com.tecnico.sec.hds.server.controllers.CheckAccountController;

@@ -14,6 +14,9 @@
     1. Tests ?
 2. Register 
     1. Read the book
-    1. Implement
+    1. Verificar Hash chain on read
+    1. Trocar check account para receber transacoes todas
+    1. Funcao para escolher a maioria
+    1. Write-back
 
 # Part 2 Optional

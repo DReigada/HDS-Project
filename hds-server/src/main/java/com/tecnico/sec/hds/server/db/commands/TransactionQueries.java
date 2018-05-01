@@ -19,6 +19,13 @@ public class TransactionQueries {
     this.conn = conn;
   }
 
+  public long getBalance(String publicKey) throws DBException {
+    List<Transaction> history = getHistory(publicKey, Optional.empty());
+    long amount = history.stream().mapToLong(t -> t.receive ? t.amount : -t.amount).sum();
+
+    return amount;
+  }
+
   public Optional<Transaction> getLastTransaction(String publicKey) throws DBException {
     List<Transaction> list = getHistory(publicKey, Optional.of(1));
 
@@ -48,9 +55,9 @@ public class TransactionQueries {
   private PreparedStatement listTransactionsQuery(String publicKey, Optional<Integer> limit) throws SQLException {
     String bla = limit.map(integer -> " LIMIT " + integer).orElse("");
     String query =
-        "SELECT * FROM transactions" +
-            " WHERE (sourceKey = ? AND NOT receive) OR (destKey = ? AND receive)" +
-            " ORDER BY transID DESC " + bla;
+      "SELECT * FROM transactions" +
+        " WHERE (sourceKey = ? AND NOT receive) OR (destKey = ? AND receive)" +
+        " ORDER BY transID DESC " + bla;
     PreparedStatement stmt = conn.prepareStatement(query);
     stmt.setString(1, publicKey);
     stmt.setString(2, publicKey);
@@ -104,8 +111,8 @@ public class TransactionQueries {
   }
 
   public int insertNewTransaction(String sourceKey, String destKey, long amount,
-                                  boolean pending, boolean isReceive, String signature, String hash) throws DBException {
-    try (PreparedStatement stmt = createInsertTransactionStatment(sourceKey, destKey, amount, pending, isReceive, signature, hash)) {
+                                  boolean pending, boolean isReceive, String signature, String hash, Optional<String> receiveHash) throws DBException {
+    try (PreparedStatement stmt = createInsertTransactionStatment(sourceKey, destKey, amount, pending, isReceive, signature, hash, receiveHash)) {
 
       return stmt.executeUpdate();
 
@@ -116,8 +123,8 @@ public class TransactionQueries {
   }
 
   public PreparedStatement createInsertTransactionStatment(String sourcekey, String destKey, long amount, boolean pending,
-                                                           boolean isReceive, String signature, String hash) throws SQLException {
-    String insert = "INSERT INTO transactions(sourceKey, destKey, amount, pending, receive, signature, hash) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                                                           boolean isReceive, String signature, String hash, Optional<String> receiveHash) throws SQLException {
+    String insert = "INSERT INTO transactions(sourceKey, destKey, amount, pending, receive, signature, hash, receive_hash) VALUES (?, ?, ?, ?, ?, ?, ?,?)";
     PreparedStatement stmt = conn.prepareStatement(insert);
     stmt.setString(1, sourcekey);
     stmt.setString(2, destKey);
@@ -126,6 +133,7 @@ public class TransactionQueries {
     stmt.setBoolean(5, isReceive);
     stmt.setString(6, signature);
     stmt.setString(7, hash);
+    stmt.setString(8, receiveHash.orElse(""));
     return stmt;
   }
 
@@ -168,19 +176,19 @@ public class TransactionQueries {
 
   private PreparedStatement createGetLastInsertedTransactionQuery() throws SQLException {
     String query =
-        "SELECT transID, sourceKey, destKey, amount, pending, receive, signature, hash" +
-            " FROM transactions" +
-            " WHERE transID = (SELECT LAST_INSERT_ID())";
+      "SELECT transID, sourceKey, destKey, amount, pending, receive, signature, hash" +
+        " FROM transactions" +
+        " WHERE transID = (SELECT LAST_INSERT_ID())";
 
     return conn.prepareStatement(query);
   }
 
   private Transaction createTransactionFromResultSet(ResultSet rs) throws SQLException {
     return new Transaction(rs.getInt(1), rs.getString(2), rs.getString(3),
-        rs.getLong(4), rs.getBoolean(5), rs.getBoolean(6), rs.getString(7), rs.getString(8));
+      rs.getLong(4), rs.getBoolean(5), rs.getBoolean(6), rs.getString(7), rs.getString(8));
   }
 
-  public int removeAllTransactions(String publicKey){
+  public int removeAllTransactions(String publicKey) {
     try (PreparedStatement stmt = removeTransaction(publicKey)) {
       return stmt.executeUpdate();
     } catch (SQLException e) {
@@ -189,11 +197,11 @@ public class TransactionQueries {
     return -1;
   }
 
-  private PreparedStatement removeTransaction(String publicKey) throws SQLException{
+  private PreparedStatement removeTransaction(String publicKey) throws SQLException {
     String sql = "DELETE FROM transactions WHERE sourceKey = ? OR destKey = ?";
     PreparedStatement stmt = conn.prepareStatement(sql);
     stmt.setString(1, publicKey);
-    stmt.setString(2,publicKey);
+    stmt.setString(2, publicKey);
     return stmt;
   }
 

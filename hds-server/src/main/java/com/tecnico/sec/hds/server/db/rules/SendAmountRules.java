@@ -29,17 +29,17 @@ public class SendAmountRules {
 
         String newHash = new ChainHelper().generateTransactionHash(
           sourceLastTransferHash,
+          Optional.empty(),
           sourceKey,
           destKey,
           amount,
           ChainHelper.TransactionType.SEND_AMOUNT,
           signature);
 
-        long sourceBalance = accountQueries.getBalance(sourceKey);
+        long sourceBalance = transferQueries.getBalance(sourceKey);
 
         if (amount <= sourceBalance && amount > 0) {
-          accountQueries.updateAccount(sourceKey, sourceBalance - amount);
-          transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, false, signature, newHash);
+          transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, false, signature, newHash, Optional.empty());
 
           return transferQueries.getLastInsertedTransaction();
         }

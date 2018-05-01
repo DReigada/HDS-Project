@@ -46,9 +46,8 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     String destKey = body.getDestKey().getValue();
     long amount = body.getAmount();
     String lastHash = body.getLastHash().getValue();
-    String transSignature = body.getTransSignature().getValue();
     String transHash = body.getTransHash().getValue();
-    String clientSignature = body.getSignature().getValue();
+    String transSignature = body.getSignature().getValue();
 
     ReceiveAmountResponse response = new ReceiveAmountResponse();
     String message;
@@ -56,8 +55,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     Hash newHash = new Hash();
     Signature signature = new Signature();
     try {
-      if (cryptoAgent.verifySignature(sourceKey + destKey + amount + lastHash, transSignature, destKey)
-          && cryptoAgent.verifySignature(transSignature + transHash, clientSignature, destKey)) {
+      if (cryptoAgent.verifySignature(sourceKey + destKey + amount + lastHash + transHash, transSignature, destKey)) {
         Optional<Transaction> result = receiveAmount(sourceKey, destKey, amount, lastHash, transSignature, transHash);
         if (result.isPresent()) {
           newHash.setValue(result.get().hash);

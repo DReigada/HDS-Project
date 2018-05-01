@@ -14,9 +14,9 @@ public class CheckAccountRules {
 
   public long getBalance(String publicKey) throws DBException {
     return withConnection(conn -> {
-      AccountQueries accountQueries = new AccountQueries(conn);
+      TransactionQueries transactionQueries = new TransactionQueries(conn);
 
-      return accountQueries.getBalance(publicKey);
+      return transactionQueries.getBalance(publicKey);
 
     });
   }
