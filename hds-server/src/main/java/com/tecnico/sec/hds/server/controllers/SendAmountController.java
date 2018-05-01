@@ -36,7 +36,7 @@ public class SendAmountController implements SendAmountApi {
   private SendAmountRules sendAmountRules;
 
   public SendAmountController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
-    cryptoAgent = new CryptoAgent("bank", "strongPassword");
+    cryptoAgent = new CryptoAgent("bank", "bank");
     sendAmountRules = new SendAmountRules();
   }
 
