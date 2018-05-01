@@ -12,7 +12,7 @@
     1. Server: receive port in main arguments ✅
     1. Client: Read servers URLs from file and instantiate multiple ClientApi's ✅
     1. Tests ?
-    1. Servers should use differente databases
+    1. Servers should use differente databases ✅
 1. Register 
     1. Read the book ¯\_(ツ)_/¯
     1. Verificar Hash chain on read 
@@ -20,6 +20,9 @@
     1. Funcao para escolher a maioria ✅
     1. Write-back
 
+
+# Part 2 fixes
+1. Servers should have different provate keys
 
 # Part 2 Optional
 1. remove getTransaction endpoint
