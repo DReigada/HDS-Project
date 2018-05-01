@@ -58,8 +58,6 @@ public class ReceiveAmountCommand extends AbstractCommand {
 
     receiveAmountRequest.setSignature(signature);
 
-    //transactionGetter.getTransactionListMessage(getTransactionResponse.getTransaction());
-
     ReceiveAmountResponse receiveAmountResponse = client.server.receiveAmount(receiveAmountRequest);
 
     hash = receiveAmountResponse.getNewHash();

@@ -43,15 +43,12 @@ public class ChainHelper {
     String newTransactionHash = "";
     for(Transaction transaction : transactions){
       newTransactionHash = generateTransactionHash(Optional.of(newTransactionHash),
-          Optional.empty(), //Optional.of(transaction.receive),
+          Optional.of(transaction.receiveHash),
           transaction.sourceKey,
           transaction.destKey,
           transaction.amount,
-          key.equals(transaction.sourceKey) ? TransactionType.SEND_AMOUNT : TransactionType.ACCEPT,
+          transaction.receive ? TransactionType.SEND_AMOUNT : TransactionType.ACCEPT,
           transaction.signature);
-
-      System.out.println(newTransactionHash);
-      System.out.println(transaction.hash);
 
       if(!newTransactionHash.equals(transaction.hash)){
         return false;

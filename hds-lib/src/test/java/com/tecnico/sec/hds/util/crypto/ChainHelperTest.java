@@ -1,17 +1,7 @@
 package com.tecnico.sec.hds.util.crypto;
 
-import domain.Transaction;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.Assert.assertTrue;
-
 public class ChainHelperTest {
-  private static List<Transaction> transactionsMixed;
+  /*private static List<Transaction> transactionsMixed;
   private static ChainHelper chainHelper;
 
   @BeforeClass
@@ -49,5 +39,5 @@ public class ChainHelperTest {
   @Test
   public void ChainVerificationWithTransactionsMixed(){
     assertTrue("Not True", chainHelper.verifyTransaction(transactionsMixed, "User1"));
-  }
+  }*/
 }
