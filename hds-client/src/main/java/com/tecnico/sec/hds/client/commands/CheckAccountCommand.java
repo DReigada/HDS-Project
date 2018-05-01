@@ -37,7 +37,8 @@ public class CheckAccountCommand extends AbstractCommand {
 
       if (client.cryptoAgent.verifyBankSignature(response.toString(), signature.getValue())) {
         System.out.println("Public Key: " + client.key);
-        long Balance = getBalance(checkAccountResponse.getHistory());
+        long balance = getBalance(checkAccountResponse.getHistory());
+        System.out.println("Balance: " + balance + "\n");
         System.out.println(response);
       } else {
         System.out.print("Unexpected error from server. \n Try Again Later.");
