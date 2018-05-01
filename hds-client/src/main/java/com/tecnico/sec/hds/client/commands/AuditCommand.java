@@ -39,8 +39,6 @@ public class AuditCommand extends AbstractCommand {
             client.setLastHash(auditResponse.getList().get(0).getSendHash());
           }
         } else {
-          System.out.println(client.cryptoAgent.verifyTransactionsSignature(transactions));
-          System.out.println(client.chainHelper.verifyTransaction(transactions, key.getValue()));
           System.out.print("Unexpected error from server. \n Try Again Later.");
         }
       }

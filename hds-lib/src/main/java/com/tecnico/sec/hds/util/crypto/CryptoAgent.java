@@ -157,9 +157,8 @@ public class CryptoAgent {
   public boolean verifyTransactionsSignature(List<Transaction> transactions) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidKeySpecException {
     for (int i = 1; i < transactions.size(); i++ ) {
       String message = transactions.get(i).sourceKey + transactions.get(i).destKey + transactions.get(i).amount
-          + transactions.get(i).hash + transactions.get(i).receiveHash;
-      System.out.println(message);
-      if(!verifySignature(message,t.signature,getStringPublicKey())){
+          + transactions.get(i-1).hash + transactions.get(i).receiveHash;
+      if(!verifySignature(message,transactions.get(i).signature,getStringPublicKey())){
         return false;
       }
     }

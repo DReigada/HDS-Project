@@ -47,7 +47,7 @@ public class ChainHelper {
           transaction.sourceKey,
           transaction.destKey,
           transaction.amount,
-          transaction.receive ? TransactionType.SEND_AMOUNT : TransactionType.ACCEPT,
+          !transaction.receive ? TransactionType.SEND_AMOUNT : TransactionType.ACCEPT,
           transaction.signature);
 
       if(!newTransactionHash.equals(transaction.hash)){
