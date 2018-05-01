@@ -6,11 +6,13 @@ import io.swagger.client.ApiException;
 import io.swagger.client.model.CheckAccountRequest;
 import io.swagger.client.model.CheckAccountResponse;
 import io.swagger.client.model.Signature;
+import io.swagger.client.model.TransactionInformation;
 
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.List;
 
 public class CheckAccountCommand extends AbstractCommand {
   private static final String name = "check_account";
@@ -20,23 +22,33 @@ public class CheckAccountCommand extends AbstractCommand {
 
     CheckAccountRequest checkAccountRequest = new CheckAccountRequest().publicKey(client.key);
 
-    CheckAccountResponse checkAmountResponse = client.server.checkAccount(checkAccountRequest);
-    StringBuilder response = new StringBuilder("Public Key: " + client.key.getValue() + "\n" + "Balance: "
-        + checkAmountResponse.getAmount() + "\n");
-    Signature signature = checkAmountResponse.getSignature();
+    CheckAccountResponse checkAccountResponse = client.server.checkAccount(checkAccountRequest);
+    StringBuilder response = new StringBuilder();
+    Signature signature = checkAccountResponse.getSignature();
     try {
 
-      if (checkAmountResponse.getList() != null) {
-          response.append(TransactionGetter.getTransactionListMessage(checkAmountResponse.getList()));
+      if (checkAccountResponse.getHistory() != null) {
+        response.append(TransactionGetter.getTransactionListMessage(checkAccountResponse.getHistory()));
       }
 
-      if (client.cryptoAgent.verifyBankSignature(response.toString(), signature.getValue()))
+      if (checkAccountResponse.getPending() != null) {
+        response.append(TransactionGetter.getTransactionListMessage(checkAccountResponse.getPending()));
+      }
+
+      if (client.cryptoAgent.verifyBankSignature(response.toString(), signature.getValue())) {
+        System.out.println("Public Key: " + client.key);
+        long Balance = getBalance(checkAccountResponse.getHistory());
         System.out.println(response);
-      else
+      } else {
         System.out.print("Unexpected error from server. \n Try Again Later.");
+      }
     } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException | InvalidKeyException | SignatureException | CertificateException | UnrecoverableKeyException | KeyStoreException e) {
       e.printStackTrace();
     }
+  }
+
+  public long getBalance(List<TransactionInformation> transactions){
+    return transactions.stream().mapToLong(t -> t.isReceive() ? Long.valueOf(t.getAmount()) : -Long.valueOf(t.getAmount())).sum();
   }
 
   @Override
