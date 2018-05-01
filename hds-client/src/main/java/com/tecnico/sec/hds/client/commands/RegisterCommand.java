@@ -23,10 +23,12 @@ public class RegisterCommand extends AbstractCommand {
     sign = response.getSignature();
 
     try {
-      if (client.cryptoAgent.verifyBankSignature(response.getMessage(), sign.getValue()))
+      if (client.cryptoAgent.verifyBankSignature(response.getMessage() + response.getHash().getValue(), sign.getValue())) {
         System.out.println(response.getMessage());
-      else
-        System.out.print("Enexpected error from server. \n Try Again Later.");
+        client.setLastHash(response.getHash());
+      } else {
+        System.out.print("Unexpected error from server. \n Try Again Later.");
+      }
     } catch (IOException | InvalidKeySpecException e) {
       e.printStackTrace();
     }
