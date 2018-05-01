@@ -9,8 +9,12 @@ import java.sql.SQLException;
 public class QueryHelpers {
 
   public static String getDBUrl() {
+    return "jdbc:h2:" + getDBFilePath();
+  }
+
+  public static String getDBFilePath() {
     String suffix = System.getProperty("server.port", "8080");
-    return "jdbc:h2:./HDSDB" + suffix;
+    return "./HDSDB" + suffix;
   }
 
   public static <A> A withTransaction(QueryRunner<Connection, A> query) throws DBException {

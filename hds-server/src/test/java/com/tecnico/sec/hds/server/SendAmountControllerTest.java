@@ -4,9 +4,9 @@ import com.tecnico.sec.hds.server.controllers.CheckAccountController;
 import com.tecnico.sec.hds.server.controllers.RegisterController;
 import com.tecnico.sec.hds.server.controllers.SendAmountController;
 import com.tecnico.sec.hds.server.db.commands.util.Migrations;
+import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.model.*;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -51,6 +51,12 @@ public class SendAmountControllerTest {
     transactions.add(sendAmountRequest);
   }
 
+  @AfterClass
+  public static void clean() {
+    File file = new File(QueryHelpers.getDBFilePath());
+    file.delete();
+  }
+
   @Test
   public void ReplayAttack() throws Exception {
     for (SendAmountRequest request : transactions) {
@@ -62,12 +68,6 @@ public class SendAmountControllerTest {
     CheckAccountRequest checkAccountRequest = new CheckAccountRequest().publicKey(new PubKey().value(agent1.getStringPublicKey()));
     CheckAccountResponse response = checkAccountController.checkAccount(checkAccountRequest).getBody();
     assertEquals("900", response.getAmount());
-  }
-
-  @AfterClass
-  public static void clean() {
-    File file = new File("HDSDB.mv.db");
-    file.delete();
   }
 
 }
