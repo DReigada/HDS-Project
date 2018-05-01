@@ -1,19 +1,32 @@
 package com.tecnico.sec.hds.client.commands.util;
 
+import domain.Transaction;
 import io.swagger.client.model.TransactionInformation;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class TransactionGetter {
 
-  public String getTransactionListMessage(TransactionInformation transaction){
-    String transactionListMessage = "";
-    transactionListMessage += "Transaction ID: " + transaction.getTransID() + "\n";
-    transactionListMessage += "Source Key: " + transaction.getSourceKey() + "\n";
-    transactionListMessage += "Destination Key: " + transaction.getDestKey() + "\n";
-    transactionListMessage += "Amount: " + transaction.getAmount() + "\n";
-    transactionListMessage += "Pending: " + transaction.isPending() + "\n";
-    transactionListMessage += "Received: " + transaction.isReceive() + "\n";
-    transactionListMessage += "Signature: " + transaction.getSignature().getValue() + "\n";
-    transactionListMessage += "Hash: " + transaction.getHash().getValue() + "\n";
-    return transactionListMessage;
+  public static String getTransactionListMessage(List<TransactionInformation> transactions){
+    return transactions.stream().parallel().map(s -> s.toString()).collect(Collectors.joining("\n"));
+  }
+
+  public static String getTransactionListMessage(TransactionInformation transaction){
+    return transaction.toString();
+  }
+
+  public static List<Transaction> InformationToTransaction(List<TransactionInformation> transactions){
+    return transactions.stream().parallel().map(s ->
+    new Transaction(s.getTransID(),
+        s.getSourceKey(),
+        s.getDestKey(),
+        Long.valueOf(s.getAmount()),
+        s.isPending(),
+        s.isReceive(),
+        s.getSendHash().getValue(),
+        s.getReceiveHash().getValue(),
+        s.getSignature().getValue())
+    ).collect(Collectors.toList());
   }
 }

@@ -4,8 +4,7 @@ package com.tecnico.sec.hds.server.db.commands;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.commands.util.Migrations;
 import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
-import com.tecnico.sec.hds.server.domain.Transaction;
-
+import domain.Transaction;
 import com.tecnico.sec.hds.server.util.Tuple;
 import org.junit.BeforeClass;
 import org.junit.Test;

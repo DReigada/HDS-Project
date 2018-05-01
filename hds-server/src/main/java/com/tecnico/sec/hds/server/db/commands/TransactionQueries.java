@@ -1,7 +1,7 @@
 package com.tecnico.sec.hds.server.db.commands;
 
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
-import com.tecnico.sec.hds.server.domain.Transaction;
+import domain.Transaction;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

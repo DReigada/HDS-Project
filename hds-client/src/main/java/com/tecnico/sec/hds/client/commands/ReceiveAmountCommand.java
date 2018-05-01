@@ -2,7 +2,6 @@ package com.tecnico.sec.hds.client.commands;
 
 import com.tecnico.sec.hds.client.Client;
 import com.tecnico.sec.hds.client.commands.util.TransactionGetter;
-import io.swagger.client.ApiException;
 import io.swagger.client.model.*;
 import io.swagger.client.model.Signature;
 
@@ -16,8 +15,8 @@ public class ReceiveAmountCommand extends AbstractCommand {
 
   @Override
   public void doRun(Client client, String[] args)
-    throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
-    TransactionGetter transactionGetter = new TransactionGetter();
+      throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
+
     Hash hash = new Hash();
     hash.setValue(args[0]);
 
@@ -27,9 +26,9 @@ public class ReceiveAmountCommand extends AbstractCommand {
 
     GetTransactionResponse getTransactionResponse = client.server.getTransaction(getTransactionRequest);
 
-    if (!(getTransactionResponse.getTransaction() != null &&
-      client.cryptoAgent.verifyBankSignature(transactionGetter.getTransactionListMessage(getTransactionResponse.getTransaction()),
-        getTransactionResponse.getSignature().getValue()))) {
+    if(!(getTransactionResponse.getTransaction() != null &&
+      client.cryptoAgent.verifyBankSignature(TransactionGetter.getTransactionListMessage(getTransactionResponse.getTransaction()),
+        getTransactionResponse.getSignature().getValue()))){
 
       System.out.println("Transaction does not exist");
 
@@ -58,8 +57,6 @@ public class ReceiveAmountCommand extends AbstractCommand {
       + transaction.getAmount() + client.getLastHash().getValue() + hash.getValue()));
 
     receiveAmountRequest.setSignature(signature);
-
-    //transactionGetter.getTransactionListMessage(getTransactionResponse.getTransaction());
 
     ReceiveAmountResponse receiveAmountResponse = client.server.receiveAmount(receiveAmountRequest);
 

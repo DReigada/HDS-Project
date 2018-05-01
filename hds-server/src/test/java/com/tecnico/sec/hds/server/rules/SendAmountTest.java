@@ -2,7 +2,7 @@ package com.tecnico.sec.hds.server.rules;
 
 import com.tecnico.sec.hds.server.db.commands.util.Migrations;
 import com.tecnico.sec.hds.server.db.rules.SendAmountRules;
-import com.tecnico.sec.hds.server.domain.Transaction;
+import domain.Transaction;
 import com.tecnico.sec.hds.server.util.Tuple;
 import com.tecnico.sec.hds.util.crypto.ChainHelper;
 import org.junit.BeforeClass;

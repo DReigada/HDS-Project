@@ -1,5 +1,6 @@
 package com.tecnico.sec.hds.util.crypto;
 
+import domain.Transaction;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -11,7 +12,10 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.joda.time.DateTime;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.Certificate;
@@ -20,6 +24,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.List;
 
 public class CryptoAgent {
   private String username;
@@ -103,7 +108,7 @@ public class CryptoAgent {
     return publicKey;
   }
 
-  public X509Certificate generateSelfSignX509Certificate(String username) throws NoSuchAlgorithmException, OperatorCreationException, CertificateException {
+  public X509Certificate generateSelfSignX509Certificate(String username) throws NoSuchAlgorithmException, OperatorCreationException, CertificateException, IOException {
     DateTime validityBeginDate = new DateTime();
     DateTime validityEndDate = new DateTime().plusYears(2);
 
@@ -148,4 +153,16 @@ public class CryptoAgent {
     keyStore.store(fos, passWord.toCharArray());
     fos.close();
   }
+
+  public boolean verifyTransactionsSignature(List<Transaction> transactions) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidKeySpecException {
+    for (int i = 1; i < transactions.size(); i++ ) {
+      String message = transactions.get(i).sourceKey + transactions.get(i).destKey + transactions.get(i).amount
+          + transactions.get(i-1).hash + transactions.get(i).receiveHash;
+      if(!verifySignature(message,transactions.get(i).signature,getStringPublicKey())){
+        return false;
+      }
+    }
+    return true;
+  }
+
 }

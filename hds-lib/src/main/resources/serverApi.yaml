@@ -146,7 +146,9 @@ definitions:
         type: boolean
       signature:
         $ref: "#/definitions/Signature"
-      hash:
+      sendHash:
+        $ref: "#/definitions/Hash"
+      receiveHash:
         $ref: "#/definitions/Hash"
 
   RegisterRequest:

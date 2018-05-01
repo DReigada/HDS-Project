@@ -1,4 +1,4 @@
-package com.tecnico.sec.hds.server.domain;
+package domain;
 
 public class Transaction {
 
