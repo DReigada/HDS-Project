@@ -21,7 +21,9 @@ public class TransactionFormatter {
     transactionInformation.setPending(transaction.pending);
     transactionInformation.setReceive(transaction.receive);
     transactionInformation.setSignature(signature);
-    transactionInformation.setHash(hash);
+    transactionInformation.setSendHash(hash);
+    hash = new Hash().value(transaction.receiveHash);
+    transactionInformation.setReceiveHash(hash);
     return transactionInformation;
   }
 

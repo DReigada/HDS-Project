@@ -24,8 +24,9 @@ public class TransactionGetter {
         Long.valueOf(s.getAmount()),
         s.isPending(),
         s.isReceive(),
-        s.getSignature().getValue(),
-        s.getHash().getValue())
+        s.getSendHash().getValue(),
+        s.getReceiveHash().getValue(),
+        s.getSignature().getValue())
     ).collect(Collectors.toList());
   }
 }

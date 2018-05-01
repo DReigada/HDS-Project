@@ -40,6 +40,7 @@ public class ChainHelperTest {
           (i % 2 == 0) ? true : false,
           (i % 2 == 0) ? false : true,
           "signature",
+          "",
           hash
       ));
     }

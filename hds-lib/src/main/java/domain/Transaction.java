@@ -14,19 +14,22 @@ public class Transaction {
 
   public final boolean receive;
 
-  public final String signature;
-
   public final String hash;
 
-  public Transaction(int transID, String sourceKey, String destKey, long amount, boolean pending, boolean receive, String signature, String hash) {
+  public final String receiveHash;
+
+  public final String signature;
+
+  public Transaction(int transID, String sourceKey, String destKey, long amount, boolean pending, boolean receive, String hash, String receiveHash, String signature) {
     this.transID = transID;
     this.sourceKey = sourceKey;
     this.destKey = destKey;
     this.amount = amount;
     this.pending = pending;
     this.receive = receive;
-    this.signature = signature;
     this.hash = hash;
+    this.receiveHash = receiveHash;
+    this.signature = signature;
   }
 
 }

@@ -36,7 +36,7 @@ public class AuditCommand extends AbstractCommand {
 
           System.out.println(transactionListMessage);
           if (key.equals(client.key)) {
-            client.setLastHash(auditResponse.getList().get(0).getHash());
+            client.setLastHash(auditResponse.getList().get(0).getSendHash());
           }
         } else {
           System.out.println(client.cryptoAgent.verifyTransactionsSignature(transactions));

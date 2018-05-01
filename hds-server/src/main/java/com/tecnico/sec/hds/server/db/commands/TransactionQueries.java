@@ -153,7 +153,7 @@ public class TransactionQueries {
   }
 
   private PreparedStatement createGetTransactionByHashQuery(String hash) throws SQLException {
-    String query = "SELECT transID, sourceKey, destKey, amount, pending, receive, signature, hash FROM transactions WHERE hash = ?";
+    String query = "SELECT transID, sourceKey, destKey, amount, pending, receive, signature, hash, receive_hash FROM transactions WHERE hash = ?";
     PreparedStatement stmt = conn.prepareStatement(query);
     stmt.setString(1, hash);
     return stmt;
@@ -176,7 +176,7 @@ public class TransactionQueries {
 
   private PreparedStatement createGetLastInsertedTransactionQuery() throws SQLException {
     String query =
-      "SELECT transID, sourceKey, destKey, amount, pending, receive, signature, hash" +
+      "SELECT transID, sourceKey, destKey, amount, pending, receive, signature, hash, receive_hash" +
         " FROM transactions" +
         " WHERE transID = (SELECT LAST_INSERT_ID())";
 
@@ -185,7 +185,7 @@ public class TransactionQueries {
 
   private Transaction createTransactionFromResultSet(ResultSet rs) throws SQLException {
     return new Transaction(rs.getInt(1), rs.getString(2), rs.getString(3),
-      rs.getLong(4), rs.getBoolean(5), rs.getBoolean(6), rs.getString(7), rs.getString(8));
+      rs.getLong(4), rs.getBoolean(5), rs.getBoolean(6), rs.getString(8), rs.getString(9), rs.getString(7));
   }
 
   public int removeAllTransactions(String publicKey) {
