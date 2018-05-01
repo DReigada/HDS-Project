@@ -1,5 +1,7 @@
 package com.tecnico.sec.hds.client;
 
+import com.tecnico.sec.hds.client.commands.util.QuorumHelper;
+import com.tecnico.sec.hds.util.Tuple;
 import io.swagger.client.ApiClient;
 import io.swagger.client.ApiException;
 import io.swagger.client.api.DefaultApi;
@@ -12,8 +14,10 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,7 +53,6 @@ public class ServersWrapper {
     return new BufferedReader(new InputStreamReader((getClass().getResourceAsStream("/conf/servers.conf")))).lines();
   }
 
-
   private void initializeServers(Stream<String> urls) {
     urls.forEach(url -> {
       ApiClient client = new ApiClient().setBasePath(url);
@@ -58,46 +61,82 @@ public class ServersWrapper {
   }
 
   public AuditResponse audit(AuditRequest body) {
-    return forEachServer(server -> server.audit(body))
-        .findFirst()
-        .get();
+    Tuple<AuditResponse, List<Tuple<DefaultApi, AuditResponse>>> serversWithResponsesQuorum =
+        serverReadWithQuorums(server -> server.audit(body), AuditResponse::getList);
+
+    //TODO implement writeBack
+    //serversWithResponsesQuorum.stream()
+    //    .skip(1)  // skip the quorum response
+    //    .forEach(writeBack);
+
+    return serversWithResponsesQuorum.first;
   }
 
   public CheckAccountResponse checkAccount(CheckAccountRequest body) {
-    return forEachServer(server -> server.checkAccount(body))
-        .findFirst()
-        .get();
+    Tuple<CheckAccountResponse, List<Tuple<DefaultApi, CheckAccountResponse>>> serversWithResponsesQuorum =
+        serverReadWithQuorums(server -> server.checkAccount(body), CheckAccountResponse::getList);
+
+    //TODO implement writeBack
+    //serversWithResponsesQuorum.stream()
+    //    .skip(1)  // skip the quorum response
+    //    .forEach(writeBack);
+
+    return serversWithResponsesQuorum.first;
   }
 
   public RegisterResponse register(RegisterRequest body) {
     return forEachServer(server -> server.register(body))
+        .map(t -> t.second)
         .collect(Collectors.toList())
         .get(0);
   }
 
   public ReceiveAmountResponse receiveAmount(ReceiveAmountRequest body) {
     return forEachServer(server -> server.receiveAmount(body))
+        .map(t -> t.second)
         .collect(Collectors.toList())
         .get(0);
   }
 
   public SendAmountResponse sendAmount(SendAmountRequest body) {
     return forEachServer(server -> server.sendAmount(body))
+        .map(t -> t.second)
         .collect(Collectors.toList())
         .get(0);
   }
 
   public GetTransactionResponse getTransaction(GetTransactionRequest body) {
     return forEachServer(server -> server.getTransaction(body))
+        .map(t -> t.second)
         .collect(Collectors.toList())
         .get(0);
   }
 
-  private <A> Stream<A> forEachServer(ApiCenas<A> serverCall) {
+  /**
+   * @param serverCall     the read call to be done to the servers
+   * @param responseToList a function to transform a server response to a list of transactions
+   * @param <A>            he server response type
+   * @return list tuple that contains the quorum response and the servers that are missing transactions (to be used in the write back)
+   */
+  private <A> Tuple<A, List<Tuple<DefaultApi, A>>> serverReadWithQuorums(ServerCall<A> serverCall, Function<A, List<TransactionInformation>> responseToList) {
+    List<Tuple<DefaultApi, A>> serversWithResponses = forEachServer(serverCall).collect(Collectors.toList());
+
+    List<Tuple<DefaultApi, A>> bla = QuorumHelper.getTransactionsQuorum(serversWithResponses, a -> responseToList.apply(a.second), getServersThreshold())
+        .collect(Collectors.toList());
+
+    A quorumResponse = bla.get(0).second;
+
+    List<Tuple<DefaultApi, A>> serversWithMissingTransactions = bla.stream().skip(1).collect(Collectors.toList());
+
+    return new Tuple<>(quorumResponse, serversWithMissingTransactions);
+  }
+
+  private <A> Stream<Tuple<DefaultApi, A>> forEachServer(ServerCall<A> serverCall) {
     return servers.entrySet().stream().parallel()
         .flatMap(entry -> {
           try {
-            return Stream.of(serverCall.apply(entry.getValue()));
+            DefaultApi server = entry.getValue();
+            return Stream.of(new Tuple<>(server, serverCall.apply(server)));
           } catch (ApiException e) {
             System.out.println("Failed to call server: " + entry.getKey());
             return Stream.empty();
@@ -105,8 +144,16 @@ public class ServersWrapper {
         });
   }
 
+  private int getServersThreshold() {
+    return (int) ((servers.size() + getNumberOfFaults(servers.size())) / 2.0);
+  }
+
+  private int getNumberOfFaults(int serversNumber) {
+    return 1; // TODO change this
+  }
+
   @FunctionalInterface
-  private interface ApiCenas<R> {
+  private interface ServerCall<R> {
     R apply(DefaultApi t) throws ApiException;
   }
 }
