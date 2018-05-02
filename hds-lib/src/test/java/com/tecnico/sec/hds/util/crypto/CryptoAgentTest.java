@@ -98,8 +98,8 @@ public class CryptoAgentTest {
 
   @Test
   public void loadKeysSucess() throws Exception{
-    KeyStore ks = agent.getKeyStore("user1", "pass");
-    PublicKey agentKey = (PublicKey) ks.getKey("user1pub", "pass".toCharArray());
+    KeyStore ks = agent.getKeyStore("user1");
+    PublicKey agentKey = ks.getCertificate("user1pub").getPublicKey();
     String key = Base64.getEncoder().encodeToString(agentKey.getEncoded());
     assertEquals(agent.getStringPublicKey(), key);
   }

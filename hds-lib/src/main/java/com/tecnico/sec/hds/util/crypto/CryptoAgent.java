@@ -30,6 +30,7 @@ public class CryptoAgent {
   private String username;
   private PublicKey publicKey;
   private PrivateKey privateKey;
+  private static final char[] GLOBAL_KS_PASS = "ks".toCharArray();
 
   public CryptoAgent(String username, String password) throws IOException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
     this.username = username;
@@ -48,20 +49,20 @@ public class CryptoAgent {
 
   private void LoadKeys(String passWord) throws IOException, NoSuchAlgorithmException, KeyStoreException, CertificateException, UnrecoverableKeyException, OperatorCreationException {
     try {
-      KeyStore ks = getKeyStore(username, passWord);
+      KeyStore ks = getKeyStore(username);
 
       privateKey = (PrivateKey) ks.getKey(username + "priv", passWord.toCharArray());
-      publicKey = (PublicKey) ks.getKey(username + "pub", passWord.toCharArray());
+      publicKey = ks.getCertificate(username + "pub").getPublicKey();
     } catch (FileNotFoundException e) {
       GenerateKey();
       createKeyStore(passWord);
     }
   }
 
-  public KeyStore getKeyStore(String username, String passWord) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+  public KeyStore getKeyStore(String username) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
     FileInputStream fis = new FileInputStream(username + "KeyStore.jce");
     KeyStore ks = KeyStore.getInstance("JCEKS");
-    ks.load(fis, passWord.toCharArray());
+    ks.load(fis,GLOBAL_KS_PASS);
     fis.close();
     return ks;
   }
@@ -84,8 +85,8 @@ public class CryptoAgent {
   }
 
   public boolean verifyBankSignature(String message, String signature) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
-    KeyStore ks = getKeyStore("bank", "bank");
-    PublicKey bankPubKey = (PublicKey) ks.getKey("bankpub", "bank".toCharArray());
+    KeyStore ks = getKeyStore("bank");
+    PublicKey bankPubKey = ks.getCertificate("bankpub").getPublicKey();
     String key = convertByteArrToString(bankPubKey.getEncoded());
     return verifySignature(message, signature, key);
   }
@@ -136,21 +137,21 @@ public class CryptoAgent {
 
   public void createKeyStore(String passWord) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, OperatorCreationException {
     KeyStore ks = KeyStore.getInstance("JCEKS");
-    ks.load(null, passWord.toCharArray());
+    ks.load(null, GLOBAL_KS_PASS);
 
     X509Certificate certificate =generateSelfSignX509Certificate(username);
     Certificate certificateChain[] = new Certificate[1];
     certificateChain[0] = certificate;
 
     ks.setKeyEntry(username + "priv", privateKey, passWord.toCharArray(), certificateChain);
-    ks.setKeyEntry(username + "pub", publicKey, passWord.toCharArray(), certificateChain);
+    ks.setCertificateEntry(username + "pub", certificate);
 
-    saveKeyStore(ks,passWord);
+    saveKeyStore(ks);
   }
 
-  public void saveKeyStore(KeyStore keyStore, String passWord) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+  public void saveKeyStore(KeyStore keyStore) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
     FileOutputStream fos = new FileOutputStream(username + "KeyStore.jce");
-    keyStore.store(fos, passWord.toCharArray());
+    keyStore.store(fos, GLOBAL_KS_PASS);
     fos.close();
   }
 
