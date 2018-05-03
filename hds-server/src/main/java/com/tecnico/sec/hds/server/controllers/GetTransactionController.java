@@ -30,8 +30,9 @@ public class GetTransactionController implements GetTransactionApi {
 
   public GetTransactionController() throws
       NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
+    String port = System.getProperty("server.port");
     getTransactionRules = new GetTransactionRules();
-    cryptoAgent = new CryptoAgent("bank", "bank");
+    cryptoAgent = new CryptoAgent("bank" + port, "bank" + port);
   }
 
   @Override

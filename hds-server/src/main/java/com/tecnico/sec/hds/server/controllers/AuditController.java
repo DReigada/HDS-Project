@@ -30,7 +30,8 @@ public class AuditController implements AuditApi {
   private CryptoAgent cryptoAgent;
 
   public AuditController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
-    cryptoAgent = new CryptoAgent("bank", "bank");
+    String port = System.getProperty("server.port");
+    cryptoAgent = new CryptoAgent("bank" + port, "bank" + port);
     auditRules = new AuditRules();
   }
 

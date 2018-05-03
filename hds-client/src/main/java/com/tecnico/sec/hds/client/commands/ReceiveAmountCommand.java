@@ -1,9 +1,7 @@
 package com.tecnico.sec.hds.client.commands;
 
 import com.tecnico.sec.hds.client.Client;
-import com.tecnico.sec.hds.client.commands.util.TransactionGetter;
 import io.swagger.client.model.*;
-import io.swagger.client.model.Signature;
 
 import java.io.IOException;
 import java.security.*;
@@ -14,9 +12,7 @@ public class ReceiveAmountCommand extends AbstractCommand {
   private static final String name = "receive_amount";
 
   @Override
-  public void doRun(Client client, String[] args)
-      throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
-
+  public void doRun(Client client, String[] args) {
     Hash hash = new Hash();
     hash.setValue(args[0]);
 
@@ -24,55 +20,39 @@ public class ReceiveAmountCommand extends AbstractCommand {
 
     getTransactionRequest.setHash(hash);
 
-    GetTransactionResponse getTransactionResponse = client.server.getTransaction(getTransactionRequest);
+    GetTransactionResponse getTransactionResponse;
+    try {
+      getTransactionResponse = client.server.getTransaction(getTransactionRequest);
 
-    if(!(getTransactionResponse.getTransaction() != null &&
-      client.cryptoAgent.verifyBankSignature(TransactionGetter.getTransactionListMessage(getTransactionResponse.getTransaction()),
-        getTransactionResponse.getSignature().getValue()))){
+      if(!(getTransactionResponse.getTransaction() != null)){
 
-      System.out.println("Transaction does not exist");
+        System.out.println("Transaction does not exist");
 
-    }
-
-    TransactionInformation transaction = getTransactionResponse.getTransaction();
-
-    ReceiveAmountRequest receiveAmountRequest = new ReceiveAmountRequest();
-
-    PubKey sourceKey = new PubKey();
-
-    sourceKey.setValue(transaction.getSourceKey());
-
-    receiveAmountRequest.setSourceKey(sourceKey);
-
-    receiveAmountRequest.setDestKey(client.key);
-
-    receiveAmountRequest.amount(Integer.valueOf(transaction.getAmount()));
-
-    receiveAmountRequest.setLastHash(client.getLastHash());
-
-    receiveAmountRequest.setTransHash(hash);
-
-    Signature signature = new Signature();
-    signature.setValue(client.cryptoAgent.generateSignature(sourceKey.getValue() + client.key.getValue()
-      + transaction.getAmount() + client.getLastHash().getValue() + hash.getValue()));
-
-    receiveAmountRequest.setSignature(signature);
-
-    ReceiveAmountResponse receiveAmountResponse = client.server.receiveAmount(receiveAmountRequest);
-
-    hash = receiveAmountResponse.getNewHash();
-
-    if (hash.getValue() != null &&
-      client.cryptoAgent.verifyBankSignature(hash.getValue() + receiveAmountResponse.getMessage(),
-        receiveAmountResponse.getSignature().getValue())) {
-      if (receiveAmountResponse.isSuccess()) {
-        client.setLastHash(hash);
       }
-      System.out.println(receiveAmountResponse.getMessage());
-    } else {
-      System.out.println("I caught you fake!!");
-    }
 
+      TransactionInformation transaction = getTransactionResponse.getTransaction();
+
+      ReceiveAmountRequest receiveAmountRequest = new ReceiveAmountRequest();
+
+      PubKey sourceKey = new PubKey();
+
+      sourceKey.setValue(transaction.getSourceKey());
+
+      receiveAmountRequest.setSourceKey(sourceKey);
+
+      receiveAmountRequest.amount(Integer.valueOf(transaction.getAmount()));
+
+      receiveAmountRequest.setTransHash(hash);
+
+      String receiveAmountResponse = client.server.receiveAmount(receiveAmountRequest,
+          transaction.getAmount(), hash.getValue());
+
+      System.out.println(receiveAmountResponse);
+
+    } catch (CertificateException | InvalidKeySpecException | InvalidKeyException | SignatureException
+        | KeyStoreException | IOException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override

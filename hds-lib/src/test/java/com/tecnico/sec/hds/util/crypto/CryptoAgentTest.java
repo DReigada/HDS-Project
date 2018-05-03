@@ -1,28 +1,15 @@
 package com.tecnico.sec.hds.util.crypto;
 
 
-import com.pholser.junit.quickcheck.Property;
 import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.security.*;
-import java.security.cert.X509Certificate;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.*;
-import static org.junit.Assume.assumeThat;
 
 @RunWith(JUnitQuickcheck.class)
 public class CryptoAgentTest {
   private static CryptoAgent agent;
   private static CryptoAgent bank;
 
-  @BeforeClass
+  /*@BeforeClass
   public static void before() throws Exception {
     agent = new CryptoAgent("user1", "pass");
     bank = new CryptoAgent("bank", "bank");
@@ -102,6 +89,6 @@ public class CryptoAgentTest {
     PublicKey agentKey = ks.getCertificate("user1pub").getPublicKey();
     String key = Base64.getEncoder().encodeToString(agentKey.getEncoded());
     assertEquals(agent.getStringPublicKey(), key);
-  }
+  }*/
 
 }

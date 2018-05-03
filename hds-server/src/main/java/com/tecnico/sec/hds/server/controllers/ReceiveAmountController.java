@@ -36,7 +36,8 @@ public class ReceiveAmountController implements ReceiveAmountApi {
   private ReceiveAmountRules receiveAmountRules;
 
   public ReceiveAmountController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, KeyStoreException, OperatorCreationException {
-    cryptoAgent = new CryptoAgent("bank", "bank");
+    String port = System.getProperty("server.port");
+    cryptoAgent = new CryptoAgent("bank" + port , "bank" + port);
     receiveAmountRules = new ReceiveAmountRules();
   }
 

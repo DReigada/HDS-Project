@@ -32,7 +32,8 @@ public class RegisterController implements RegisterApi {
   private RegisterRules registerRules;
 
   public RegisterController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
-    cryptoAgent = new CryptoAgent("bank", "bank");
+    String port = System.getProperty("server.port");
+    cryptoAgent = new CryptoAgent("bank" + port, "bank"+ port);
     registerRules = new RegisterRules();
   }
 

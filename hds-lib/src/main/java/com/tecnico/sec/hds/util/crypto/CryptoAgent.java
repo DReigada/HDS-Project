@@ -30,7 +30,7 @@ public class CryptoAgent {
   private String username;
   private PublicKey publicKey;
   private PrivateKey privateKey;
-  private static final char[] GLOBAL_KS_PASS = "ks".toCharArray();
+  private final char[] GLOBAL_KS_PASS = {'k','s'};
 
   public CryptoAgent(String username, String password) throws IOException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
     this.username = username;
@@ -84,9 +84,9 @@ public class CryptoAgent {
     return Base64.getEncoder().encodeToString(bytes);
   }
 
-  public boolean verifyBankSignature(String message, String signature) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
-    KeyStore ks = getKeyStore("bank");
-    PublicKey bankPubKey = ks.getCertificate("bankpub").getPublicKey();
+  public boolean verifyBankSignature(String message, String signature, String port) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
+    KeyStore ks = getKeyStore("bank" + port);
+    PublicKey bankPubKey = ks.getCertificate("bank" + port +"pub").getPublicKey();
     String key = convertByteArrToString(bankPubKey.getEncoded());
     return verifySignature(message, signature, key);
   }
@@ -155,11 +155,11 @@ public class CryptoAgent {
     fos.close();
   }
 
-  public boolean verifyTransactionsSignature(List<Transaction> transactions) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidKeySpecException {
+  public boolean verifyTransactionsSignature(List<Transaction> transactions, String port) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidKeySpecException, UnrecoverableKeyException, CertificateException, KeyStoreException, IOException {
     for (int i = 1; i < transactions.size(); i++ ) {
       String message = transactions.get(i).sourceKey + transactions.get(i).destKey + transactions.get(i).amount
           + transactions.get(i-1).hash + transactions.get(i).receiveHash;
-      if(!verifySignature(message,transactions.get(i).signature,getStringPublicKey())){
+      if(!verifyBankSignature(message,transactions.get(i).signature,port)){
         return false;
       }
     }

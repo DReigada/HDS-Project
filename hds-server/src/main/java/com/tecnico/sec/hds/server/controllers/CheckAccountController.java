@@ -31,7 +31,8 @@ public class CheckAccountController implements CheckAccountApi {
   private CheckAccountRules checkAccountRules;
 
   public CheckAccountController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
-    cryptoAgent = new CryptoAgent("bank", "bank");
+    String port = System.getProperty("server.port");
+    cryptoAgent = new CryptoAgent("bank" + port , "bank" + port);
     checkAccountRules = new CheckAccountRules();
   }
 
