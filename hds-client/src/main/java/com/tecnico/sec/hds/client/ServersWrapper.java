@@ -86,6 +86,7 @@ public class ServersWrapper {
       String transactionListMessage = TransactionGetter.getTransactionListMessage(auditResponse.getList());
       List<Transaction> transactions = TransactionGetter.InformationToTransaction(auditResponse.getList());
       Collections.reverse(transactions);
+
       if (securityHelper.verifySignature(transactionListMessage, auditResponse.getSignature().getValue(), port)
           && securityHelper.verifySignatures(transactions, port)) {
         if (body.getPublicKey().equals(securityHelper.key)) {
@@ -173,11 +174,15 @@ public class ServersWrapper {
         .get(0);
 
     ReceiveAmountResponse receiveAmountResponse = (ReceiveAmountResponse) response.second;
+    String message= receiveAmountResponse.getNewHash().getValue() + receiveAmountResponse.getMessage();
+    String signature = receiveAmountResponse.getSignature().getValue();
+
+    System.out.println(securityHelper.verifySignature(message, signature, ports.get(response.first)));
+    System.out.println(message);
+    System.out.println(signature);
+
     if (receiveAmountResponse.getNewHash().getValue() != null
-        && securityHelper.verifySignature(
-        receiveAmountResponse.getNewHash().getValue() + receiveAmountResponse.getMessage(),
-        receiveAmountResponse.getSignature().getValue(),
-        ports.get(response.first))
+        && securityHelper.verifySignature(message, signature, ports.get(response.first))
         && receiveAmountResponse.isSuccess()) {
 
       securityHelper.setLastHash(receiveAmountResponse.getNewHash());

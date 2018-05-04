@@ -73,6 +73,8 @@ public class ReceiveAmountController implements ReceiveAmountApi {
         message = "Nice try Hacker wanna be";
       }
       signature.setValue(cryptoAgent.generateSignature(newHash.getValue() + message));
+      System.out.println(newHash.getValue() + message);
+      System.out.println(signature.getValue());
       response.setSuccess(success);
       response.setMessage(message);
       response.setSignature(signature);

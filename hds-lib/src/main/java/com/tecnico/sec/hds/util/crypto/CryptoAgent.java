@@ -160,7 +160,13 @@ public class CryptoAgent {
     for (int i = 1; i < transactions.size(); i++ ) {
       String message = transactions.get(i).sourceKey + transactions.get(i).destKey + transactions.get(i).amount
           + transactions.get(i-1).hash + transactions.get(i).receiveHash;
-      if(!verifyBankSignature(message,transactions.get(i).signature,port)){
+
+      System.out.println(transactions.get(i).sourceKey);
+      System.out.println(transactions.get(i).destKey);
+      System.out.println(transactions.get(i).amount);
+      System.out.println(transactions.get(i).receiveHash);
+
+      if(!verifySignature(message,transactions.get(i).signature,getStringPublicKey())){
         return false;
       }
     }
