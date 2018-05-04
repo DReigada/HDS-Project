@@ -30,19 +30,25 @@ public class SecurityHelper {
   }
 
 
-  public void signMessage(String message, Consumer<Signature> setSignature) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+  public void signMessage(String message, Consumer<Signature> setSignature) throws NoSuchAlgorithmException,
+      InvalidKeyException, SignatureException {
+
     String sign = cryptoAgent.generateSignature(message);
     Signature signature = new Signature().value(sign);
     setSignature.accept(signature);
   }
 
   public boolean verifySignature(String message, String signature, String port)
-      throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, IOException, KeyStoreException, SignatureException, InvalidKeyException, InvalidKeySpecException {
-    return cryptoAgent.verifyBankSignature(message,signature,port);
+      throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, IOException,
+      KeyStoreException, SignatureException, InvalidKeyException, InvalidKeySpecException {
+
+    return cryptoAgent.verifyBankSignature(message, signature, port);
   }
 
   public boolean verifySignatures(List<Transaction> transactions, String port)
-      throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, IOException, KeyStoreException, SignatureException, InvalidKeyException, InvalidKeySpecException {
+      throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException,
+      IOException, KeyStoreException, SignatureException, InvalidKeyException, InvalidKeySpecException {
+
     return cryptoAgent.verifyTransactionsSignature(transactions, port)
         && chainHelper.verifyTransaction(transactions, key.getValue());
   }

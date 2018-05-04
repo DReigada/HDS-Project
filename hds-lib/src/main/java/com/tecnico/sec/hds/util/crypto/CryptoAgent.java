@@ -30,10 +30,11 @@ public class CryptoAgent {
   private String username;
   private PublicKey publicKey;
   private PrivateKey privateKey;
-  private final char[] GLOBAL_KS_PASS = {'k','s'};
+  private final char[] GLOBAL_KS_PASS;
 
   public CryptoAgent(String username, String password) throws IOException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
     this.username = username;
+    GLOBAL_KS_PASS = "ks".toCharArray();
     Security.addProvider(new BouncyCastleProvider());
     LoadKeys(password);
   }

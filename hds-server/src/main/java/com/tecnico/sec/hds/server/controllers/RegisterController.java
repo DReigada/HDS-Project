@@ -43,10 +43,9 @@ public class RegisterController implements RegisterApi {
     String signature = body.getSignature().getValue();
     RegisterResponse response =  new RegisterResponse();
 
-    String message = "";
+    String message;
 
     try {
-      System.out.println(key + "\n" + signature);
       cryptoAgent.verifySignature(key,signature,key);
       Hash hash = new Hash();
       hash.setValue(registerRules.register(key));
