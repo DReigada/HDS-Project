@@ -54,6 +54,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     boolean success;
     Hash newHash = new Hash();
     Signature signature = new Signature();
+
     try {
       if (cryptoAgent.verifySignature(sourceKey + destKey + amount + lastHash + transHash, transSignature, destKey)) {
         Optional<Transaction> result = receiveAmount(sourceKey, destKey, amount, lastHash, transSignature, transHash);

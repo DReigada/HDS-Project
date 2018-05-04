@@ -49,6 +49,8 @@ public class CheckAccountController implements CheckAccountApi {
 
       List<Transaction> history = auditRules.audit(publicKey);
 
+      checkAccountResponse.setHistory(new ArrayList<>());
+
       for (Transaction transaction : history) {
         checkAccountResponse.addHistoryItem(TransactionFormatter.getTransactionInformation(transaction));
       }
@@ -62,9 +64,10 @@ public class CheckAccountController implements CheckAccountApi {
       checkAccountResponse.setPending(new ArrayList<>());
       for (Transaction transaction : transactionList) {
         checkAccountResponse.addPendingItem(TransactionFormatter.getTransactionInformation(transaction));
+
       }
       if (checkAccountResponse.getPending().size() > 0) {
-        response.append(TransactionFormatter.convertTransactionsToString(checkAccountResponse.getPending())); //MIGHT FAIL HERE
+        response.append(TransactionFormatter.convertTransactionsToString(checkAccountResponse.getPending()));
       }
 
       Signature signature = new Signature().value(cryptoAgent.generateSignature(response.toString()));
