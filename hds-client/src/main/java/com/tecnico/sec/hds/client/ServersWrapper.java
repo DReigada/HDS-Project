@@ -74,7 +74,7 @@ public class ServersWrapper {
 
   public CheckAccountResponse checkAccount(CheckAccountRequest body) {
     Tuple<CheckAccountResponse, List<Tuple<DefaultApi, CheckAccountResponse>>> serversWithResponsesQuorum =
-        serverReadWithQuorums(server -> server.checkAccount(body), CheckAccountResponse::getList);
+        serverReadWithQuorums(server -> server.checkAccount(body), CheckAccountResponse::getPending);
 
     //TODO implement writeBack
     //serversWithResponsesQuorum.stream()

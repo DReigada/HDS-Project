@@ -2,6 +2,7 @@ package com.tecnico.sec.hds.server.controllers;
 
 import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
+import com.tecnico.sec.hds.server.db.rules.AuditRules;
 import com.tecnico.sec.hds.server.db.rules.CheckAccountRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import domain.Transaction;
@@ -10,6 +11,7 @@ import io.swagger.api.CheckAccountApi;
 import io.swagger.model.CheckAccountRequest;
 import io.swagger.model.CheckAccountResponse;
 import io.swagger.model.Signature;
+import io.swagger.model.TransactionInformation;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,11 +30,13 @@ import java.util.List;
 public class CheckAccountController implements CheckAccountApi {
 
   private CryptoAgent cryptoAgent;
+  private AuditRules auditRules;
   private CheckAccountRules checkAccountRules;
 
   public CheckAccountController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
     cryptoAgent = new CryptoAgent("bank", "bank");
     checkAccountRules = new CheckAccountRules();
+    auditRules =  new AuditRules();
   }
 
   @Override
@@ -41,17 +45,29 @@ public class CheckAccountController implements CheckAccountApi {
     CheckAccountResponse checkAccountResponse = new CheckAccountResponse();
     StringBuilder response;
     try {
-      long amount = checkAccountRules.getBalance(publicKey);
-      checkAccountResponse.setAmount("" + amount);
-      response = new StringBuilder("Public Key: " + publicKey + "\n" + "Balance: " + amount + "\n");
+      response = new StringBuilder();
+
+      List<Transaction> history = auditRules.audit(publicKey);
+
+      checkAccountResponse.setHistory(new ArrayList<>());
+
+      for (Transaction transaction : history) {
+        checkAccountResponse.addHistoryItem(TransactionFormatter.getTransactionInformation(transaction));
+      }
+
+      if (history.size() > 0) {
+        response.append(TransactionFormatter.convertTransactionsToString(checkAccountResponse.getHistory()));
+      }
+
       List<Transaction> transactionList = checkAccountRules.getPendingTransactions(publicKey);
 
-      checkAccountResponse.setList(new ArrayList<>());
+      checkAccountResponse.setPending(new ArrayList<>());
       for (Transaction transaction : transactionList) {
-        checkAccountResponse.addListItem(TransactionFormatter.getTransactionInformation(transaction));
+        checkAccountResponse.addPendingItem(TransactionFormatter.getTransactionInformation(transaction));
+
       }
-      if (checkAccountResponse.getList().size() > 0) {
-        response.append(TransactionFormatter.convertTransactionsToString(checkAccountResponse.getList())); //MIGHT FAIL HERE
+      if (checkAccountResponse.getPending().size() > 0) {
+        response.append(TransactionFormatter.convertTransactionsToString(checkAccountResponse.getPending()));
       }
 
       Signature signature = new Signature().value(cryptoAgent.generateSignature(response.toString()));
