@@ -136,6 +136,7 @@ public class ServersWrapper {
             TransactionGetter.getTransactionListMessage(response.getPending());
 
     try {
+      Collections.reverse(transactionsHistory);
       return
           securityHelper.verifyTransactionsSignaturesAndChain(transactionsHistory) &&
               securityHelper.verifySignature(serverMessage, response.getSignature().getValue(), serverUrl);
@@ -214,9 +215,6 @@ public class ServersWrapper {
         + securityHelper.getLastHash().getValue();
 
     securityHelper.signMessage(message, body::setSignature);
-
-    System.out.println(message);
-    System.out.println(body.getSignature().getValue());
 
     Tuple<DefaultApi, SendAmountResponse> response = forEachServer(server -> server.sendAmount(body))
         .collect(Collectors.toList())

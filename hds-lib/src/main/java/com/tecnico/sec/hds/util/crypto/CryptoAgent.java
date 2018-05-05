@@ -170,11 +170,6 @@ public class CryptoAgent {
       String message = transactions.get(i).sourceKey + transactions.get(i).destKey + transactions.get(i).amount
           + transactions.get(i - 1).hash + transactions.get(i).receiveHash;
 
-      System.out.println(transactions.get(i).sourceKey);
-      System.out.println(transactions.get(i).destKey);
-      System.out.println(transactions.get(i).amount);
-      System.out.println(transactions.get(i).receiveHash);
-
       if (!verifySignature(message, transactions.get(i).signature, getStringPublicKey())) {
         return false;
       }

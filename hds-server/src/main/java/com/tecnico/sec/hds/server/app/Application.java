@@ -26,7 +26,7 @@ public class Application {
   private static CryptoAgent createCryptoAgent() {
     try {
       String ip = InetAddress.getLocalHost().getHostAddress().replace(".", "_");
-      String port = System.getProperty("server.port");
+      String port = System.getProperty("server.port", "8080");
       String fileName = "bank" + ip + "_" + port;
 
       logger.info("Creating keystore on file: " + fileName);

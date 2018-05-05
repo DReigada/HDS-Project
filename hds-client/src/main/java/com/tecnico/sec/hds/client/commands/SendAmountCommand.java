@@ -15,8 +15,8 @@ public class SendAmountCommand extends AbstractCommand {
   @Override
   public void doRun(Client client, String[] args) {
     PubKey destKey = new PubKey();
-    destKey.setValue(args[0]);
-    Integer amount = Integer.parseInt(args[1]);
+    destKey.setValue(args[0].trim());
+    Integer amount = Integer.parseInt(args[1].trim());
 
     SendAmountRequest sendAmount = new SendAmountRequest();
     sendAmount.setDestKey(destKey);

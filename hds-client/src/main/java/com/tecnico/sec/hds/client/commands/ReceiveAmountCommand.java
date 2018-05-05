@@ -14,8 +14,8 @@ public class ReceiveAmountCommand extends AbstractCommand {
 
   @Override
   public void doRun(Client client, String[] args) {
-    PubKey sourceKey = new PubKey().value(args[0]);
-    Hash hash = new Hash().value(args[1]);
+    PubKey sourceKey = new PubKey().value(args[0].trim());
+    Hash hash = new Hash().value(args[1].trim());
 
     AuditRequest auditRequest = new AuditRequest().publicKey(sourceKey);
 
@@ -36,7 +36,7 @@ public class ReceiveAmountCommand extends AbstractCommand {
           receiveAmountRequest.setSourceKey(new PubKey().value(transaction.getSourceKey()));
           receiveAmountRequest.setDestKey(new PubKey().value(transaction.getDestKey()));
           receiveAmountRequest.amount(Integer.valueOf(transaction.getAmount()));
-          receiveAmountRequest.setTransHash(transaction.getReceiveHash());
+          receiveAmountRequest.setTransHash(transaction.getSendHash());
 
           boolean receiveAmountResponse = client.server.receiveAmount(receiveAmountRequest);
 
