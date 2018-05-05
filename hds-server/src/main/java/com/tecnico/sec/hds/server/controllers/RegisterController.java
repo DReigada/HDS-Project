@@ -1,6 +1,7 @@
 package com.tecnico.sec.hds.server.controllers;
 
 
+import com.tecnico.sec.hds.server.app.Application;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.RegisterRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
@@ -28,12 +29,10 @@ import java.security.spec.InvalidKeySpecException;
 public class RegisterController implements RegisterApi {
 
   private static final Logger log = LoggerFactory.getLogger(RegisterApiController.class);
-  private CryptoAgent cryptoAgent;
+  private CryptoAgent cryptoAgent = Application.cryptoAgent;
   private RegisterRules registerRules;
 
-  public RegisterController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
-    String port = System.getProperty("server.port");
-    cryptoAgent = new CryptoAgent("bank" + port, "bank"+ port);
+  public RegisterController() {
     registerRules = new RegisterRules();
   }
 

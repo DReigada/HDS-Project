@@ -1,5 +1,6 @@
 package com.tecnico.sec.hds.server.controllers;
 
+import com.tecnico.sec.hds.server.app.Application;
 import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.CheckAccountRules;
@@ -27,12 +28,10 @@ import java.util.List;
 @Controller
 public class CheckAccountController implements CheckAccountApi {
 
-  private CryptoAgent cryptoAgent;
+  private CryptoAgent cryptoAgent = Application.cryptoAgent;
   private CheckAccountRules checkAccountRules;
 
   public CheckAccountController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
-    String port = System.getProperty("server.port");
-    cryptoAgent = new CryptoAgent("bank" + port , "bank" + port);
     checkAccountRules = new CheckAccountRules();
   }
 

@@ -1,5 +1,6 @@
 package com.tecnico.sec.hds.server.controllers;
 
+import com.tecnico.sec.hds.server.app.Application;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.ReceiveAmountRules;
 import domain.Transaction;
@@ -31,13 +32,11 @@ public class ReceiveAmountController implements ReceiveAmountApi {
 
   private static final Logger log = LoggerFactory.getLogger(ReceiveAmountController.class);
 
-  private CryptoAgent cryptoAgent;
+  private CryptoAgent cryptoAgent = Application.cryptoAgent;
 
   private ReceiveAmountRules receiveAmountRules;
 
   public ReceiveAmountController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, KeyStoreException, OperatorCreationException {
-    String port = System.getProperty("server.port");
-    cryptoAgent = new CryptoAgent("bank" + port , "bank" + port);
     receiveAmountRules = new ReceiveAmountRules();
   }
 

@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URL;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -27,10 +28,10 @@ import java.util.Base64;
 import java.util.List;
 
 public class CryptoAgent {
+  private final char[] GLOBAL_KS_PASS;
   private String username;
   private PublicKey publicKey;
   private PrivateKey privateKey;
-  private final char[] GLOBAL_KS_PASS;
 
   public CryptoAgent(String username, String password) throws IOException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
     this.username = username;
@@ -60,12 +61,21 @@ public class CryptoAgent {
     }
   }
 
-  public KeyStore getKeyStore(String username) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+  private KeyStore getKeyStore(String username) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
     FileInputStream fis = new FileInputStream(username + "KeyStore.jce");
     KeyStore ks = KeyStore.getInstance("JCEKS");
-    ks.load(fis,GLOBAL_KS_PASS);
+    ks.load(fis, GLOBAL_KS_PASS);
     fis.close();
     return ks;
+  }
+
+  private Certificate getBankCertificate(String url) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+    URL javaUrl = new URL(url);
+
+    String name = "bank" + javaUrl.getHost().replace(".", "_") + "_" + javaUrl.getPort();
+
+    KeyStore ks = getKeyStore(name);
+    return ks.getCertificate(name + "pub");
   }
 
 
@@ -85,9 +95,8 @@ public class CryptoAgent {
     return Base64.getEncoder().encodeToString(bytes);
   }
 
-  public boolean verifyBankSignature(String message, String signature, String port) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
-    KeyStore ks = getKeyStore("bank" + port);
-    PublicKey bankPubKey = ks.getCertificate("bank" + port +"pub").getPublicKey();
+  public boolean verifyBankSignature(String message, String signature, String url) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
+    PublicKey bankPubKey = getBankCertificate(url).getPublicKey();
     String key = convertByteArrToString(bankPubKey.getEncoded());
     return verifySignature(message, signature, key);
   }
@@ -133,14 +142,14 @@ public class CryptoAgent {
     X509CertificateHolder certificateHolder = certificate
         .build(new JcaContentSignerBuilder("SHA1withECDSA").build(privateKey));
 
-    return new JcaX509CertificateConverter().setProvider( "BC" ).getCertificate(certificateHolder );
+    return new JcaX509CertificateConverter().setProvider("BC").getCertificate(certificateHolder);
   }
 
   public void createKeyStore(String passWord) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, OperatorCreationException {
     KeyStore ks = KeyStore.getInstance("JCEKS");
     ks.load(null, GLOBAL_KS_PASS);
 
-    X509Certificate certificate =generateSelfSignX509Certificate(username);
+    X509Certificate certificate = generateSelfSignX509Certificate(username);
     Certificate certificateChain[] = new Certificate[1];
     certificateChain[0] = certificate;
 
@@ -157,16 +166,16 @@ public class CryptoAgent {
   }
 
   public boolean verifyTransactionsSignature(List<Transaction> transactions, String port) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidKeySpecException, UnrecoverableKeyException, CertificateException, KeyStoreException, IOException {
-    for (int i = 1; i < transactions.size(); i++ ) {
+    for (int i = 1; i < transactions.size(); i++) {
       String message = transactions.get(i).sourceKey + transactions.get(i).destKey + transactions.get(i).amount
-          + transactions.get(i-1).hash + transactions.get(i).receiveHash;
+          + transactions.get(i - 1).hash + transactions.get(i).receiveHash;
 
       System.out.println(transactions.get(i).sourceKey);
       System.out.println(transactions.get(i).destKey);
       System.out.println(transactions.get(i).amount);
       System.out.println(transactions.get(i).receiveHash);
 
-      if(!verifySignature(message,transactions.get(i).signature,getStringPublicKey())){
+      if (!verifySignature(message, transactions.get(i).signature, getStringPublicKey())) {
         return false;
       }
     }
