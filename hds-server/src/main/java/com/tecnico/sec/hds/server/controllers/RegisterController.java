@@ -45,15 +45,20 @@ public class RegisterController implements RegisterApi {
 
     String message;
 
+
     try {
-      cryptoAgent.verifySignature(key,signature,key);
-      Hash hash = new Hash();
-      hash.setValue(registerRules.register(key));
-      response.setHash(hash);
-      message = "Registration Completed:" + key;
-    } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | InvalidKeySpecException | DBException e1) {
+      if(cryptoAgent.verifySignature(key,signature,key)) {
+        Hash hash = new Hash();
+        hash.setValue(registerRules.register(key));
+        response.setHash(hash);
+        message = "Registration Completed:" + key;
+      }
+      else {
+        message = "Registration Fail: Try Later";
+      }
+  } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | InvalidKeySpecException | DBException e1) {
       e1.printStackTrace();
-      message = "Registration Fail: Try Later";
+      message = "Unexpected Error!";
     }
 
     try {
