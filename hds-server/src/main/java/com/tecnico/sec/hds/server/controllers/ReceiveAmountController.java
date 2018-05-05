@@ -1,9 +1,10 @@
 package com.tecnico.sec.hds.server.controllers;
 
+import com.tecnico.sec.hds.server.app.Application;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.ReceiveAmountRules;
-import domain.Transaction;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
+import domain.Transaction;
 import io.swagger.annotations.ApiParam;
 import io.swagger.api.ReceiveAmountApi;
 import io.swagger.model.Hash;
@@ -31,12 +32,11 @@ public class ReceiveAmountController implements ReceiveAmountApi {
 
   private static final Logger log = LoggerFactory.getLogger(ReceiveAmountController.class);
 
-  private CryptoAgent cryptoAgent;
+  private CryptoAgent cryptoAgent = Application.cryptoAgent;
 
   private ReceiveAmountRules receiveAmountRules;
 
   public ReceiveAmountController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, KeyStoreException, OperatorCreationException {
-    cryptoAgent = new CryptoAgent("bank", "bank");
     receiveAmountRules = new ReceiveAmountRules();
   }
 
@@ -73,6 +73,8 @@ public class ReceiveAmountController implements ReceiveAmountApi {
         message = "Nice try Hacker wanna be";
       }
       signature.setValue(cryptoAgent.generateSignature(newHash.getValue() + message));
+      System.out.println(newHash.getValue() + " " + message);
+      System.out.println(signature.getValue());
       response.setSuccess(success);
       response.setMessage(message);
       response.setSignature(signature);

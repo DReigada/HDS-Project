@@ -1,6 +1,7 @@
 package com.tecnico.sec.hds.server.controllers;
 
 
+import com.tecnico.sec.hds.server.app.Application;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.RegisterRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
@@ -28,11 +29,10 @@ import java.security.spec.InvalidKeySpecException;
 public class RegisterController implements RegisterApi {
 
   private static final Logger log = LoggerFactory.getLogger(RegisterApiController.class);
-  private CryptoAgent cryptoAgent;
+  private CryptoAgent cryptoAgent = Application.cryptoAgent;
   private RegisterRules registerRules;
 
-  public RegisterController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
-    cryptoAgent = new CryptoAgent("bank", "bank");
+  public RegisterController() {
     registerRules = new RegisterRules();
   }
 
@@ -42,18 +42,22 @@ public class RegisterController implements RegisterApi {
     String signature = body.getSignature().getValue();
     RegisterResponse response =  new RegisterResponse();
 
-    String message = "";
+    String message;
+
 
     try {
-      System.out.println(key + "\n" + signature);
-      cryptoAgent.verifySignature(key,signature,key);
-      Hash hash = new Hash();
-      hash.setValue(registerRules.register(key));
-      response.setHash(hash);
-      message = "Registration Completed:" + key;
-    } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | InvalidKeySpecException | DBException e1) {
+      if(cryptoAgent.verifySignature(key,signature,key)) {
+        Hash hash = new Hash();
+        hash.setValue(registerRules.register(key));
+        response.setHash(hash);
+        message = "Registration Completed:" + key;
+      }
+      else {
+        message = "Registration Fail: Try Later";
+      }
+  } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | InvalidKeySpecException | DBException e1) {
       e1.printStackTrace();
-      message = "Registration Fail: Try Later";
+      message = "Unexpected Error!";
     }
 
     try {

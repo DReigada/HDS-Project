@@ -1,5 +1,6 @@
 package com.tecnico.sec.hds.server.controllers;
 
+import com.tecnico.sec.hds.server.app.Application;
 import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.GetTransactionRules;
@@ -26,12 +27,10 @@ import java.util.Optional;
 public class GetTransactionController implements GetTransactionApi {
 
   private GetTransactionRules getTransactionRules;
-  private CryptoAgent cryptoAgent;
+  private CryptoAgent cryptoAgent = Application.cryptoAgent;
 
-  public GetTransactionController() throws
-      NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
+  public GetTransactionController() {
     getTransactionRules = new GetTransactionRules();
-    cryptoAgent = new CryptoAgent("bank", "bank");
   }
 
   @Override

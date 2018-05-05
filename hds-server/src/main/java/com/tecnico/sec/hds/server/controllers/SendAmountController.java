@@ -1,5 +1,6 @@
 package com.tecnico.sec.hds.server.controllers;
 
+import com.tecnico.sec.hds.server.app.Application;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.SendAmountRules;
 import domain.Transaction;
@@ -31,12 +32,11 @@ public class SendAmountController implements SendAmountApi {
 
   private static final Logger log = LoggerFactory.getLogger(SendAmountApiController.class);
 
-  private CryptoAgent cryptoAgent;
+  private CryptoAgent cryptoAgent = Application.cryptoAgent;
 
   private SendAmountRules sendAmountRules;
 
   public SendAmountController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
-    cryptoAgent = new CryptoAgent("bank", "bank");
     sendAmountRules = new SendAmountRules();
   }
 
@@ -54,6 +54,10 @@ public class SendAmountController implements SendAmountApi {
     boolean success;
     Hash newHash = new Hash();
     Signature signature = new Signature();
+
+    System.out.println(sourceKey + destKey + String.valueOf(amount)
+        + lastHash);
+    System.out.println(clientSignature);
 
     try {
       if (cryptoAgent.verifySignature(sourceKey + destKey + String.valueOf(amount)

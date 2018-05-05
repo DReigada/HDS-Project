@@ -1,5 +1,6 @@
 package com.tecnico.sec.hds.server.controllers;
 
+import com.tecnico.sec.hds.server.app.Application;
 import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.AuditRules;
@@ -27,10 +28,9 @@ import java.util.List;
 @Controller
 public class AuditController implements AuditApi {
   private AuditRules auditRules;
-  private CryptoAgent cryptoAgent;
+  private CryptoAgent cryptoAgent = Application.cryptoAgent;
 
-  public AuditController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
-    cryptoAgent = new CryptoAgent("bank", "bank");
+  public AuditController() {
     auditRules = new AuditRules();
   }
 

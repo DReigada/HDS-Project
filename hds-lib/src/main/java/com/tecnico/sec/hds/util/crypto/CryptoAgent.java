@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URL;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -27,12 +28,14 @@ import java.util.Base64;
 import java.util.List;
 
 public class CryptoAgent {
+  private final char[] GLOBAL_KS_PASS;
   private String username;
   private PublicKey publicKey;
   private PrivateKey privateKey;
 
   public CryptoAgent(String username, String password) throws IOException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
     this.username = username;
+    GLOBAL_KS_PASS = "ks".toCharArray();
     Security.addProvider(new BouncyCastleProvider());
     LoadKeys(password);
   }
@@ -48,22 +51,31 @@ public class CryptoAgent {
 
   private void LoadKeys(String passWord) throws IOException, NoSuchAlgorithmException, KeyStoreException, CertificateException, UnrecoverableKeyException, OperatorCreationException {
     try {
-      KeyStore ks = getKeyStore(username, passWord);
+      KeyStore ks = getKeyStore(username);
 
       privateKey = (PrivateKey) ks.getKey(username + "priv", passWord.toCharArray());
-      publicKey = (PublicKey) ks.getKey(username + "pub", passWord.toCharArray());
+      publicKey = ks.getCertificate(username + "pub").getPublicKey();
     } catch (FileNotFoundException e) {
       GenerateKey();
       createKeyStore(passWord);
     }
   }
 
-  public KeyStore getKeyStore(String username, String passWord) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+  private KeyStore getKeyStore(String username) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
     FileInputStream fis = new FileInputStream(username + "KeyStore.jce");
     KeyStore ks = KeyStore.getInstance("JCEKS");
-    ks.load(fis, passWord.toCharArray());
+    ks.load(fis, GLOBAL_KS_PASS);
     fis.close();
     return ks;
+  }
+
+  private Certificate getBankCertificate(String url) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+    URL javaUrl = new URL(url);
+
+    String name = "bank" + javaUrl.getHost().replace(".", "_") + "_" + javaUrl.getPort();
+
+    KeyStore ks = getKeyStore(name);
+    return ks.getCertificate(name + "pub");
   }
 
 
@@ -83,9 +95,8 @@ public class CryptoAgent {
     return Base64.getEncoder().encodeToString(bytes);
   }
 
-  public boolean verifyBankSignature(String message, String signature) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
-    KeyStore ks = getKeyStore("bank", "bank");
-    PublicKey bankPubKey = (PublicKey) ks.getKey("bankpub", "bank".toCharArray());
+  public boolean verifyBankSignature(String message, String signature, String url) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
+    PublicKey bankPubKey = getBankCertificate(url).getPublicKey();
     String key = convertByteArrToString(bankPubKey.getEncoded());
     return verifySignature(message, signature, key);
   }
@@ -131,34 +142,35 @@ public class CryptoAgent {
     X509CertificateHolder certificateHolder = certificate
         .build(new JcaContentSignerBuilder("SHA1withECDSA").build(privateKey));
 
-    return new JcaX509CertificateConverter().setProvider( "BC" ).getCertificate(certificateHolder );
+    return new JcaX509CertificateConverter().setProvider("BC").getCertificate(certificateHolder);
   }
 
   public void createKeyStore(String passWord) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, OperatorCreationException {
     KeyStore ks = KeyStore.getInstance("JCEKS");
-    ks.load(null, passWord.toCharArray());
+    ks.load(null, GLOBAL_KS_PASS);
 
-    X509Certificate certificate =generateSelfSignX509Certificate(username);
+    X509Certificate certificate = generateSelfSignX509Certificate(username);
     Certificate certificateChain[] = new Certificate[1];
     certificateChain[0] = certificate;
 
     ks.setKeyEntry(username + "priv", privateKey, passWord.toCharArray(), certificateChain);
-    ks.setKeyEntry(username + "pub", publicKey, passWord.toCharArray(), certificateChain);
+    ks.setCertificateEntry(username + "pub", certificate);
 
-    saveKeyStore(ks,passWord);
+    saveKeyStore(ks);
   }
 
-  public void saveKeyStore(KeyStore keyStore, String passWord) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+  public void saveKeyStore(KeyStore keyStore) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
     FileOutputStream fos = new FileOutputStream(username + "KeyStore.jce");
-    keyStore.store(fos, passWord.toCharArray());
+    keyStore.store(fos, GLOBAL_KS_PASS);
     fos.close();
   }
 
-  public boolean verifyTransactionsSignature(List<Transaction> transactions) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidKeySpecException {
-    for (int i = 1; i < transactions.size(); i++ ) {
+  public boolean verifyTransactionsSignature(List<Transaction> transactions) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidKeySpecException, UnrecoverableKeyException, CertificateException, KeyStoreException, IOException {
+    for (int i = 1; i < transactions.size(); i++) {
       String message = transactions.get(i).sourceKey + transactions.get(i).destKey + transactions.get(i).amount
-          + transactions.get(i-1).hash + transactions.get(i).receiveHash;
-      if(!verifySignature(message,transactions.get(i).signature,getStringPublicKey())){
+          + transactions.get(i - 1).hash + transactions.get(i).receiveHash;
+
+      if (!verifySignature(message, transactions.get(i).signature, getStringPublicKey())) {
         return false;
       }
     }
