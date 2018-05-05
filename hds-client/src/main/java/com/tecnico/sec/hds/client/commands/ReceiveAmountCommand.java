@@ -44,10 +44,11 @@ public class ReceiveAmountCommand extends AbstractCommand {
 
       receiveAmountRequest.setTransHash(hash);
 
-      String receiveAmountResponse = client.server.receiveAmount(receiveAmountRequest,
-          transaction.getAmount(), hash.getValue());
-
-      System.out.println(receiveAmountResponse);
+      if(client.server.receiveAmount(receiveAmountRequest)){
+        System.out.println("Success");
+      } else {
+        System.out.println("Failed to do receive amount");
+      }
 
     } catch (CertificateException | InvalidKeySpecException | InvalidKeyException | SignatureException
         | KeyStoreException | IOException | NoSuchAlgorithmException | UnrecoverableKeyException e) {

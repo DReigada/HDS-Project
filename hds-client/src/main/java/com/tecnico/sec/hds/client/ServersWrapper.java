@@ -23,18 +23,17 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ServersWrapper {
   private final Map<String, DefaultApi> servers;
-  private final Map<DefaultApi, String> ports;
   private final SecurityHelper securityHelper;
 
   public ServersWrapper(String user, String pass) throws IOException, UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException {
     securityHelper = new SecurityHelper(user, pass);
     servers = new HashMap<>();
-    ports = new HashMap<>();
     initializeServers(getServersConfig());
   }
 
@@ -67,13 +66,39 @@ public class ServersWrapper {
       ApiClient client = new ApiClient().setBasePath(url);
       DefaultApi server = new DefaultApi(client);
       servers.put(url, server);
-      ports.put(server, url.replaceAll("\\D+", ""));
     });
   }
 
-  public String audit(AuditRequest body) throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, IOException, KeyStoreException, SignatureException, InvalidKeyException, InvalidKeySpecException {
+  private Boolean verifyAuditResponse(Tuple<DefaultApi, AuditResponse> serverWithReponse) {
+    String serverUrl = serverWithReponse.first.getApiClient().getBasePath();
+    AuditResponse response = serverWithReponse.second;
+    return verifyTransactions(serverUrl, response);
+  }
+
+  private Boolean verifyTransactions(String serverUrl, AuditResponse response) {
+    List<TransactionInformation> transactionList = response.getList();
+    if (transactionList != null) {
+      String transactionListMessage = TransactionGetter.getTransactionListMessage(transactionList);
+      List<Transaction> transactions = TransactionGetter.InformationToTransaction(transactionList);
+      Collections.reverse(transactions);
+
+      try {
+        String signature = response.getSignature().getValue();
+        return securityHelper.verifySignature(transactionListMessage, signature, serverUrl)
+            && securityHelper.verifySignatures(transactions, serverUrl);
+      } catch (GeneralSecurityException | IOException e) {
+        System.err.println("Failed to verify response from server: " + serverUrl);
+        e.printStackTrace();
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  public Optional<AuditResponse> audit(AuditRequest body) {
     Tuple<Tuple<DefaultApi, AuditResponse>, List<Tuple<DefaultApi, AuditResponse>>> serversWithResponsesQuorum =
-        serverReadWithQuorums(server -> server.audit(body), AuditResponse::getList);
+        serverReadWithQuorums(server -> server.audit(body), AuditResponse::getList, this::verifyAuditResponse);
 
     //TODO implement writeBack
     //serversWithResponsesQuorum.stream()
@@ -81,32 +106,23 @@ public class ServersWrapper {
     //    .forEach(writeBack);
 
     AuditResponse auditResponse = serversWithResponsesQuorum.first.second;
-    String port = ports.get(serversWithResponsesQuorum.first.first);
     if (auditResponse.getList() != null) {
-      String transactionListMessage = TransactionGetter.getTransactionListMessage(auditResponse.getList());
-      List<Transaction> transactions = TransactionGetter.InformationToTransaction(auditResponse.getList());
-      Collections.reverse(transactions);
-
-      if (securityHelper.verifySignature(transactionListMessage, auditResponse.getSignature().getValue(), port)
-          && securityHelper.verifySignatures(transactions, port)) {
-        if (body.getPublicKey().equals(securityHelper.key)) {
-          securityHelper.setLastHash(auditResponse.getList().get(0).getSendHash());
-        }
-        return transactionListMessage;
+      if (body.getPublicKey().equals(securityHelper.key)) {
+        securityHelper.setLastHash(auditResponse.getList().get(0).getSendHash());
       }
+      return Optional.of(auditResponse);
     }
-
-    return "Unexpected error from server. \n Try Again Later.";
+    return Optional.empty();
   }
 
   public String checkAccount(CheckAccountRequest body) throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, IOException, KeyStoreException, SignatureException, InvalidKeyException, InvalidKeySpecException {
     body.setPublicKey(securityHelper.key);
 
     Tuple<Tuple<DefaultApi, CheckAccountResponse>, List<Tuple<DefaultApi, CheckAccountResponse>>> serversWithResponsesQuorum =
-        serverReadWithQuorums(server -> server.checkAccount(body), CheckAccountResponse::getList);
+        serverReadWithQuorums(server -> server.checkAccount(body), CheckAccountResponse::getList, null); // TODO change this
 
     CheckAccountResponse checkAmountResponse = serversWithResponsesQuorum.first.second;
-    String port = ports.get(serversWithResponsesQuorum.first.first);
+    String port = serversWithResponsesQuorum.first.first.getApiClient().getBasePath();
 
     StringBuilder response = new StringBuilder(
         "Public Key: "
@@ -120,7 +136,7 @@ public class ServersWrapper {
       response.append(TransactionGetter.getTransactionListMessage(checkAmountResponse.getList()));
     }
 
-    if (securityHelper.verifySignature(response.toString(), signature.getValue(),port)) {
+    if (securityHelper.verifySignature(response.toString(), signature.getValue(), port)) {
       return response.toString();
     }
 
@@ -145,7 +161,7 @@ public class ServersWrapper {
     RegisterResponse registerResponse = response.second;
     String message = registerResponse.getMessage() + registerResponse.getHash().getValue();
 
-    if (securityHelper.verifySignature(message, registerResponse.getSignature().getValue(), ports.get(response.first))) {
+    if (securityHelper.verifySignature(message, registerResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())) {
 
       securityHelper.setLastHash(registerResponse.getHash());
       return registerResponse.getMessage();
@@ -154,7 +170,7 @@ public class ServersWrapper {
     return "Unexpected error from server. \n Try Again Later.";
   }
 
-  public String receiveAmount(ReceiveAmountRequest body, String amount, String lastHash) throws NoSuchAlgorithmException,
+  public boolean receiveAmount(ReceiveAmountRequest body) throws NoSuchAlgorithmException,
       InvalidKeyException, SignatureException, UnrecoverableKeyException, CertificateException, InvalidKeySpecException,
       KeyStoreException, IOException {
 
@@ -164,32 +180,21 @@ public class ServersWrapper {
     securityHelper.signMessage(
         body.getSourceKey().getValue()
             + securityHelper.key.getValue()
-            + amount
+            + body.getAmount()
             + securityHelper.getLastHash().getValue()
-            + lastHash,
+            + body.getTransHash().getValue(),
         body::setSignature);
 
-    Tuple response = forEachServer(server -> server.receiveAmount(body))
+    Tuple<DefaultApi, ReceiveAmountResponse> response = forEachServer(server -> server.receiveAmount(body))
         .collect(Collectors.toList())
         .get(0);
 
-    ReceiveAmountResponse receiveAmountResponse = (ReceiveAmountResponse) response.second;
-    String message= receiveAmountResponse.getNewHash().getValue() + receiveAmountResponse.getMessage();
+    ReceiveAmountResponse receiveAmountResponse = response.second;
+    String message = receiveAmountResponse.getNewHash().getValue() + receiveAmountResponse.getMessage();
     String signature = receiveAmountResponse.getSignature().getValue();
 
-    System.out.println(securityHelper.verifySignature(message, signature, ports.get(response.first)));
-    System.out.println(message);
-    System.out.println(signature);
-
-    if (receiveAmountResponse.getNewHash().getValue() != null
-        && securityHelper.verifySignature(message, signature, ports.get(response.first))
-        && receiveAmountResponse.isSuccess()) {
-
-      securityHelper.setLastHash(receiveAmountResponse.getNewHash());
-      return receiveAmountResponse.getMessage();
-    }
-
-    return "Unexpected error from server. \n Try Again Later.";
+    return securityHelper.verifySignature(message, signature, response.first.getApiClient().getBasePath())
+        && receiveAmountResponse.isSuccess();
   }
 
   public String sendAmount(SendAmountRequest body) throws NoSuchAlgorithmException, InvalidKeyException,
@@ -216,7 +221,7 @@ public class ServersWrapper {
     SendAmountResponse sendAmountResponse = response.second;
     message = sendAmountResponse.getNewHash().getValue() + sendAmountResponse.getMessage();
 
-    if (securityHelper.verifySignature(message, sendAmountResponse.getSignature().getValue(), ports.get(response.first))
+    if (securityHelper.verifySignature(message, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
         && sendAmountResponse.isSuccess()) {
 
       securityHelper.setLastHash(sendAmountResponse.getNewHash());
@@ -227,7 +232,8 @@ public class ServersWrapper {
   }
 
   public GetTransactionResponse getTransaction(GetTransactionRequest body) throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, IOException, KeyStoreException, SignatureException, InvalidKeyException, InvalidKeySpecException {
-    Tuple response = forEachServer(server -> server.getTransaction(body))
+    //TODO remove this
+    Tuple<DefaultApi, GetTransactionResponse> response = forEachServer(server -> server.getTransaction(body))
         .collect(Collectors.toList())
         .get(0);
 
@@ -235,7 +241,7 @@ public class ServersWrapper {
     if (securityHelper.verifySignature(
         TransactionGetter.getTransactionListMessage(getTransactionResponse.getTransaction()),
         getTransactionResponse.getSignature().getValue(),
-        ports.get(response.first))) {
+        response.first.getApiClient().getBasePath())) {
       return getTransactionResponse;
     }
     return null;
@@ -244,18 +250,24 @@ public class ServersWrapper {
   /**
    * @param serverCall     the read call to be done to the servers
    * @param responseToList a function to transform a server response to a list of transactions
-   * @param <A>            he server response type
+   * @param <RES>          he server response type
    * @return list tuple that contains the quorum response and the servers that are missing transactions (to be used in the write back)
    */
-  private <A> Tuple<Tuple<DefaultApi, A>, List<Tuple<DefaultApi, A>>> serverReadWithQuorums(ServerCall<A> serverCall, Function<A, List<TransactionInformation>> responseToList) {
-    List<Tuple<DefaultApi, A>> serversWithResponses = forEachServer(serverCall).collect(Collectors.toList()); // TODO should we call all servers??
+  private <RES> Tuple<Tuple<DefaultApi, RES>, List<Tuple<DefaultApi, RES>>> serverReadWithQuorums(ServerCall<RES> serverCall,
+                                                                                                  Function<RES, List<TransactionInformation>> responseToList,
+                                                                                                  Predicate<Tuple<DefaultApi, RES>> transactionVerifier
+  ) {
+    List<Tuple<DefaultApi, RES>> serversWithResponses =
+        forEachServer(serverCall)
+            .filter(transactionVerifier)
+            .collect(Collectors.toList()); // TODO should we call all servers??
 
-    List<Tuple<DefaultApi, A>> bla = QuorumHelper.getTransactionsQuorum(serversWithResponses, a -> responseToList.apply(a.second), getServersThreshold())
+    List<Tuple<DefaultApi, RES>> bla = QuorumHelper.getTransactionsQuorum(serversWithResponses, a -> responseToList.apply(a.second), getServersThreshold())
         .collect(Collectors.toList());
 
-    Tuple<DefaultApi, A> quorumResponse = bla.get(0);
+    Tuple<DefaultApi, RES> quorumResponse = bla.get(0);
 
-    List<Tuple<DefaultApi, A>> serversWithMissingTransactions = bla.stream().skip(1).collect(Collectors.toList());
+    List<Tuple<DefaultApi, RES>> serversWithMissingTransactions = bla.stream().skip(1).collect(Collectors.toList());
 
     return new Tuple<>(quorumResponse, serversWithMissingTransactions);
   }
