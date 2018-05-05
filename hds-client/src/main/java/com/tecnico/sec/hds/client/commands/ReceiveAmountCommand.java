@@ -39,10 +39,6 @@ public class ReceiveAmountCommand extends AbstractCommand {
     List<Transaction> transactions = TransactionGetter.InformationToTransaction(auditResponse.getList());
     Collections.reverse(transactions);
 
-    System.out.println(client.cryptoAgent.verifyBankSignature(transactionListMessage, auditResponse.getSignature().getValue()));
-    System.out.println(client.cryptoAgent.verifyTransactionsSignature(transactions));
-    System.out.println(client.chainHelper.verifyTransaction(transactions, sourceKey.getValue()));
-
     if (/*client.cryptoAgent.verifyBankSignature(transactionListMessage, auditResponse.getSignature().getValue())
       && client.cryptoAgent.verifyTransactionsSignature(transactions)
       && client.chainHelper.verifyTransaction(transactions, sourceKey.getValue())*/ true) {
