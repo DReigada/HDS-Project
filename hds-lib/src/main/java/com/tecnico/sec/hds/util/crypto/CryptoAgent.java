@@ -61,7 +61,7 @@ public class CryptoAgent {
     }
   }
 
-  private KeyStore getKeyStore(String username) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+  KeyStore getKeyStore(String username) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
     FileInputStream fis = new FileInputStream(username + "KeyStore.jce");
     KeyStore ks = KeyStore.getInstance("JCEKS");
     ks.load(fis, GLOBAL_KS_PASS);

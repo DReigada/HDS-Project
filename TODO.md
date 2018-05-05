@@ -16,13 +16,19 @@
 1. Register 
     1. Read the book ¯\_(ツ)_/¯
     1. Verificar Hash chain on read  ✅
-    1. Trocar check account para receber transacoes todas (no cliente - audit on steroids) - Diogo
+    1. Trocar check account para receber transacoes todas (no cliente - audit on steroids) - Diogo ✅
     1. Funcao para escolher a maioria ✅
     1. Write-back
+    
+# Part 3
+1. reliable bradcast?
+1. Tests
+1. Tests even more
+1. MOAR tests
 
 
 # Part 2 fixes
-1. Servers should have different provate keys - Joao
+1. Servers should have different provate keys - Joao ✅
 1. Lançar apenas uma excepçāo no crypto agent - Daniel
 
 # Part 2 Optional
