@@ -172,9 +172,13 @@ definitions:
   CheckAccountResponse:
       type: object
       properties:
-        amount:
+        message:
           type: string
-        List:
+        History:
+          type: array
+          items:
+            $ref: "#/definitions/TransactionInformation"
+        Pending:
           type: array
           items:
             $ref: "#/definitions/TransactionInformation"

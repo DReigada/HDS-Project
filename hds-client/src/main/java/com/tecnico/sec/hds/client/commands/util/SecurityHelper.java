@@ -45,11 +45,11 @@ public class SecurityHelper {
     return cryptoAgent.verifyBankSignature(message, signature, port);
   }
 
-  public boolean verifySignatures(List<Transaction> transactions, String port)
+  public boolean verifyTransactionsSignaturesAndChain(List<Transaction> transactions)
       throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException,
       IOException, KeyStoreException, SignatureException, InvalidKeyException, InvalidKeySpecException {
 
-    return cryptoAgent.verifyTransactionsSignature(transactions, port)
+    return cryptoAgent.verifyTransactionsSignature(transactions)
         && chainHelper.verifyTransaction(transactions, key.getValue());
   }
 

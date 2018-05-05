@@ -27,3 +27,4 @@
 
 # Part 2 Optional
 1. remove getTransaction endpoint
+1. Fix transactionInformation types

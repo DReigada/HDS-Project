@@ -165,7 +165,7 @@ public class CryptoAgent {
     fos.close();
   }
 
-  public boolean verifyTransactionsSignature(List<Transaction> transactions, String port) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidKeySpecException, UnrecoverableKeyException, CertificateException, KeyStoreException, IOException {
+  public boolean verifyTransactionsSignature(List<Transaction> transactions) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidKeySpecException, UnrecoverableKeyException, CertificateException, KeyStoreException, IOException {
     for (int i = 1; i < transactions.size(); i++) {
       String message = transactions.get(i).sourceKey + transactions.get(i).destKey + transactions.get(i).amount
           + transactions.get(i - 1).hash + transactions.get(i).receiveHash;

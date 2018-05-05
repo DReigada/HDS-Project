@@ -7,53 +7,55 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Optional;
 
 public class ReceiveAmountCommand extends AbstractCommand {
   private static final String name = "receive_amount";
 
   @Override
   public void doRun(Client client, String[] args) {
-    Hash hash = new Hash();
-    hash.setValue(args[0]);
+    PubKey sourceKey = new PubKey().value(args[0]);
+    Hash hash = new Hash().value(args[1]);
 
-    GetTransactionRequest getTransactionRequest = new GetTransactionRequest();
+    AuditRequest auditRequest = new AuditRequest().publicKey(sourceKey);
 
-    getTransactionRequest.setHash(hash);
+    Optional<AuditResponse> auditResponseOpt = client.server.audit(auditRequest);
 
-    GetTransactionResponse getTransactionResponse;
-    try {
-      getTransactionResponse = client.server.getTransaction(getTransactionRequest);
+    if (auditResponseOpt.isPresent()) {
+      Optional<TransactionInformation> transactionOpt =
+          auditResponseOpt.get()
+              .getList().stream()
+              .filter(a -> a.getSendHash().getValue().equals(hash.getValue()))
+              .findFirst();
 
-      if(!(getTransactionResponse.getTransaction() != null)){
+      try {
+        if (transactionOpt.isPresent()) {
+          TransactionInformation transaction = transactionOpt.get();
+          ReceiveAmountRequest receiveAmountRequest = new ReceiveAmountRequest();
 
-        System.out.println("Transaction does not exist");
+          receiveAmountRequest.setSourceKey(new PubKey().value(transaction.getSourceKey()));
+          receiveAmountRequest.setDestKey(new PubKey().value(transaction.getDestKey()));
+          receiveAmountRequest.amount(Integer.valueOf(transaction.getAmount()));
+          receiveAmountRequest.setTransHash(transaction.getReceiveHash());
 
+          boolean receiveAmountResponse = client.server.receiveAmount(receiveAmountRequest);
+
+          if (receiveAmountResponse) {
+            System.out.println("Receive amount successful");
+          } else {
+            System.out.println("Failed to call receive amount");
+          }
+        }
+
+      } catch (CertificateException | InvalidKeySpecException | InvalidKeyException | SignatureException
+          | KeyStoreException | IOException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
+        System.out.println("Failed to call receive amount");
+        e.printStackTrace();
       }
-
-      TransactionInformation transaction = getTransactionResponse.getTransaction();
-
-      ReceiveAmountRequest receiveAmountRequest = new ReceiveAmountRequest();
-
-      PubKey sourceKey = new PubKey();
-
-      sourceKey.setValue(transaction.getSourceKey());
-
-      receiveAmountRequest.setSourceKey(sourceKey);
-
-      receiveAmountRequest.amount(Integer.valueOf(transaction.getAmount()));
-
-      receiveAmountRequest.setTransHash(hash);
-
-      if(client.server.receiveAmount(receiveAmountRequest)){
-        System.out.println("Success");
-      } else {
-        System.out.println("Failed to do receive amount");
-      }
-
-    } catch (CertificateException | InvalidKeySpecException | InvalidKeyException | SignatureException
-        | KeyStoreException | IOException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
-      e.printStackTrace();
+    } else {
+      System.out.println("Failed to call Audit in receive amount");
     }
+
   }
 
   @Override

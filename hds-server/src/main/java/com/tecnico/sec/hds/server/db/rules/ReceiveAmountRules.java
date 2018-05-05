@@ -42,8 +42,6 @@ public class ReceiveAmountRules {
             ChainHelper.TransactionType.ACCEPT,
             signature);
 
-          long balance = transferQueries.getBalance(destKey);
-
           transferQueries.updateTransactionPendingState(transHash, false);
           transferQueries.insertNewTransaction(sourceKey, destKey, amount, false, true, signature, newHash, receiveHash);
 

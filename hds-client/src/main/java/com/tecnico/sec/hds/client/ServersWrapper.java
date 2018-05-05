@@ -9,7 +9,6 @@ import io.swagger.client.ApiClient;
 import io.swagger.client.ApiException;
 import io.swagger.client.api.DefaultApi;
 import io.swagger.client.model.*;
-import io.swagger.client.model.Signature;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.BufferedReader;
@@ -69,13 +68,29 @@ public class ServersWrapper {
     });
   }
 
-  private Boolean verifyAuditResponse(Tuple<DefaultApi, AuditResponse> serverWithReponse) {
-    String serverUrl = serverWithReponse.first.getApiClient().getBasePath();
-    AuditResponse response = serverWithReponse.second;
-    return verifyTransactions(serverUrl, response);
+  public Optional<AuditResponse> audit(AuditRequest body) {
+    Optional<Tuple<Tuple<DefaultApi, AuditResponse>, List<Tuple<DefaultApi, AuditResponse>>>> serversWithResponsesQuorum =
+        serverReadWithQuorums(server -> server.audit(body), AuditResponse::getList, this::verifyAuditResponse);
+
+    //TODO implement writeBack
+    //serversWithResponsesQuorum.stream()
+    //    .skip(1)  // skip the quorum response
+    //    .forEach(writeBack);
+
+    return serversWithResponsesQuorum.map(tuple -> {
+      AuditResponse auditResponse = tuple.first.second;
+
+      if (body.getPublicKey().equals(securityHelper.key)) {
+        securityHelper.setLastHash(auditResponse.getList().get(0).getSendHash());
+      }
+
+      return auditResponse;
+    });
   }
 
-  private Boolean verifyTransactions(String serverUrl, AuditResponse response) {
+  private boolean verifyAuditResponse(Tuple<DefaultApi, AuditResponse> serverWithResponse) {
+    String serverUrl = serverWithResponse.first.getApiClient().getBasePath();
+    AuditResponse response = serverWithResponse.second;
     List<TransactionInformation> transactionList = response.getList();
     if (transactionList != null) {
       String transactionListMessage = TransactionGetter.getTransactionListMessage(transactionList);
@@ -85,7 +100,7 @@ public class ServersWrapper {
       try {
         String signature = response.getSignature().getValue();
         return securityHelper.verifySignature(transactionListMessage, signature, serverUrl)
-            && securityHelper.verifySignatures(transactions, serverUrl);
+            && securityHelper.verifyTransactionsSignaturesAndChain(transactions);
       } catch (GeneralSecurityException | IOException e) {
         System.err.println("Failed to verify response from server: " + serverUrl);
         e.printStackTrace();
@@ -96,56 +111,45 @@ public class ServersWrapper {
     }
   }
 
-  public Optional<AuditResponse> audit(AuditRequest body) {
-    Tuple<Tuple<DefaultApi, AuditResponse>, List<Tuple<DefaultApi, AuditResponse>>> serversWithResponsesQuorum =
-        serverReadWithQuorums(server -> server.audit(body), AuditResponse::getList, this::verifyAuditResponse);
-
-    //TODO implement writeBack
-    //serversWithResponsesQuorum.stream()
-    //    .skip(1)  // skip the quorum response
-    //    .forEach(writeBack);
-
-    AuditResponse auditResponse = serversWithResponsesQuorum.first.second;
-    if (auditResponse.getList() != null) {
-      if (body.getPublicKey().equals(securityHelper.key)) {
-        securityHelper.setLastHash(auditResponse.getList().get(0).getSendHash());
-      }
-      return Optional.of(auditResponse);
-    }
-    return Optional.empty();
-  }
-
-  public String checkAccount(CheckAccountRequest body) throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, IOException, KeyStoreException, SignatureException, InvalidKeyException, InvalidKeySpecException {
+  public Optional<Tuple<CheckAccountResponse, Long>> checkAccount(CheckAccountRequest body) {
     body.setPublicKey(securityHelper.key);
 
-    Tuple<Tuple<DefaultApi, CheckAccountResponse>, List<Tuple<DefaultApi, CheckAccountResponse>>> serversWithResponsesQuorum =
-        serverReadWithQuorums(server -> server.checkAccount(body), CheckAccountResponse::getList, null); // TODO change this
+    Optional<Tuple<Tuple<DefaultApi, CheckAccountResponse>, List<Tuple<DefaultApi, CheckAccountResponse>>>> serversWithResponsesQuorumOpt =
+        serverReadWithQuorums(server -> server.checkAccount(body), CheckAccountResponse::getHistory, this::verifyCheckAccount); // TODO change this
 
-    CheckAccountResponse checkAmountResponse = serversWithResponsesQuorum.first.second;
-    String port = serversWithResponsesQuorum.first.first.getApiClient().getBasePath();
+    return serversWithResponsesQuorumOpt.map(serversWithResponsesQuorum -> {
+      CheckAccountResponse checkAmountResponse = serversWithResponsesQuorum.first.second;
 
-    StringBuilder response = new StringBuilder(
-        "Public Key: "
-            + securityHelper.key.getValue()
-            + "\n"
-            + "Balance: "
-            + checkAmountResponse.getAmount() + "\n");
-    Signature signature = checkAmountResponse.getSignature();
+      return new Tuple<>(serversWithResponsesQuorum.first.second, getBalanceFromTransactions(checkAmountResponse.getHistory()));
+    });
+  }
 
-    if (checkAmountResponse.getList() != null) {
-      response.append(TransactionGetter.getTransactionListMessage(checkAmountResponse.getList()));
+  private boolean verifyCheckAccount(Tuple<DefaultApi, CheckAccountResponse> serverWithResponse) {
+    String serverUrl = serverWithResponse.first.getApiClient().getBasePath();
+    CheckAccountResponse response = serverWithResponse.second;
+
+    List<Transaction> transactionsHistory =
+        TransactionGetter.InformationToTransaction(response.getHistory());
+
+    String serverMessage =
+        TransactionGetter.getTransactionListMessage(response.getHistory()) +
+            TransactionGetter.getTransactionListMessage(response.getPending());
+
+    try {
+      return
+          securityHelper.verifyTransactionsSignaturesAndChain(transactionsHistory) &&
+              securityHelper.verifySignature(serverMessage, response.getSignature().getValue(), serverUrl);
+    } catch (GeneralSecurityException | IOException e) {
+      System.err.println("Failed to verify response from server: " + serverUrl);
+      e.printStackTrace();
+      return false;
     }
+  }
 
-    if (securityHelper.verifySignature(response.toString(), signature.getValue(), port)) {
-      return response.toString();
-    }
-
-    //TODO implement writeBack
-    //serversWithResponsesQuorum.stream()
-    //    .skip(1)  // skip the quorum response
-    //    .forEach(writeBack);
-
-    return "Unexpected error from server. \n Try Again Later.";
+  private long getBalanceFromTransactions(List<TransactionInformation> transactions) {
+    return transactions.stream()
+        .mapToLong(t -> t.isReceive() ? Long.valueOf(t.getAmount()) : -Long.valueOf(t.getAmount()))
+        .sum();
   }
 
   public String register() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException,
@@ -253,23 +257,29 @@ public class ServersWrapper {
    * @param <RES>          he server response type
    * @return list tuple that contains the quorum response and the servers that are missing transactions (to be used in the write back)
    */
-  private <RES> Tuple<Tuple<DefaultApi, RES>, List<Tuple<DefaultApi, RES>>> serverReadWithQuorums(ServerCall<RES> serverCall,
-                                                                                                  Function<RES, List<TransactionInformation>> responseToList,
-                                                                                                  Predicate<Tuple<DefaultApi, RES>> transactionVerifier
+  private <RES> Optional<Tuple<Tuple<DefaultApi, RES>, List<Tuple<DefaultApi, RES>>>> serverReadWithQuorums(
+      ServerCall<RES> serverCall,
+      Function<RES, List<TransactionInformation>> responseToList,
+      Predicate<Tuple<DefaultApi, RES>> responseVerifier
   ) {
-    List<Tuple<DefaultApi, RES>> serversWithResponses =
+    List<Tuple<DefaultApi, RES>> allServersWithResponses =
         forEachServer(serverCall)
-            .filter(transactionVerifier)
+            .filter(responseVerifier)
             .collect(Collectors.toList()); // TODO should we call all servers??
 
-    List<Tuple<DefaultApi, RES>> bla = QuorumHelper.getTransactionsQuorum(serversWithResponses, a -> responseToList.apply(a.second), getServersThreshold())
-        .collect(Collectors.toList());
+    List<Tuple<DefaultApi, RES>> serversWithResponses =
+        QuorumHelper.getTransactionsQuorum(allServersWithResponses, a -> responseToList.apply(a.second), getServersThreshold())
+            .collect(Collectors.toList());
 
-    Tuple<DefaultApi, RES> quorumResponse = bla.get(0);
+    if (serversWithResponses.size() > 0) {
+      Tuple<DefaultApi, RES> quorumResponse = serversWithResponses.get(0);
 
-    List<Tuple<DefaultApi, RES>> serversWithMissingTransactions = bla.stream().skip(1).collect(Collectors.toList());
+      List<Tuple<DefaultApi, RES>> serversWithMissingTransactions = serversWithResponses.stream().skip(1).collect(Collectors.toList());
 
-    return new Tuple<>(quorumResponse, serversWithMissingTransactions);
+      return Optional.of(new Tuple<>(quorumResponse, serversWithMissingTransactions));
+    } else {
+      return Optional.empty();
+    }
   }
 
   private <A> Stream<Tuple<DefaultApi, A>> forEachServer(ServerCall<A> serverCall) {
