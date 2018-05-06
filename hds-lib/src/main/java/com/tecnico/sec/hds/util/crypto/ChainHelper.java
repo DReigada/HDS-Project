@@ -8,6 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ChainHelper {
   private static final String SEED_HASH = "0";
@@ -39,20 +40,21 @@ public class ChainHelper {
     return Base64.getEncoder().encodeToString(hash);
   }
 
-  public boolean verifyTransaction(List<Transaction> transactions, String key){
-    String newTransactionHash = "";
-    for(Transaction transaction : transactions){
-      newTransactionHash = generateTransactionHash(Optional.of(newTransactionHash),
-          Optional.of(transaction.receiveHash),
-          transaction.sourceKey,
-          transaction.destKey,
-          transaction.amount,
-          !transaction.receive ? TransactionType.SEND_AMOUNT : TransactionType.ACCEPT,
-          transaction.signature);
+  public boolean verifyTransaction(List<Transaction> transactions){
+    Transaction lastTransaction = transactions.get(0);
+    for(Transaction transaction : transactions.stream().skip(1).collect(Collectors.toList())){
+      String newTransactionHash = generateTransactionHash(Optional.of(lastTransaction.hash),
+          Optional.of(lastTransaction.receiveHash),
+          lastTransaction.sourceKey,
+          lastTransaction.destKey,
+          lastTransaction.amount,
+          !lastTransaction.receive ? TransactionType.SEND_AMOUNT : TransactionType.ACCEPT,
+          lastTransaction.signature);
 
       if(!newTransactionHash.equals(transaction.hash)){
         return false;
       }
+      lastTransaction = transaction;
     }
     return true;
   }

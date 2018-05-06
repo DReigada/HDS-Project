@@ -6,6 +6,7 @@ import domain.Transaction;
 import io.swagger.client.model.Hash;
 import io.swagger.client.model.PubKey;
 import io.swagger.client.model.Signature;
+import io.swagger.client.model.TransactionInformation;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class SecurityHelper {
@@ -38,6 +40,22 @@ public class SecurityHelper {
     setSignature.accept(signature);
   }
 
+  public void hashTransaction(TransactionInformation transaction, Consumer<Hash> setHash){
+
+    Hash newHash = new Hash();
+    newHash.setValue(chainHelper.generateTransactionHash(
+        Optional.of(transaction.getSendHash().getValue()),
+        Optional.of(transaction.getReceiveHash().getValue()),
+        transaction.getSourceKey(),
+        transaction.getDestKey(),
+        Long.valueOf(transaction.getAmount()),
+        transaction.isReceive() ? ChainHelper.TransactionType.ACCEPT : ChainHelper.TransactionType.SEND_AMOUNT,
+        transaction.getSignature().getValue()));
+
+    setHash.accept(newHash);
+
+  }
+
   public boolean verifySignature(String message, String signature, String port)
       throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, IOException,
       KeyStoreException, SignatureException, InvalidKeyException, InvalidKeySpecException {
@@ -50,7 +68,7 @@ public class SecurityHelper {
       IOException, KeyStoreException, SignatureException, InvalidKeyException, InvalidKeySpecException {
 
     return cryptoAgent.verifyTransactionsSignature(transactions)
-        && chainHelper.verifyTransaction(transactions, key.getValue());
+        && chainHelper.verifyTransaction(transactions);
   }
 
   public Hash getLastHash() {

@@ -4,6 +4,7 @@ import com.tecnico.sec.hds.client.commands.util.QuorumHelper;
 import com.tecnico.sec.hds.client.commands.util.SecurityHelper;
 import com.tecnico.sec.hds.client.commands.util.TransactionGetter;
 import com.tecnico.sec.hds.util.Tuple;
+import com.tecnico.sec.hds.util.crypto.ChainHelper;
 import domain.Transaction;
 import io.swagger.client.ApiClient;
 import io.swagger.client.ApiException;
@@ -175,18 +176,19 @@ public class ServersWrapper {
     return "Unexpected error from server. \n Try Again Later.";
   }
 
-  public boolean receiveAmount(ReceiveAmountRequest body) throws NoSuchAlgorithmException,
+  public boolean receiveAmount(ReceiveAmountRequest body, TransactionInformation lastTransaction) throws NoSuchAlgorithmException,
       InvalidKeyException, SignatureException, UnrecoverableKeyException, CertificateException, InvalidKeySpecException,
       KeyStoreException, IOException {
 
+    securityHelper.hashTransaction(lastTransaction, body::setLastHash);
+
     body.setDestKey(securityHelper.key);
-    body.setLastHash(securityHelper.getLastHash());
 
     securityHelper.signMessage(
         body.getSourceKey().getValue()
             + securityHelper.key.getValue()
             + body.getAmount()
-            + securityHelper.getLastHash().getValue()
+            + body.getLastHash().getValue()
             + body.getTransHash().getValue(),
         body::setSignature);
 
@@ -202,51 +204,39 @@ public class ServersWrapper {
         && receiveAmountResponse.isSuccess();
   }
 
-  public String sendAmount(SendAmountRequest body) throws NoSuchAlgorithmException, InvalidKeyException,
+  public String sendAmount(SendAmountRequest body, Optional<TransactionInformation> lastTrans) throws NoSuchAlgorithmException, InvalidKeyException,
       SignatureException, UnrecoverableKeyException, CertificateException, InvalidKeySpecException,
       KeyStoreException, IOException {
 
-    body.setLastHash(securityHelper.getLastHash());
-    body.sourceKey(securityHelper.key);
+    if (lastTrans.isPresent()) {
 
-    String message = securityHelper.key.getValue()
-        + body.getDestKey().getValue()
-        + body.getAmount().toString()
-        + securityHelper.getLastHash().getValue();
+      securityHelper.hashTransaction(lastTrans.get(), body::setLastHash);
 
-    securityHelper.signMessage(message, body::setSignature);
+      body.sourceKey(securityHelper.key);
 
-    Tuple<DefaultApi, SendAmountResponse> response = forEachServer(server -> server.sendAmount(body))
-        .collect(Collectors.toList())
-        .get(0);
+      String message = securityHelper.key.getValue()
+          + body.getDestKey().getValue()
+          + body.getAmount().toString()
+          + body.getLastHash().getValue();
 
-    SendAmountResponse sendAmountResponse = response.second;
-    message = sendAmountResponse.getNewHash().getValue() + sendAmountResponse.getMessage();
+      securityHelper.signMessage(message, body::setSignature);
 
-    if (securityHelper.verifySignature(message, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
-        && sendAmountResponse.isSuccess()) {
+      Tuple<DefaultApi, SendAmountResponse> response = forEachServer(server -> server.sendAmount(body))
+          .collect(Collectors.toList())
+          .get(0);
 
-      securityHelper.setLastHash(sendAmountResponse.getNewHash());
-      return sendAmountResponse.getMessage();
+
+      SendAmountResponse sendAmountResponse = response.second;
+      message = sendAmountResponse.getNewHash().getValue() + sendAmountResponse.getMessage();
+
+      if (securityHelper.verifySignature(message, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
+          && sendAmountResponse.isSuccess()) {
+
+        securityHelper.setLastHash(sendAmountResponse.getNewHash());
+        return sendAmountResponse.getMessage();
+      }
     }
-
     return "Unexpected error from server. \n Try Again Later.";
-  }
-
-  public GetTransactionResponse getTransaction(GetTransactionRequest body) throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, IOException, KeyStoreException, SignatureException, InvalidKeyException, InvalidKeySpecException {
-    //TODO remove this
-    Tuple<DefaultApi, GetTransactionResponse> response = forEachServer(server -> server.getTransaction(body))
-        .collect(Collectors.toList())
-        .get(0);
-
-    GetTransactionResponse getTransactionResponse = (GetTransactionResponse) response.second;
-    if (securityHelper.verifySignature(
-        TransactionGetter.getTransactionListMessage(getTransactionResponse.getTransaction()),
-        getTransactionResponse.getSignature().getValue(),
-        response.first.getApiClient().getBasePath())) {
-      return getTransactionResponse;
-    }
-    return null;
   }
 
   /**
@@ -291,6 +281,10 @@ public class ServersWrapper {
             return Stream.empty();
           }
         });
+  }
+
+  public PubKey getKey() {
+    return securityHelper.key;
   }
 
   private int getServersThreshold() {

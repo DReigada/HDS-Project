@@ -55,9 +55,12 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     Hash newHash = new Hash();
     Signature signature = new Signature();
 
+
     try {
       if (cryptoAgent.verifySignature(sourceKey + destKey + amount + lastHash + transHash, transSignature, destKey)) {
         Optional<Transaction> result = receiveAmount(sourceKey, destKey, amount, lastHash, transSignature, transHash);
+
+
         if (result.isPresent()) {
           newHash.setValue(result.get().hash);
           response.setNewHash(newHash);
@@ -73,8 +76,6 @@ public class ReceiveAmountController implements ReceiveAmountApi {
         message = "Nice try Hacker wanna be";
       }
       signature.setValue(cryptoAgent.generateSignature(newHash.getValue() + message));
-      System.out.println(newHash.getValue() + " " + message);
-      System.out.println(signature.getValue());
       response.setSuccess(success);
       response.setMessage(message);
       response.setSignature(signature);

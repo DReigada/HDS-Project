@@ -1,6 +1,7 @@
 package com.tecnico.sec.hds.client.commands;
 
 import com.tecnico.sec.hds.client.Client;
+import com.tecnico.sec.hds.util.Tuple;
 import io.swagger.client.model.*;
 
 import java.io.IOException;
@@ -14,31 +15,33 @@ public class ReceiveAmountCommand extends AbstractCommand {
 
   @Override
   public void doRun(Client client, String[] args) {
-    PubKey sourceKey = new PubKey().value(args[0].trim());
-    Hash hash = new Hash().value(args[1].trim());
+    Hash hash = new Hash().value(args[0].trim());
 
-    AuditRequest auditRequest = new AuditRequest().publicKey(sourceKey);
+    CheckAccountRequest checkAccountRequest = new CheckAccountRequest();
 
-    Optional<AuditResponse> auditResponseOpt = client.server.audit(auditRequest);
+    Optional<Tuple<CheckAccountResponse, Long>> response = client.server.checkAccount(checkAccountRequest);
 
-    if (auditResponseOpt.isPresent()) {
-      Optional<TransactionInformation> transactionOpt =
-          auditResponseOpt.get()
-              .getList().stream()
+    if(response.isPresent()) {
+
+      Optional<TransactionInformation> lastTransaction = response.map( r -> r.first.getHistory().get(0));
+
+      Optional<TransactionInformation> receivedTransaction =
+          response.get().first.getPending().stream()
               .filter(a -> a.getSendHash().getValue().equals(hash.getValue()))
               .findFirst();
 
       try {
-        if (transactionOpt.isPresent()) {
-          TransactionInformation transaction = transactionOpt.get();
+        if (lastTransaction.isPresent() && receivedTransaction.isPresent()) {
+          TransactionInformation transaction = receivedTransaction.get();
           ReceiveAmountRequest receiveAmountRequest = new ReceiveAmountRequest();
 
           receiveAmountRequest.setSourceKey(new PubKey().value(transaction.getSourceKey()));
           receiveAmountRequest.setDestKey(new PubKey().value(transaction.getDestKey()));
           receiveAmountRequest.amount(Integer.valueOf(transaction.getAmount()));
           receiveAmountRequest.setTransHash(transaction.getSendHash());
+          receiveAmountRequest.setTransHash(receivedTransaction.get().getSendHash());
 
-          boolean receiveAmountResponse = client.server.receiveAmount(receiveAmountRequest);
+          boolean receiveAmountResponse = client.server.receiveAmount(receiveAmountRequest, lastTransaction.get());
 
           if (receiveAmountResponse) {
             System.out.println("Receive amount successful");
@@ -52,10 +55,10 @@ public class ReceiveAmountCommand extends AbstractCommand {
         System.out.println("Failed to call receive amount");
         e.printStackTrace();
       }
-    } else {
-      System.out.println("Failed to call Audit in receive amount");
-    }
 
+    } else {
+      System.out.println("Failed to check your account");
+    }
   }
 
   @Override

@@ -12,34 +12,29 @@ import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withTrans
 
 public class SendAmountRules {
 
-  public Optional<Transaction> sendAmount(String sourceKey, String destKey, long amount, String signature, String lastHash) throws DBException {
+  public Optional<Transaction> sendAmount(String sourceKey, String destKey, long amount, String signature, String newHashTrans) throws DBException {
 
     return withTransaction(conn -> {
-
-      AccountQueries accountQueries = new AccountQueries(conn);
       TransactionQueries transferQueries = new TransactionQueries(conn);
 
-      Optional<Transaction> sourceLastTransfer = transferQueries.getLastTransaction(sourceKey);
-      Optional<String> sourceLastTransferHash = sourceLastTransfer.map(t -> t.hash);
+      Optional<Transaction> transaction = transferQueries.getLastTransaction(sourceKey);
 
-      String lastTransferHash = sourceLastTransferHash.orElse("");
+      String newHash = new ChainHelper().generateTransactionHash(
+          transaction.map(t -> t.hash),
+          transaction.map(t -> t.receiveHash),
+          transaction.get().sourceKey,
+          transaction.get().destKey,
+          transaction.get().amount,
+          transaction.get().receive ? ChainHelper.TransactionType.ACCEPT : ChainHelper.TransactionType.SEND_AMOUNT,
+          transaction.get().signature);
 
-      if(lastTransferHash.equals(lastHash)) {
+      if(newHash.equals(newHashTrans)) {
 
-
-        String newHash = new ChainHelper().generateTransactionHash(
-          sourceLastTransferHash,
-          Optional.empty(),
-          sourceKey,
-          destKey,
-          amount,
-          ChainHelper.TransactionType.SEND_AMOUNT,
-          signature);
 
         long sourceBalance = transferQueries.getBalance(sourceKey);
 
         if (amount <= sourceBalance && amount > 0) {
-          transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, false, signature, newHash, Optional.empty());
+          transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, false, signature, newHashTrans, Optional.empty());
 
           return transferQueries.getLastInsertedTransaction();
         }

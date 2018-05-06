@@ -12,40 +12,42 @@ import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withTrans
 
 public class ReceiveAmountRules {
 
-  public Optional<Transaction> receiveAmount(String transHash, String sourceKey, String destKey,
-                                             long amount, String lastHash, String signature) throws DBException {
+  public Optional<Transaction> receiveAmount(String receiveHashTrans, String sourceKey, String destKey,
+                                             long amount, String newHashTrans, String signature) throws DBException {
     return withTransaction(conn -> {
 
-      AccountQueries accountQueries = new AccountQueries(conn);
       TransactionQueries transferQueries = new TransactionQueries(conn);
 
-      Optional<Transaction> transaction = transferQueries.getTransactionByHash(transHash);
 
-      if (transaction.isPresent() && transaction.get().pending) {
-        long transAmount = transaction.get().amount;
-        String transSourceKey = transaction.get().sourceKey;
-        String transDestKey = transaction.get().destKey;
+      Optional<Transaction> receiveTrans = transferQueries.getTransactionByHash(receiveHashTrans);
 
-        Optional<Transaction> destLastTransfer = transferQueries.getLastTransaction(destKey);
-        Optional<String> destLastTransferHash = destLastTransfer.map(t -> t.hash);
-        Optional<String> receiveHash = Optional.of(transHash);
-        String lastTransferHash = destLastTransferHash.orElse("");
 
+      Optional<Transaction> transaction = transferQueries.getLastTransaction(destKey);
+
+
+      if (receiveTrans.isPresent() && receiveTrans.get().pending && transaction.isPresent()) {
+        long transAmount = receiveTrans.get().amount;
+        String transSourceKey = receiveTrans.get().sourceKey;
+        String transDestKey = receiveTrans.get().destKey;
+        Optional<String> receiveHash = Optional.of(receiveTrans.get().hash);
         if (transSourceKey.equals(sourceKey) && transDestKey.equals(destKey) && transAmount == amount
-            && lastTransferHash.equals(lastHash)) {
-          String newHash = new ChainHelper().generateTransactionHash(
-            destLastTransferHash,
-            receiveHash,
-            sourceKey,
-            destKey,
-            amount,
-            ChainHelper.TransactionType.ACCEPT,
-            signature);
+            && receiveHashTrans.equals(receiveHash.get())) {
+            String newHash = new ChainHelper().generateTransactionHash(
+            transaction.map(t -> t.hash),
+              transaction.map(t -> t.receiveHash),
+              transaction.get().sourceKey,
+              transaction.get().destKey,
+              transaction.get().amount,
+              transaction.get().receive ? ChainHelper.TransactionType.ACCEPT : ChainHelper.TransactionType.SEND_AMOUNT,
+              transaction.get().signature);
 
-          transferQueries.updateTransactionPendingState(transHash, false);
-          transferQueries.insertNewTransaction(sourceKey, destKey, amount, false, true, signature, newHash, receiveHash);
 
-          return transferQueries.getLastInsertedTransaction();
+            if(newHash.equals(newHashTrans)){
+              transferQueries.updateTransactionPendingState(receiveHashTrans, false);
+              transferQueries.insertNewTransaction(sourceKey, destKey, amount, false, true, signature, newHashTrans, receiveHash);
+
+              return transferQueries.getLastInsertedTransaction();
+            }
         }
       }
       return Optional.empty();
