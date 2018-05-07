@@ -4,10 +4,7 @@ import com.tecnico.sec.hds.client.commands.*;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
+import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
@@ -18,7 +15,7 @@ public class Client {
 
   private Map<String, AbstractCommand> commands;
 
-  public Client(String username, String password) throws IOException, UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException {
+  public Client(String username, String password) throws IOException, GeneralSecurityException, OperatorCreationException {
     server = new ServersWrapper(username, password);
   }
 

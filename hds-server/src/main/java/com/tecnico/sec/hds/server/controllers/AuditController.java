@@ -53,7 +53,7 @@ public class AuditController implements AuditApi {
       }
       auditResponse.setSignature(sign);
 
-    } catch (DBException | NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
+    } catch (DBException | GeneralSecurityException e) {
       e.printStackTrace();
     }
 

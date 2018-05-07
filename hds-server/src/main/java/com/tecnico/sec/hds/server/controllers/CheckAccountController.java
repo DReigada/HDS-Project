@@ -72,7 +72,7 @@ public class CheckAccountController implements CheckAccountApi {
 
       Signature signature = new Signature().value(cryptoAgent.generateSignature(stringToSign.toString()));
       checkAccountResponse.setSignature(signature);
-    } catch (DBException | NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+    } catch (DBException | GeneralSecurityException e) {
       e.printStackTrace();
     }
 
