@@ -16,29 +16,24 @@ public class SendAmountRules {
     this.queryHelpers = queryHelpers;
   }
 
-  public Optional<Transaction> sendAmount(String sourceKey, String destKey, long amount, String signature, String lastHash) throws DBException {
+  public Optional<Transaction> sendAmount(String sourceKey, String destKey, long amount, String signature, String newHash) throws DBException {
 
     return queryHelpers.withTransaction(conn -> {
 
-      AccountQueries accountQueries = new AccountQueries(conn);
       TransactionQueries transferQueries = new TransactionQueries(conn);
 
       Optional<Transaction> sourceLastTransfer = transferQueries.getLastTransaction(sourceKey);
       Optional<String> sourceLastTransferHash = sourceLastTransfer.map(t -> t.hash);
 
-      String lastTransferHash = sourceLastTransferHash.orElse("");
+      String realNewHash = new ChainHelper().generateTransactionHash(
+          sourceLastTransferHash,
+          Optional.empty(),
+          sourceKey,
+          destKey,
+          amount,
+          ChainHelper.TransactionType.SEND_AMOUNT);
 
-      if (lastTransferHash.equals(lastHash)) {
-
-
-        String newHash = new ChainHelper().generateTransactionHash(
-            sourceLastTransferHash,
-            Optional.empty(),
-            sourceKey,
-            destKey,
-            amount,
-            ChainHelper.TransactionType.SEND_AMOUNT,
-            signature);
+      if (realNewHash.equals(newHash)) {
 
         long sourceBalance = transferQueries.getBalance(sourceKey);
 

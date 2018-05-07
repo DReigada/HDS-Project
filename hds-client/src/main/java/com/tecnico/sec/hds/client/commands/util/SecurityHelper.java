@@ -11,6 +11,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class SecurityHelper {
@@ -43,7 +44,12 @@ public class SecurityHelper {
   public boolean verifyTransactionsSignaturesAndChain(List<Transaction> transactions) throws GeneralSecurityException {
 
     return cryptoAgent.verifyTransactionsSignature(transactions)
-        && chainHelper.verifyTransaction(transactions, key.getValue());
+        && chainHelper.verifyTransaction(transactions);
+  }
+
+  public Hash createHash(Optional<String> lastHash, Optional<String> receiveHash, String source, String dest, long amount, ChainHelper.TransactionType type){
+    Hash hash = new Hash().value(chainHelper.generateTransactionHash(lastHash, receiveHash, source, dest, amount, type));
+    return hash;
   }
 
   public Hash getLastHash() {

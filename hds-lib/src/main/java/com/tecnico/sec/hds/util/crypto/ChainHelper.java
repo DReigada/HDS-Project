@@ -27,19 +27,18 @@ public class ChainHelper {
                                         String source,
                                         String dest,
                                         long amount,
-                                        TransactionType transType,
-                                        String signature) {
+                                        TransactionType transType) {
 
     String previousTransactionHash = previousTransactionHashOpt.orElse(SEED_HASH);
 
-    String text = previousTransactionHash + receiveHash.orElse("") + source + dest + amount + transType + signature;
+    String text = previousTransactionHash + receiveHash.orElse("") + source + dest + amount + transType;
 
     byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
 
     return Base64.getEncoder().encodeToString(hash);
   }
 
-  public boolean verifyTransaction(List<Transaction> transactions, String key){
+  public boolean verifyTransaction(List<Transaction> transactions){
     String newTransactionHash = "";
     for(Transaction transaction : transactions){
       newTransactionHash = generateTransactionHash(Optional.of(newTransactionHash),
@@ -47,8 +46,7 @@ public class ChainHelper {
           transaction.sourceKey,
           transaction.destKey,
           transaction.amount,
-          !transaction.receive ? TransactionType.SEND_AMOUNT : TransactionType.ACCEPT,
-          transaction.signature);
+          !transaction.receive ? TransactionType.SEND_AMOUNT : TransactionType.ACCEPT);
 
       if(!newTransactionHash.equals(transaction.hash)){
         return false;

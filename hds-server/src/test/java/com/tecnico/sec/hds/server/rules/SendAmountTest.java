@@ -41,10 +41,10 @@ public class SendAmountTest {
     Transaction t2 = t2opt.get();
 
     String hash1 = new ChainHelper().generateTransactionHash(Optional.of(firstAccount.second), Optional.empty(),t1.sourceKey, t1.destKey,
-        t1.amount, ChainHelper.TransactionType.SEND_AMOUNT, t1.signature);
+        t1.amount, ChainHelper.TransactionType.SEND_AMOUNT);
 
     String hash2 = new ChainHelper().generateTransactionHash(Optional.of(secondAccount.second), Optional.empty(),t2.sourceKey, t2.destKey,
-        t2.amount, ChainHelper.TransactionType.SEND_AMOUNT, t2.signature);
+        t2.amount, ChainHelper.TransactionType.SEND_AMOUNT);
 
     assertEquals(hash1, t1.hash);
     assertEquals(hash2, t2.hash);
@@ -65,10 +65,10 @@ public class SendAmountTest {
     Transaction t2 = t2opt.get();
 
     String hash1 = new ChainHelper().generateTransactionHash(Optional.of(account.second), Optional.empty(),t1.sourceKey, t1.destKey,
-        t1.amount, ChainHelper.TransactionType.SEND_AMOUNT, t1.signature);
+        t1.amount, ChainHelper.TransactionType.SEND_AMOUNT);
 
     String hash2 = new ChainHelper().generateTransactionHash(Optional.of(t1.hash), Optional.empty(),t2.sourceKey, t2.destKey,
-        t2.amount, ChainHelper.TransactionType.SEND_AMOUNT, t2.signature);
+        t2.amount, ChainHelper.TransactionType.SEND_AMOUNT);
 
     assertEquals(hash1, t1.hash);
     assertEquals(hash2, t2.hash);

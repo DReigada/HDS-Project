@@ -18,10 +18,9 @@ public class ReceiveAmountRules {
 
 
   public Optional<Transaction> receiveAmount(String transHash, String sourceKey, String destKey,
-                                             long amount, String lastHash, String signature) throws DBException {
+                                             long amount, String newHash, String signature) throws DBException {
     return queryHelpers.withTransaction(conn -> {
 
-      AccountQueries accountQueries = new AccountQueries(conn);
       TransactionQueries transferQueries = new TransactionQueries(conn);
 
       Optional<Transaction> transaction = transferQueries.getTransactionByHash(transHash);
@@ -36,16 +35,17 @@ public class ReceiveAmountRules {
         Optional<String> receiveHash = Optional.of(transHash);
         String lastTransferHash = destLastTransferHash.orElse("");
 
+        String realNewHash = new ChainHelper().generateTransactionHash(
+            destLastTransferHash,
+            receiveHash,
+            sourceKey,
+            destKey,
+            amount,
+            ChainHelper.TransactionType.ACCEPT);
+
+
         if (transSourceKey.equals(sourceKey) && transDestKey.equals(destKey) && transAmount == amount
-            && lastTransferHash.equals(lastHash)) {
-          String newHash = new ChainHelper().generateTransactionHash(
-              destLastTransferHash,
-              receiveHash,
-              sourceKey,
-              destKey,
-              amount,
-              ChainHelper.TransactionType.ACCEPT,
-              signature);
+            && realNewHash.equals(newHash)) {
 
           transferQueries.updateTransactionPendingState(transHash, false);
           transferQueries.insertNewTransaction(sourceKey, destKey, amount, false, true, signature, newHash, receiveHash);
