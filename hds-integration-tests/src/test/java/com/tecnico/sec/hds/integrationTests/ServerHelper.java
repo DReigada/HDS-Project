@@ -17,7 +17,7 @@ public class ServerHelper {
           System.setProperty("spring.config.name", "808" + i);
           Application.main(new String[]{});
           try {
-            String ip = InetAddress.getLocalHost().getHostAddress();
+            String ip = InetAddress.getLocalHost().getCanonicalHostName();
             return "http://" + ip + ":808" + i;
           } catch (UnknownHostException e) {
             throw new RuntimeException(e);

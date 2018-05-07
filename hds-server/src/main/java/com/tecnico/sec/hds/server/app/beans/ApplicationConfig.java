@@ -27,7 +27,7 @@ public class ApplicationConfig {
 
   private CryptoAgent createCryptoAgent() {
     try {
-      String ip = InetAddress.getLocalHost().getHostAddress().replace(".", "_");
+      String ip = InetAddress.getLocalHost().getCanonicalHostName().replace(".", "_");
       String port = System.getProperty("server.port", "8080");
       String fileName = "bank" + ip + "_" + port;
 
