@@ -18,7 +18,7 @@ public class ServerHelper {
           Application.main(new String[]{});
           try {
             String ip = InetAddress.getLocalHost().getHostAddress();
-            return "http://" + ip + ":808" + 1;
+            return "http://" + ip + ":808" + i;
           } catch (UnknownHostException e) {
             throw new RuntimeException(e);
           }
