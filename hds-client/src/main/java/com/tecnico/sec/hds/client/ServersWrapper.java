@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ServersWrapper {
-  private final Map<String, DefaultApi> servers;
-  private final SecurityHelper securityHelper;
+  final Map<String, DefaultApi> servers;
+  final SecurityHelper securityHelper;
 
   public ServersWrapper(String user, String pass) throws IOException, GeneralSecurityException, OperatorCreationException {
     securityHelper = new SecurityHelper(user, pass);
@@ -273,7 +273,7 @@ public class ServersWrapper {
     }
   }
 
-  private <A> Stream<Tuple<DefaultApi, A>> forEachServer(ServerCall<A> serverCall) {
+  <A> Stream<Tuple<DefaultApi, A>> forEachServer(ServerCall<A> serverCall) {
     return servers.entrySet().stream().parallel()
         .flatMap(entry -> {
           try {
@@ -295,7 +295,7 @@ public class ServersWrapper {
   }
 
   @FunctionalInterface
-  private interface ServerCall<R> {
+  interface ServerCall<R> {
     R apply(DefaultApi t) throws ApiException;
   }
 }
