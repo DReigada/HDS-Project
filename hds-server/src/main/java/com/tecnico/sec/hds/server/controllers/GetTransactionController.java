@@ -1,6 +1,5 @@
 package com.tecnico.sec.hds.server.controllers;
 
-import com.tecnico.sec.hds.server.app.Application;
 import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.GetTransactionRules;
@@ -22,11 +21,12 @@ import java.util.Optional;
 
 @Controller
 public class GetTransactionController implements GetTransactionApi {
-
+  private final CryptoAgent cryptoAgent;
   private GetTransactionRules getTransactionRules;
-  private CryptoAgent cryptoAgent = Application.cryptoAgent;
 
-  public GetTransactionController() {
+
+  public GetTransactionController(CryptoAgent cryptoAgent) {
+    this.cryptoAgent = cryptoAgent;
     getTransactionRules = new GetTransactionRules();
   }
 

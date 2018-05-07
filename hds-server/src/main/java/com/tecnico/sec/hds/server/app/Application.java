@@ -17,25 +17,8 @@ import java.security.GeneralSecurityException;
 public class Application {
   private static final Logger logger = LoggerFactory.getLogger(Application.class);
 
-  public static CryptoAgent cryptoAgent = createCryptoAgent();
-
   public static void main(String[] args) {
     SpringApplication.run(Application.class, args);
   }
 
-  private static CryptoAgent createCryptoAgent() {
-    try {
-      String ip = InetAddress.getLocalHost().getHostAddress().replace(".", "_");
-      String port = System.getProperty("server.port", "8080");
-      String fileName = "bank" + ip + "_" + port;
-
-      logger.info("Creating keystore on file: " + fileName);
-
-      return new CryptoAgent(fileName, fileName);
-    } catch (GeneralSecurityException | IOException | OperatorCreationException e) {
-      e.printStackTrace();
-      System.exit(1);
-      return null;
-    }
-  }
 }

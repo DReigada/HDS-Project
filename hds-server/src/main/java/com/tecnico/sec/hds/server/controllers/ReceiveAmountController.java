@@ -1,6 +1,5 @@
 package com.tecnico.sec.hds.server.controllers;
 
-import com.tecnico.sec.hds.server.app.Application;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.ReceiveAmountRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
@@ -12,8 +11,6 @@ import io.swagger.model.ReceiveAmountRequest;
 import io.swagger.model.ReceiveAmountResponse;
 import io.swagger.model.Signature;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -29,14 +26,12 @@ import java.util.Optional;
 
 @Controller
 public class ReceiveAmountController implements ReceiveAmountApi {
-
-  private static final Logger log = LoggerFactory.getLogger(ReceiveAmountController.class);
-
-  private CryptoAgent cryptoAgent = Application.cryptoAgent;
+  private final CryptoAgent cryptoAgent;
 
   private ReceiveAmountRules receiveAmountRules;
 
-  public ReceiveAmountController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, KeyStoreException, OperatorCreationException {
+  public ReceiveAmountController(CryptoAgent cryptoAgent) throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, KeyStoreException, OperatorCreationException {
+    this.cryptoAgent = cryptoAgent;
     receiveAmountRules = new ReceiveAmountRules();
   }
 

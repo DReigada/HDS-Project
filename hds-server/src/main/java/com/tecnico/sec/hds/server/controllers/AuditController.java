@@ -1,6 +1,5 @@
 package com.tecnico.sec.hds.server.controllers;
 
-import com.tecnico.sec.hds.server.app.Application;
 import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.AuditRules;
@@ -11,27 +10,25 @@ import io.swagger.api.AuditApi;
 import io.swagger.model.AuditRequest;
 import io.swagger.model.AuditResponse;
 import io.swagger.model.Signature;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
-import java.io.IOException;
-import java.security.*;
-import java.security.cert.CertificateException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
 
 @Controller
 public class AuditController implements AuditApi {
+  private final CryptoAgent cryptoAgent;
   private AuditRules auditRules;
-  private CryptoAgent cryptoAgent = Application.cryptoAgent;
 
-  public AuditController() {
+  public AuditController(CryptoAgent cryptoAgent) {
     auditRules = new AuditRules();
+    this.cryptoAgent = cryptoAgent;
   }
 
   @Override

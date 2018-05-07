@@ -18,6 +18,7 @@
         <module>hds-server</module>
         <module>hds-client</module>
         <module>hds-lib</module>
+        <module>hds-integration-tests</module>
     </modules>
 
     <build>

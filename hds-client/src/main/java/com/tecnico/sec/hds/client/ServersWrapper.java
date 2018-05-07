@@ -25,23 +25,28 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ServersWrapper {
-  private final Map<String, DefaultApi> servers;
-  private final SecurityHelper securityHelper;
+  final Map<String, DefaultApi> servers;
+  final SecurityHelper securityHelper;
 
-  public ServersWrapper(String user, String pass) throws IOException, GeneralSecurityException, OperatorCreationException {
+  public ServersWrapper(String user, String pass) throws IOException, OperatorCreationException, GeneralSecurityException {
+    this(user, pass, getServersConfig());
+  }
+
+  public ServersWrapper(String user, String pass, List<String> serversUrls) throws IOException, GeneralSecurityException, OperatorCreationException {
     securityHelper = new SecurityHelper(user, pass);
     servers = new HashMap<>();
-    initializeServers(getServersConfig());
+    initializeServers(serversUrls.stream());
   }
 
-  private Stream<String> getServersConfig() {
+  private static List<String> getServersConfig() {
     return Optional.ofNullable(System.getProperty("servers.urls.file"))
-        .map(this::getServersConfigFromFile)
-        .orElseGet(this::getServersConfigFromResource)
-        .filter(s -> !s.isEmpty());
+        .map(ServersWrapper::getServersConfigFromFile)
+        .orElseGet(ServersWrapper::getServersConfigFromResource)
+        .filter(s -> !s.isEmpty())
+        .collect(Collectors.toList());
   }
 
-  private Stream<String> getServersConfigFromFile(String filename) {
+  private static Stream<String> getServersConfigFromFile(String filename) {
     try {
       return Files.lines(Paths.get(filename));
     } catch (NoSuchFileException e) {
@@ -54,8 +59,8 @@ public class ServersWrapper {
     }
   }
 
-  private Stream<String> getServersConfigFromResource() {
-    return new BufferedReader(new InputStreamReader((getClass().getResourceAsStream("/conf/servers.conf")))).lines();
+  private static Stream<String> getServersConfigFromResource() {
+    return new BufferedReader(new InputStreamReader((ServersWrapper.class.getResourceAsStream("/conf/servers.conf")))).lines();
   }
 
   private void initializeServers(Stream<String> urls) {
@@ -273,7 +278,7 @@ public class ServersWrapper {
     }
   }
 
-  private <A> Stream<Tuple<DefaultApi, A>> forEachServer(ServerCall<A> serverCall) {
+  <A> Stream<Tuple<DefaultApi, A>> forEachServer(ServerCall<A> serverCall) {
     return servers.entrySet().stream().parallel()
         .flatMap(entry -> {
           try {
@@ -295,7 +300,7 @@ public class ServersWrapper {
   }
 
   @FunctionalInterface
-  private interface ServerCall<R> {
+  interface ServerCall<R> {
     R apply(DefaultApi t) throws ApiException;
   }
 }
