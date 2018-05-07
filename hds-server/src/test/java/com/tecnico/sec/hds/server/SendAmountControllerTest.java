@@ -23,14 +23,16 @@ public class SendAmountControllerTest {
   private static CryptoAgent agent1;
   private static CryptoAgent agent2;
   private static SendAmountController sendAmountController;
+  private static QueryHelpers queryHelpers;
 
   @BeforeClass
   public static void populate() throws Exception {
-    Migrations.migrate();
+    queryHelpers = new QueryHelpers();
+    Migrations.migrate(new QueryHelpers());
     cryptoAgent = new CryptoAgent("bank", "bank");
     agent1 = new CryptoAgent("user12345", "pass");
     agent2 = new CryptoAgent("user23456", "otherpass");
-    RegisterController registerController = new RegisterController(cryptoAgent);
+    RegisterController registerController = new RegisterController(cryptoAgent, queryHelpers);
     RegisterRequest registerRequest1 = new RegisterRequest().publicKey(new PubKey().value(agent1.getStringPublicKey()));
     registerRequest1.setSignature(new Signature().value(agent1.generateSignature(agent1.getStringPublicKey())));
     RegisterRequest registerRequest2 = new RegisterRequest().publicKey(new PubKey().value(agent2.getStringPublicKey()));
@@ -47,14 +49,14 @@ public class SendAmountControllerTest {
     sendAmountRequest.setDestKey(new PubKey().value(agent2.getStringPublicKey()));
     sendAmountRequest.setSourceKey(new PubKey().value(agent1.getStringPublicKey()));
     sendAmountRequest.setSignature(signature);
-    sendAmountController = new SendAmountController(cryptoAgent);
+    sendAmountController = new SendAmountController(cryptoAgent, queryHelpers);
     sendAmountController.sendAmount(sendAmountRequest);
     transactions.add(sendAmountRequest);
   }
 
   @AfterClass
   public static void clean() {
-    File file = new File(QueryHelpers.getDBFilePath() + ".mv.db");
+    File file = new File(queryHelpers.getDBFilePath() + ".mv.db");
     file.delete();
   }
 
@@ -66,7 +68,7 @@ public class SendAmountControllerTest {
         sendAmountController.sendAmount(request);
       }
     }
-    CheckAccountController checkAccountController = new CheckAccountController(cryptoAgent);
+    CheckAccountController checkAccountController = new CheckAccountController(cryptoAgent, queryHelpers);
     CheckAccountRequest checkAccountRequest = new CheckAccountRequest().publicKey(new PubKey().value(agent1.getStringPublicKey()));
     CheckAccountResponse response = checkAccountController.checkAccount(checkAccountRequest).getBody();
     //assertEquals("900", response.getAmount()); TODO: FIX THIS SHIT

@@ -3,18 +3,22 @@ package com.tecnico.sec.hds.server.db.rules;
 import com.tecnico.sec.hds.server.db.commands.AccountQueries;
 import com.tecnico.sec.hds.server.db.commands.TransactionQueries;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
+import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.util.crypto.ChainHelper;
 import domain.Transaction;
 
 import java.util.Optional;
 
-import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withTransaction;
-
 public class SendAmountRules {
+  private final QueryHelpers queryHelpers;
+
+  public SendAmountRules(QueryHelpers queryHelpers) {
+    this.queryHelpers = queryHelpers;
+  }
 
   public Optional<Transaction> sendAmount(String sourceKey, String destKey, long amount, String signature, String lastHash) throws DBException {
 
-    return withTransaction(conn -> {
+    return queryHelpers.withTransaction(conn -> {
 
       AccountQueries accountQueries = new AccountQueries(conn);
       TransactionQueries transferQueries = new TransactionQueries(conn);
@@ -24,17 +28,17 @@ public class SendAmountRules {
 
       String lastTransferHash = sourceLastTransferHash.orElse("");
 
-      if(lastTransferHash.equals(lastHash)) {
+      if (lastTransferHash.equals(lastHash)) {
 
 
         String newHash = new ChainHelper().generateTransactionHash(
-          sourceLastTransferHash,
-          Optional.empty(),
-          sourceKey,
-          destKey,
-          amount,
-          ChainHelper.TransactionType.SEND_AMOUNT,
-          signature);
+            sourceLastTransferHash,
+            Optional.empty(),
+            sourceKey,
+            destKey,
+            amount,
+            ChainHelper.TransactionType.SEND_AMOUNT,
+            signature);
 
         long sourceBalance = transferQueries.getBalance(sourceKey);
 

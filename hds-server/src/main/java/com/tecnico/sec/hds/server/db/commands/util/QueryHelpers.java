@@ -8,16 +8,16 @@ import java.sql.SQLException;
 
 public class QueryHelpers {
 
-  public static String getDBUrl() {
+  public String getDBUrl() {
     return "jdbc:h2:" + getDBFilePath();
   }
 
-  public static String getDBFilePath() {
+  public String getDBFilePath() {
     String suffix = System.getProperty("server.port", "8080");
     return "./HDSDB" + suffix;
   }
 
-  public static <A> A withTransaction(QueryRunner<Connection, A> query) throws DBException {
+  public <A> A withTransaction(QueryRunner<Connection, A> query) throws DBException {
     try (Connection conn = connection()) {
       try {
         conn.setAutoCommit(false);
@@ -37,7 +37,7 @@ public class QueryHelpers {
     }
   }
 
-  public static <A> A withConnection(QueryRunner<Connection, A> query) throws DBException {
+  public <A> A withConnection(QueryRunner<Connection, A> query) throws DBException {
     try (Connection conn = connection()) {
       return query.apply(conn);
     } catch (SQLException e) {
@@ -46,7 +46,7 @@ public class QueryHelpers {
     }
   }
 
-  private static Connection connection() throws SQLException {
+  private Connection connection() throws SQLException {
     String url = getDBUrl();
     return DriverManager.getConnection(url);
   }

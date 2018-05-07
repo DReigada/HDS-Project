@@ -2,6 +2,7 @@ package com.tecnico.sec.hds.server.rules;
 
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.commands.util.Migrations;
+import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.server.db.rules.ReceiveAmountRules;
 import com.tecnico.sec.hds.server.db.rules.SendAmountRules;
 import domain.Transaction;
@@ -18,16 +19,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 public class ReceiveAmountTest {
+  private QueryHelpers queryHelpers = new QueryHelpers();
+
   @BeforeClass
   public static void beforeClass() {
-        Migrations.migrate();
+        Migrations.migrate(new QueryHelpers());
   }
 
 
   @Test
   public void hashesShouldBeValidForIndependentTransactions() throws Exception {
-    SendAmountRules sendAmountRules = new SendAmountRules();
-    ReceiveAmountRules receiveAmountRules = new ReceiveAmountRules();
+    SendAmountRules sendAmountRules = new SendAmountRules(queryHelpers);
+    ReceiveAmountRules receiveAmountRules = new ReceiveAmountRules(queryHelpers);
 
     Tuple<String, String> account = createRandomAccount();
     Tuple<String, String> destAcc = createRandomAccount();
@@ -55,8 +58,8 @@ public class ReceiveAmountTest {
 
   @Test
   public void hashesShouldBeValidForSequentialTransactions() throws Exception {
-    SendAmountRules sendAmountRules = new SendAmountRules();
-    ReceiveAmountRules receiveAmountRules = new ReceiveAmountRules();
+    SendAmountRules sendAmountRules = new SendAmountRules(queryHelpers);
+    ReceiveAmountRules receiveAmountRules = new ReceiveAmountRules(queryHelpers);
 
     Tuple<String, String> sendAcc = createRandomAccount();
     
@@ -90,8 +93,8 @@ public class ReceiveAmountTest {
 
   @Test
   public void shouldNotAcceptTheSameTransactionMoreThanOnce() throws DBException {
-    SendAmountRules sendAmountRules = new SendAmountRules();
-    ReceiveAmountRules receiveAmountRules = new ReceiveAmountRules();
+    SendAmountRules sendAmountRules = new SendAmountRules(queryHelpers);
+    ReceiveAmountRules receiveAmountRules = new ReceiveAmountRules(queryHelpers);
 
     Tuple<String, String> sourceAcc = createRandomAccount();
 

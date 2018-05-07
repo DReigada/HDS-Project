@@ -3,18 +3,23 @@ package com.tecnico.sec.hds.server.db.rules;
 import com.tecnico.sec.hds.server.db.commands.AccountQueries;
 import com.tecnico.sec.hds.server.db.commands.TransactionQueries;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
-import domain.Transaction;
+import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.util.crypto.ChainHelper;
+import domain.Transaction;
 
 import java.util.Optional;
 
-import static com.tecnico.sec.hds.server.db.commands.util.QueryHelpers.withTransaction;
-
 public class ReceiveAmountRules {
+  private final QueryHelpers queryHelpers;
+
+  public ReceiveAmountRules(QueryHelpers queryHelpers) {
+    this.queryHelpers = queryHelpers;
+  }
+
 
   public Optional<Transaction> receiveAmount(String transHash, String sourceKey, String destKey,
                                              long amount, String lastHash, String signature) throws DBException {
-    return withTransaction(conn -> {
+    return queryHelpers.withTransaction(conn -> {
 
       AccountQueries accountQueries = new AccountQueries(conn);
       TransactionQueries transferQueries = new TransactionQueries(conn);
@@ -34,13 +39,13 @@ public class ReceiveAmountRules {
         if (transSourceKey.equals(sourceKey) && transDestKey.equals(destKey) && transAmount == amount
             && lastTransferHash.equals(lastHash)) {
           String newHash = new ChainHelper().generateTransactionHash(
-            destLastTransferHash,
-            receiveHash,
-            sourceKey,
-            destKey,
-            amount,
-            ChainHelper.TransactionType.ACCEPT,
-            signature);
+              destLastTransferHash,
+              receiveHash,
+              sourceKey,
+              destKey,
+              amount,
+              ChainHelper.TransactionType.ACCEPT,
+              signature);
 
           transferQueries.updateTransactionPendingState(transHash, false);
           transferQueries.insertNewTransaction(sourceKey, destKey, amount, false, true, signature, newHash, receiveHash);

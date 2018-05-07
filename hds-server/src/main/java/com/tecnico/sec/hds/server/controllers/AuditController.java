@@ -2,6 +2,7 @@ package com.tecnico.sec.hds.server.controllers;
 
 import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
+import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.server.db.rules.AuditRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import domain.Transaction;
@@ -25,8 +26,8 @@ public class AuditController implements AuditApi {
   private final CryptoAgent cryptoAgent;
   private AuditRules auditRules;
 
-  public AuditController(CryptoAgent cryptoAgent) {
-    auditRules = new AuditRules();
+  public AuditController(CryptoAgent cryptoAgent, QueryHelpers queryHelpers) {
+    auditRules = new AuditRules(queryHelpers);
     this.cryptoAgent = cryptoAgent;
   }
 

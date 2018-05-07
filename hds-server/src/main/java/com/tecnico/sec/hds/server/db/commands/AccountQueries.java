@@ -4,6 +4,7 @@ import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class AccountQueries {
@@ -12,6 +13,25 @@ public class AccountQueries {
 
   public AccountQueries(Connection conn) {
     this.conn = conn;
+  }
+
+  public String getAccount(String key) throws DBException {
+    try (PreparedStatement stmt = getAccountQuery(key);
+    ResultSet result = stmt.executeQuery()) {
+
+      return result.getString(1);
+
+    } catch (SQLException e) {
+      e.printStackTrace();
+      throw new DBException("some error", e);
+    }
+  }
+
+  public PreparedStatement getAccountQuery(String publicKey) throws SQLException {
+    String sql = "SELECT * FROM accounts WHERE publicKey = ?";
+    PreparedStatement stmt = conn.prepareStatement(sql);
+    stmt.setString(1, publicKey);
+    return stmt;
   }
 
   public int register(String publicKey) throws DBException {

@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 public class Migrations {
   private static final Logger logger = LoggerFactory.getLogger(Migrations.class);
 
-  public static void migrate() {
+  public static void migrate(QueryHelpers queryHelpers) {
     Flyway flyway = new Flyway();
-    flyway.setDataSource(QueryHelpers.getDBUrl(), "", "");
+    flyway.setDataSource(queryHelpers.getDBUrl(), "", "");
     logger.info("Executing migrations");
     flyway.migrate();
   }
