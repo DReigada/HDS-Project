@@ -24,8 +24,7 @@ public class SendAmountCommand extends AbstractCommand {
 
     try {
       System.out.println(client.server.sendAmount(sendAmount));
-    } catch (NoSuchAlgorithmException | IOException | KeyStoreException | InvalidKeySpecException
-        | CertificateException | UnrecoverableKeyException | SignatureException | InvalidKeyException e) {
+    } catch (GeneralSecurityException | IOException e) {
       e.printStackTrace();
     }
 

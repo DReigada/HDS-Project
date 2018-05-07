@@ -20,9 +20,7 @@ import java.math.BigInteger;
 import java.net.URL;
 import java.security.*;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.List;
@@ -33,14 +31,14 @@ public class CryptoAgent {
   private PublicKey publicKey;
   private PrivateKey privateKey;
 
-  public CryptoAgent(String username, String password) throws IOException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
+  public CryptoAgent(String username, String password) throws IOException, GeneralSecurityException, OperatorCreationException {
     this.username = username;
     GLOBAL_KS_PASS = "ks".toCharArray();
     Security.addProvider(new BouncyCastleProvider());
     LoadKeys(password);
   }
 
-  private void GenerateKey() throws NoSuchAlgorithmException {
+  private void GenerateKey() throws GeneralSecurityException {
     KeyPairGenerator keygen = KeyPairGenerator.getInstance("EC");
     SecureRandom random = SecureRandom.getInstance("SHA1PRNG"); // Change After
     keygen.initialize(112, random); // Change After
@@ -49,7 +47,7 @@ public class CryptoAgent {
     privateKey = key.getPrivate();
   }
 
-  private void LoadKeys(String passWord) throws IOException, NoSuchAlgorithmException, KeyStoreException, CertificateException, UnrecoverableKeyException, OperatorCreationException {
+  private void LoadKeys(String passWord) throws IOException, GeneralSecurityException, OperatorCreationException {
     try {
       KeyStore ks = getKeyStore(username);
 
@@ -61,7 +59,7 @@ public class CryptoAgent {
     }
   }
 
-  KeyStore getKeyStore(String username) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+  KeyStore getKeyStore(String username) throws IOException, GeneralSecurityException {
     FileInputStream fis = new FileInputStream(username + "KeyStore.jce");
     KeyStore ks = KeyStore.getInstance("JCEKS");
     ks.load(fis, GLOBAL_KS_PASS);
@@ -69,7 +67,7 @@ public class CryptoAgent {
     return ks;
   }
 
-  private Certificate getBankCertificate(String url) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+  private Certificate getBankCertificate(String url) throws IOException, GeneralSecurityException {
     URL javaUrl = new URL(url);
 
     String name = "bank" + javaUrl.getHost().replace(".", "_") + "_" + javaUrl.getPort();
@@ -79,7 +77,7 @@ public class CryptoAgent {
   }
 
 
-  public String generateSignature(String message) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+  public String generateSignature(String message) throws GeneralSecurityException {
     byte[] data = message.getBytes(); //MESSAGE TO BE SIGNED
     Signature ecForSign = Signature.getInstance("SHA1withECDSA"); //TO BE CHANGED
     ecForSign.initSign(privateKey);
@@ -95,13 +93,13 @@ public class CryptoAgent {
     return Base64.getEncoder().encodeToString(bytes);
   }
 
-  public boolean verifyBankSignature(String message, String signature, String url) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException, CertificateException, KeyStoreException, UnrecoverableKeyException {
+  public boolean verifyBankSignature(String message, String signature, String url) throws GeneralSecurityException, IOException {
     PublicKey bankPubKey = getBankCertificate(url).getPublicKey();
     String key = convertByteArrToString(bankPubKey.getEncoded());
     return verifySignature(message, signature, key);
   }
 
-  public boolean verifySignature(String message, String signature, String publicKey) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, InvalidKeySpecException {
+  public boolean verifySignature(String message, String signature, String publicKey) throws GeneralSecurityException {
     PublicKey key = getPublicKeyFromString(publicKey);
     byte[] msg = message.getBytes();
     Signature ecForVerify = Signature.getInstance("SHA1withECDSA");
@@ -111,7 +109,7 @@ public class CryptoAgent {
     return ecForVerify.verify(sign);
   }
 
-  private PublicKey getPublicKeyFromString(String key) throws InvalidKeySpecException, NoSuchAlgorithmException {
+  private PublicKey getPublicKeyFromString(String key) throws GeneralSecurityException {
     KeyFactory keyFactory = KeyFactory.getInstance("EC");
     byte[] keyBytes = Base64.getDecoder().decode(key);
     X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
@@ -119,7 +117,7 @@ public class CryptoAgent {
     return publicKey;
   }
 
-  public X509Certificate generateSelfSignX509Certificate(String username) throws NoSuchAlgorithmException, OperatorCreationException, CertificateException, IOException {
+  public X509Certificate generateSelfSignX509Certificate(String username) throws GeneralSecurityException, OperatorCreationException {
     DateTime validityBeginDate = new DateTime();
     DateTime validityEndDate = new DateTime().plusYears(2);
 
@@ -145,7 +143,7 @@ public class CryptoAgent {
     return new JcaX509CertificateConverter().setProvider("BC").getCertificate(certificateHolder);
   }
 
-  public void createKeyStore(String passWord) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, OperatorCreationException {
+  public void createKeyStore(String passWord) throws GeneralSecurityException, IOException, OperatorCreationException {
     KeyStore ks = KeyStore.getInstance("JCEKS");
     ks.load(null, GLOBAL_KS_PASS);
 
@@ -159,13 +157,13 @@ public class CryptoAgent {
     saveKeyStore(ks);
   }
 
-  public void saveKeyStore(KeyStore keyStore) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+  public void saveKeyStore(KeyStore keyStore) throws IOException, GeneralSecurityException {
     FileOutputStream fos = new FileOutputStream(username + "KeyStore.jce");
     keyStore.store(fos, GLOBAL_KS_PASS);
     fos.close();
   }
 
-  public boolean verifyTransactionsSignature(List<Transaction> transactions) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidKeySpecException, UnrecoverableKeyException, CertificateException, KeyStoreException, IOException {
+  public boolean verifyTransactionsSignature(List<Transaction> transactions) throws GeneralSecurityException {
     for (int i = 1; i < transactions.size(); i++) {
       String message = transactions.get(i).sourceKey + transactions.get(i).destKey + transactions.get(i).amount
           + transactions.get(i - 1).hash + transactions.get(i).receiveHash;

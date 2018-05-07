@@ -14,8 +14,7 @@ public class RegisterCommand extends AbstractCommand {
   public void doRun(Client client, String[] args){
     try {
       System.out.print(client.server.register());
-    } catch (NoSuchAlgorithmException | IOException | KeyStoreException | InvalidKeySpecException |
-        CertificateException | UnrecoverableKeyException | SignatureException | InvalidKeyException e) {
+    } catch (GeneralSecurityException | IOException e) {
       e.printStackTrace();
     }
   }

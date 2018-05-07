@@ -79,7 +79,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
       response.setMessage(message);
       response.setSignature(signature);
 
-    } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | InvalidKeySpecException e) {
+    } catch (GeneralSecurityException e) {
       e.printStackTrace();
     }
 

@@ -47,8 +47,7 @@ public class ReceiveAmountCommand extends AbstractCommand {
           }
         }
 
-      } catch (CertificateException | InvalidKeySpecException | InvalidKeyException | SignatureException
-          | KeyStoreException | IOException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
+      } catch (GeneralSecurityException | IOException e) {
         System.out.println("Failed to call receive amount");
         e.printStackTrace();
       }

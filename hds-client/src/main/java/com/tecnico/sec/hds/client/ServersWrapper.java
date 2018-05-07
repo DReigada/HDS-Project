@@ -17,9 +17,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
+import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -30,7 +28,7 @@ public class ServersWrapper {
   private final Map<String, DefaultApi> servers;
   private final SecurityHelper securityHelper;
 
-  public ServersWrapper(String user, String pass) throws IOException, UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException {
+  public ServersWrapper(String user, String pass) throws IOException, GeneralSecurityException, OperatorCreationException {
     securityHelper = new SecurityHelper(user, pass);
     servers = new HashMap<>();
     initializeServers(getServersConfig());
@@ -153,8 +151,7 @@ public class ServersWrapper {
         .sum();
   }
 
-  public String register() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException,
-      UnrecoverableKeyException, CertificateException, InvalidKeySpecException, KeyStoreException, IOException {
+  public String register() throws GeneralSecurityException, IOException {
 
     RegisterRequest body = new RegisterRequest().publicKey(securityHelper.key);
     securityHelper.signMessage(securityHelper.key.getValue(), body::setSignature);
@@ -175,9 +172,7 @@ public class ServersWrapper {
     return "Unexpected error from server. \n Try Again Later.";
   }
 
-  public boolean receiveAmount(ReceiveAmountRequest body) throws NoSuchAlgorithmException,
-      InvalidKeyException, SignatureException, UnrecoverableKeyException, CertificateException, InvalidKeySpecException,
-      KeyStoreException, IOException {
+  public boolean receiveAmount(ReceiveAmountRequest body) throws GeneralSecurityException, IOException {
 
     body.setDestKey(securityHelper.key);
     body.setLastHash(securityHelper.getLastHash());
@@ -202,9 +197,7 @@ public class ServersWrapper {
         && receiveAmountResponse.isSuccess();
   }
 
-  public String sendAmount(SendAmountRequest body) throws NoSuchAlgorithmException, InvalidKeyException,
-      SignatureException, UnrecoverableKeyException, CertificateException, InvalidKeySpecException,
-      KeyStoreException, IOException {
+  public String sendAmount(SendAmountRequest body) throws GeneralSecurityException, IOException {
 
     body.setLastHash(securityHelper.getLastHash());
     body.sourceKey(securityHelper.key);
@@ -233,7 +226,7 @@ public class ServersWrapper {
     return "Unexpected error from server. \n Try Again Later.";
   }
 
-  public GetTransactionResponse getTransaction(GetTransactionRequest body) throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, IOException, KeyStoreException, SignatureException, InvalidKeyException, InvalidKeySpecException {
+  public GetTransactionResponse getTransaction(GetTransactionRequest body) throws GeneralSecurityException, IOException {
     //TODO remove this
     Tuple<DefaultApi, GetTransactionResponse> response = forEachServer(server -> server.getTransaction(body))
         .collect(Collectors.toList())
