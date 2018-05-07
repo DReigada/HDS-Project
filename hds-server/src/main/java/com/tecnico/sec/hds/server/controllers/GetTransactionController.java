@@ -46,7 +46,7 @@ public class GetTransactionController implements GetTransactionApi {
         getTransactionResponse.setSignature(signature);
       }
 
-    } catch (GeneralSecurityException | DBException e) {
+    } catch (DBException e) {
       e.printStackTrace();
     }
     return new ResponseEntity<>(getTransactionResponse, HttpStatus.OK);
