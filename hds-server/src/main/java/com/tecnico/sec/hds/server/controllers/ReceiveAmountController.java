@@ -18,9 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 import java.io.IOException;
-import java.security.*;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Optional;
 
 
@@ -50,33 +51,28 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     Hash newHash = new Hash();
     Signature signature = new Signature();
 
-    try {
-      if (cryptoAgent.verifySignature(sourceKey + destKey + amount + lastHash + transHash, transSignature, destKey)) {
-        Optional<Transaction> result = receiveAmount(sourceKey, destKey, amount, lastHash, transSignature, transHash);
-        if (result.isPresent()) {
-          newHash.setValue(result.get().hash);
-          response.setNewHash(newHash);
-          success = true;
-          message = "Transaction Successful";
-        } else {
-          success = false;
-          message = "Transaction Failed";
-        }
+    if (cryptoAgent.verifySignature(sourceKey + destKey + amount + lastHash + transHash, transSignature, destKey)) {
+      Optional<Transaction> result = receiveAmount(sourceKey, destKey, amount, lastHash, transSignature, transHash);
+      if (result.isPresent()) {
+        newHash.setValue(result.get().hash);
         response.setNewHash(newHash);
+        success = true;
+        message = "Transaction Successful";
       } else {
         success = false;
-        message = "Nice try Hacker wanna be";
+        message = "Transaction Failed";
       }
-      signature.setValue(cryptoAgent.generateSignature(newHash.getValue() + message));
-      System.out.println(newHash.getValue() + " " + message);
-      System.out.println(signature.getValue());
-      response.setSuccess(success);
-      response.setMessage(message);
-      response.setSignature(signature);
-
-    } catch (GeneralSecurityException e) {
-      e.printStackTrace();
+      response.setNewHash(newHash);
+    } else {
+      success = false;
+      message = "Nice try Hacker wanna be";
     }
+    signature.setValue(cryptoAgent.generateSignature(newHash.getValue() + message));
+    System.out.println(newHash.getValue() + " " + message);
+    System.out.println(signature.getValue());
+    response.setSuccess(success);
+    response.setMessage(message);
+    response.setSignature(signature);
 
     return new ResponseEntity<>(response, HttpStatus.OK);
   }

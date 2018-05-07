@@ -15,7 +15,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
-import java.security.GeneralSecurityException;
 
 @Controller
 public class RegisterController implements RegisterApi {
@@ -49,7 +48,7 @@ public class RegisterController implements RegisterApi {
       Signature signed = new Signature().value(signature);
       response.setSignature(signed);
       response.setMessage(message);
-    } catch (GeneralSecurityException | DBException e1) {
+    } catch (DBException e1) {
       e1.printStackTrace();
     }
 

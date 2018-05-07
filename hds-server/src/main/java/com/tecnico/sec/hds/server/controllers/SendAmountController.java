@@ -17,9 +17,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 import java.io.IOException;
-import java.security.*;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Optional;
 
 @Controller
@@ -52,34 +53,29 @@ public class SendAmountController implements SendAmountApi {
         + lastHash);
     System.out.println(clientSignature);
 
-    try {
-      if (cryptoAgent.verifySignature(sourceKey + destKey + String.valueOf(amount)
-          + lastHash, clientSignature, sourceKey)) {
-        Optional<Transaction> result = sendAmount(sourceKey, destKey, amount, clientSignature, lastHash);
+    if (cryptoAgent.verifySignature(sourceKey + destKey + String.valueOf(amount)
+        + lastHash, clientSignature, sourceKey)) {
+      Optional<Transaction> result = sendAmount(sourceKey, destKey, amount, clientSignature, lastHash);
 
-        if (result.isPresent()) {
-          newHash.setValue(result.get().hash);
-          response.setNewHash(newHash);
-          success = true;
-          message = "Transaction Successful";
-        } else {
-          success = false;
-          message = "Transaction Failed";
-        }
+      if (result.isPresent()) {
+        newHash.setValue(result.get().hash);
         response.setNewHash(newHash);
+        success = true;
+        message = "Transaction Successful";
       } else {
         success = false;
-        message = "Nice try Hacker wanna be";
+        message = "Transaction Failed";
       }
-
-      signature.setValue(cryptoAgent.generateSignature(newHash.getValue() + message));
-      response.setSuccess(success);
-      response.setMessage(message);
-      response.setSignature(signature);
-
-    } catch (GeneralSecurityException e) {
-      e.printStackTrace();
+      response.setNewHash(newHash);
+    } else {
+      success = false;
+      message = "Nice try Hacker wanna be";
     }
+
+    signature.setValue(cryptoAgent.generateSignature(newHash.getValue() + message));
+    response.setSuccess(success);
+    response.setMessage(message);
+    response.setSignature(signature);
 
     return new ResponseEntity<>(response, HttpStatus.OK);
   }

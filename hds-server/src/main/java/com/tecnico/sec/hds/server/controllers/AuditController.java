@@ -16,7 +16,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,8 +48,7 @@ public class AuditController implements AuditApi {
         sign = new Signature().value(cryptoAgent.generateSignature(""));
       }
       auditResponse.setSignature(sign);
-
-    } catch (DBException | GeneralSecurityException e) {
+    } catch (DBException e) {
       e.printStackTrace();
     }
 

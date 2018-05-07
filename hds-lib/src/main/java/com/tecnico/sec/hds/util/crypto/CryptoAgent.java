@@ -1,5 +1,6 @@
 package com.tecnico.sec.hds.util.crypto;
 
+import com.tecnico.sec.hds.util.crypto.exceptions.CryptoAgentException;
 import domain.Transaction;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -31,58 +32,78 @@ public class CryptoAgent {
   private PublicKey publicKey;
   private PrivateKey privateKey;
 
-  public CryptoAgent(String username, String password) throws IOException, GeneralSecurityException, OperatorCreationException {
+  public CryptoAgent(String username, String password) {
     this.username = username;
     GLOBAL_KS_PASS = "ks".toCharArray();
     Security.addProvider(new BouncyCastleProvider());
     LoadKeys(password);
   }
 
-  private void GenerateKey() throws GeneralSecurityException {
-    KeyPairGenerator keygen = KeyPairGenerator.getInstance("EC");
-    SecureRandom random = SecureRandom.getInstance("SHA1PRNG"); // Change After
-    keygen.initialize(112, random); // Change After
-    KeyPair key = keygen.generateKeyPair();
-    publicKey = key.getPublic();
-    privateKey = key.getPrivate();
-  }
-
-  private void LoadKeys(String passWord) throws IOException, GeneralSecurityException, OperatorCreationException {
+  private void GenerateKey() {
     try {
-      KeyStore ks = getKeyStore(username);
-
-      privateKey = (PrivateKey) ks.getKey(username + "priv", passWord.toCharArray());
-      publicKey = ks.getCertificate(username + "pub").getPublicKey();
-    } catch (FileNotFoundException e) {
-      GenerateKey();
-      createKeyStore(passWord);
+      KeyPairGenerator keygen = KeyPairGenerator.getInstance("EC");
+      SecureRandom random = SecureRandom.getInstance("SHA1PRNG"); // Change After
+      keygen.initialize(112, random); // Change After
+      KeyPair key = keygen.generateKeyPair();
+      publicKey = key.getPublic();
+      privateKey = key.getPrivate();
+    } catch (GeneralSecurityException e) {
+      throw new CryptoAgentException("CryptoAgent: Failed generating Key", e);
     }
   }
 
-  KeyStore getKeyStore(String username) throws IOException, GeneralSecurityException {
-    FileInputStream fis = new FileInputStream(username + "KeyStore.jce");
-    KeyStore ks = KeyStore.getInstance("JCEKS");
-    ks.load(fis, GLOBAL_KS_PASS);
-    fis.close();
-    return ks;
+  private void LoadKeys(String passWord) {
+    try {
+      try {
+        KeyStore ks = getKeyStore(username);
+
+        privateKey = (PrivateKey) ks.getKey(username + "priv", passWord.toCharArray());
+        publicKey = ks.getCertificate(username + "pub").getPublicKey();
+      } catch (FileNotFoundException e) {
+        GenerateKey();
+        createKeyStore(passWord);
+      }
+    } catch (IOException | GeneralSecurityException e) {
+      throw new CryptoAgentException("CryptoAgent: Failed loading Key", e);
+    }
   }
 
-  private Certificate getBankCertificate(String url) throws IOException, GeneralSecurityException {
-    URL javaUrl = new URL(url);
+  KeyStore getKeyStore(String username) throws IOException {
+    try {
+      FileInputStream fis = new FileInputStream(username + "KeyStore.jce");
+      KeyStore ks = KeyStore.getInstance("JCEKS");
+      ks.load(fis, GLOBAL_KS_PASS);
+      fis.close();
+      return ks;
+    } catch (GeneralSecurityException e) {
+      throw new CryptoAgentException("CryptoAgent: Failed getting Key store", e);
+    }
+  }
 
-    String name = "bank" + javaUrl.getHost().replace(".", "_") + "_" + javaUrl.getPort();
+  private Certificate getBankCertificate(String url) {
+    try {
+      URL javaUrl = new URL(url);
 
-    KeyStore ks = getKeyStore(name);
-    return ks.getCertificate(name + "pub");
+      String name = "bank" + javaUrl.getHost().replace(".", "_") + "_" + javaUrl.getPort();
+
+      KeyStore ks = getKeyStore(name);
+      return ks.getCertificate(name + "pub");
+    } catch (IOException | GeneralSecurityException e) {
+      throw new CryptoAgentException("CryptoAgent: Failed getting bank certificate", e);
+    }
   }
 
 
-  public String generateSignature(String message) throws GeneralSecurityException {
-    byte[] data = message.getBytes(); //MESSAGE TO BE SIGNED
-    Signature ecForSign = Signature.getInstance("SHA1withECDSA"); //TO BE CHANGED
-    ecForSign.initSign(privateKey);
-    ecForSign.update(data);
-    return convertByteArrToString(ecForSign.sign());
+  public String generateSignature(String message) {
+    try {
+      byte[] data = message.getBytes(); //MESSAGE TO BE SIGNED
+      Signature ecForSign = Signature.getInstance("SHA1withECDSA"); //TO BE CHANGED
+      ecForSign.initSign(privateKey);
+      ecForSign.update(data);
+      return convertByteArrToString(ecForSign.sign());
+    } catch (GeneralSecurityException e) {
+      throw new CryptoAgentException("CryptoAgent: Failed generating signature", e);
+    }
   }
 
   public String getStringPublicKey() {
@@ -93,77 +114,97 @@ public class CryptoAgent {
     return Base64.getEncoder().encodeToString(bytes);
   }
 
-  public boolean verifyBankSignature(String message, String signature, String url) throws GeneralSecurityException, IOException {
+  public boolean verifyBankSignature(String message, String signature, String url) {
     PublicKey bankPubKey = getBankCertificate(url).getPublicKey();
     String key = convertByteArrToString(bankPubKey.getEncoded());
     return verifySignature(message, signature, key);
   }
 
-  public boolean verifySignature(String message, String signature, String publicKey) throws GeneralSecurityException {
-    PublicKey key = getPublicKeyFromString(publicKey);
-    byte[] msg = message.getBytes();
-    Signature ecForVerify = Signature.getInstance("SHA1withECDSA");
-    ecForVerify.initVerify(key);
-    byte[] sign = Base64.getDecoder().decode(signature);
-    ecForVerify.update(msg);
-    return ecForVerify.verify(sign);
+  public boolean verifySignature(String message, String signature, String publicKey) {
+    try {
+      PublicKey key = getPublicKeyFromString(publicKey);
+      byte[] msg = message.getBytes();
+      Signature ecForVerify = Signature.getInstance("SHA1withECDSA");
+      ecForVerify.initVerify(key);
+      byte[] sign = Base64.getDecoder().decode(signature);
+      ecForVerify.update(msg);
+      return ecForVerify.verify(sign);
+    } catch (GeneralSecurityException e) {
+      throw new CryptoAgentException("CryptoAgent: Failed verifying signature", e);
+    }
   }
 
-  private PublicKey getPublicKeyFromString(String key) throws GeneralSecurityException {
-    KeyFactory keyFactory = KeyFactory.getInstance("EC");
-    byte[] keyBytes = Base64.getDecoder().decode(key);
-    X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
-    PublicKey publicKey = keyFactory.generatePublic(keySpec);
-    return publicKey;
+  private PublicKey getPublicKeyFromString(String key) {
+    try {
+      KeyFactory keyFactory = KeyFactory.getInstance("EC");
+      byte[] keyBytes = Base64.getDecoder().decode(key);
+      X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+      PublicKey publicKey = keyFactory.generatePublic(keySpec);
+      return publicKey;
+    } catch (GeneralSecurityException e) {
+      throw new CryptoAgentException("CryptoAgent: Failed verifying signature", e);
+    }
   }
 
-  public X509Certificate generateSelfSignX509Certificate(String username) throws GeneralSecurityException, OperatorCreationException {
-    DateTime validityBeginDate = new DateTime();
-    DateTime validityEndDate = new DateTime().plusYears(2);
+  public X509Certificate generateSelfSignX509Certificate(String username) {
+    try {
+      DateTime validityBeginDate = new DateTime();
+      DateTime validityEndDate = new DateTime().plusYears(2);
 
-    X500Name dnName = new X500Name("CN=HDS");
-    X500Name subject = new X500Name("CN=" + username);
-    BigInteger serialNumber = new BigInteger(30, SecureRandom.getInstanceStrong());
+      X500Name dnName = new X500Name("CN=HDS");
+      X500Name subject = new X500Name("CN=" + username);
+      BigInteger serialNumber = new BigInteger(30, SecureRandom.getInstanceStrong());
 
     /*AlgorithmIdentifier algorithmIdentifier = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1withECDSA");
     SubjectPublicKeyInfo subjectPublicKeyInfo = new SubjectPublicKeyInfo(algorithmIdentifier, ASN1Sequence.getInstance(publicKey.getEncoded()));*/
 
-    SubjectPublicKeyInfo subjectPublicKeyInfo = new SubjectPublicKeyInfo(ASN1Sequence.getInstance(publicKey.getEncoded()));
+      SubjectPublicKeyInfo subjectPublicKeyInfo = new SubjectPublicKeyInfo(ASN1Sequence.getInstance(publicKey.getEncoded()));
 
-    X509v1CertificateBuilder certificate = new X509v1CertificateBuilder(
-        dnName,
-        serialNumber,
-        validityBeginDate.toDate(), validityEndDate.toDate(),
-        subject,
-        subjectPublicKeyInfo);
+      X509v1CertificateBuilder certificate = new X509v1CertificateBuilder(
+          dnName,
+          serialNumber,
+          validityBeginDate.toDate(), validityEndDate.toDate(),
+          subject,
+          subjectPublicKeyInfo);
 
-    X509CertificateHolder certificateHolder = certificate
-        .build(new JcaContentSignerBuilder("SHA1withECDSA").build(privateKey));
+      X509CertificateHolder certificateHolder = certificate
+          .build(new JcaContentSignerBuilder("SHA1withECDSA").build(privateKey));
 
-    return new JcaX509CertificateConverter().setProvider("BC").getCertificate(certificateHolder);
+      return new JcaX509CertificateConverter().setProvider("BC").getCertificate(certificateHolder);
+    } catch (GeneralSecurityException | OperatorCreationException e) {
+      throw new CryptoAgentException("CryptoAgent: Failed generating certificate", e);
+    }
   }
 
-  public void createKeyStore(String passWord) throws GeneralSecurityException, IOException, OperatorCreationException {
-    KeyStore ks = KeyStore.getInstance("JCEKS");
-    ks.load(null, GLOBAL_KS_PASS);
+  public void createKeyStore(String passWord) {
+    try {
+      KeyStore ks = KeyStore.getInstance("JCEKS");
+      ks.load(null, GLOBAL_KS_PASS);
 
-    X509Certificate certificate = generateSelfSignX509Certificate(username);
-    Certificate certificateChain[] = new Certificate[1];
-    certificateChain[0] = certificate;
+      X509Certificate certificate = generateSelfSignX509Certificate(username);
+      Certificate certificateChain[] = new Certificate[1];
+      certificateChain[0] = certificate;
 
-    ks.setKeyEntry(username + "priv", privateKey, passWord.toCharArray(), certificateChain);
-    ks.setCertificateEntry(username + "pub", certificate);
+      ks.setKeyEntry(username + "priv", privateKey, passWord.toCharArray(), certificateChain);
+      ks.setCertificateEntry(username + "pub", certificate);
 
-    saveKeyStore(ks);
+      saveKeyStore(ks);
+    } catch (GeneralSecurityException | IOException e) {
+      throw new CryptoAgentException("CryptoAgent: Failed creating key store", e);
+    }
   }
 
-  public void saveKeyStore(KeyStore keyStore) throws IOException, GeneralSecurityException {
-    FileOutputStream fos = new FileOutputStream(username + "KeyStore.jce");
-    keyStore.store(fos, GLOBAL_KS_PASS);
-    fos.close();
+  public void saveKeyStore(KeyStore keyStore) {
+    try {
+      FileOutputStream fos = new FileOutputStream(username + "KeyStore.jce");
+      keyStore.store(fos, GLOBAL_KS_PASS);
+      fos.close();
+    } catch (IOException | GeneralSecurityException e) {
+      throw new CryptoAgentException("CryptoAgent: Failed saving key store", e);
+    }
   }
 
-  public boolean verifyTransactionsSignature(List<Transaction> transactions) throws GeneralSecurityException {
+  public boolean verifyTransactionsSignature(List<Transaction> transactions) {
     for (int i = 1; i < transactions.size(); i++) {
       String message = transactions.get(i).sourceKey + transactions.get(i).destKey + transactions.get(i).amount
           + transactions.get(i - 1).hash + transactions.get(i).receiveHash;
