@@ -56,7 +56,7 @@ public class SendAmountControllerTest {
 
   @AfterClass
   public static void clean() {
-    File file = new File(queryHelpers.getDBFilePath() + ".mv.db");
+    File file = new File(queryHelpers.dbFilePath + ".mv.db");
     file.delete();
   }
 

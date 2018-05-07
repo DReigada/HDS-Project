@@ -9,7 +9,7 @@ public class Migrations {
 
   public static void migrate(QueryHelpers queryHelpers) {
     Flyway flyway = new Flyway();
-    flyway.setDataSource(queryHelpers.getDBUrl(), "", "");
+    flyway.setDataSource(queryHelpers.dbURL, "", "");
     logger.info("Executing migrations");
     flyway.migrate();
   }
