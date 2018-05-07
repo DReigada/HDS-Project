@@ -2,6 +2,7 @@ package com.tecnico.sec.hds.server.controllers;
 
 
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
+import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.server.db.rules.RegisterRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.api.RegisterApi;
@@ -22,9 +23,9 @@ public class RegisterController implements RegisterApi {
 
   private RegisterRules registerRules;
 
-  public RegisterController(CryptoAgent cryptoAgent) {
+  public RegisterController(CryptoAgent cryptoAgent, QueryHelpers queryHelpers) {
     this.cryptoAgent = cryptoAgent;
-    registerRules = new RegisterRules();
+    registerRules = new RegisterRules(queryHelpers);
   }
 
   @Override
@@ -33,6 +34,7 @@ public class RegisterController implements RegisterApi {
     String signature = body.getSignature().getValue();
     RegisterResponse response = new RegisterResponse();
     String message;
+    System.err.println("SERVER: " + cryptoAgent.username);
 
     try {
       if (cryptoAgent.verifySignature(key, signature, key)) {
@@ -49,6 +51,7 @@ public class RegisterController implements RegisterApi {
       response.setSignature(signed);
       response.setMessage(message);
     } catch (DBException e1) {
+      System.err.println("ERROR: " + cryptoAgent.username);
       e1.printStackTrace();
     }
 

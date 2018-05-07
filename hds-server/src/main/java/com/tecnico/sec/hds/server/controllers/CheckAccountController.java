@@ -2,6 +2,7 @@ package com.tecnico.sec.hds.server.controllers;
 
 import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
+import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.server.db.rules.AuditRules;
 import com.tecnico.sec.hds.server.db.rules.CheckAccountRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,9 +29,9 @@ public class CheckAccountController implements CheckAccountApi {
   private AuditRules auditRules;
   private CheckAccountRules checkAccountRules;
 
-  public CheckAccountController(CryptoAgent cryptoAgent) {
-    checkAccountRules = new CheckAccountRules();
-    auditRules = new AuditRules();
+  public CheckAccountController(CryptoAgent cryptoAgent, QueryHelpers queryHelpers) {
+    checkAccountRules = new CheckAccountRules(queryHelpers);
+    auditRules = new AuditRules(queryHelpers);
     this.cryptoAgent = cryptoAgent;
   }
 

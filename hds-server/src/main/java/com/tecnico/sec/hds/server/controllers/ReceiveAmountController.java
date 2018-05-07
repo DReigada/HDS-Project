@@ -1,6 +1,7 @@
 package com.tecnico.sec.hds.server.controllers;
 
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
+import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.server.db.rules.ReceiveAmountRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import domain.Transaction;
@@ -31,9 +32,9 @@ public class ReceiveAmountController implements ReceiveAmountApi {
 
   private ReceiveAmountRules receiveAmountRules;
 
-  public ReceiveAmountController(CryptoAgent cryptoAgent) throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, KeyStoreException, OperatorCreationException {
+  public ReceiveAmountController(CryptoAgent cryptoAgent, QueryHelpers queryHelpers) {
     this.cryptoAgent = cryptoAgent;
-    receiveAmountRules = new ReceiveAmountRules();
+    receiveAmountRules = new ReceiveAmountRules(queryHelpers);
   }
 
   @Override

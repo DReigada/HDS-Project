@@ -17,6 +17,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TransactionQueriesTest {
+  private static QueryHelpers queryHelpers;
+
   private static void assertTransaction(String sourceKey, String destKey, long amount,
                                         boolean pending, boolean isReceive, String signature, String hash, Transaction trans) {
     assertEquals(sourceKey, trans.sourceKey);
@@ -30,12 +32,13 @@ public class TransactionQueriesTest {
 
   @BeforeClass
   public static void beforeClass() {
-    Migrations.migrate();
+    queryHelpers = new QueryHelpers();
+    Migrations.migrate(queryHelpers);
   }
 
   @Test
   public void shouldInsertTransactionAndRetrieveIt() throws DBException {
-    QueryHelpers.withConnection(conn -> {
+    queryHelpers.withConnection(conn -> {
       TransactionQueries queries = new TransactionQueries(conn);
 
       Tuple<String, String> acc1 = createRandomAccount();
@@ -53,7 +56,7 @@ public class TransactionQueriesTest {
 
   @Test
   public void shouldUpdateTransactionPendingState() throws DBException {
-    QueryHelpers.withConnection(conn -> {
+    queryHelpers.withConnection(conn -> {
       TransactionQueries queries = new TransactionQueries(conn);
 
       Tuple<String, String> acc1 = createRandomAccount();
@@ -77,7 +80,7 @@ public class TransactionQueriesTest {
 
   @Test
   public void shouldGetHistoryForOnlySendAmount() throws DBException {
-    QueryHelpers.withConnection(conn -> {
+    queryHelpers.withConnection(conn -> {
       TransactionQueries queries = new TransactionQueries(conn);
 
       Tuple<String, String> mainAccount = createRandomAccount();
@@ -102,7 +105,7 @@ public class TransactionQueriesTest {
 
   @Test
   public void shouldGetHistoryForOnlyReceive() throws DBException {
-    QueryHelpers.withConnection(conn -> {
+    queryHelpers.withConnection(conn -> {
       TransactionQueries queries = new TransactionQueries(conn);
 
       Tuple<String, String> mainAccount = createRandomAccount();
@@ -127,7 +130,7 @@ public class TransactionQueriesTest {
 
   @Test
   public void shouldGetHistoryForMixedTransaction() throws DBException {
-    QueryHelpers.withConnection(conn -> {
+    queryHelpers.withConnection(conn -> {
       TransactionQueries queries = new TransactionQueries(conn);
 
       Tuple<String, String> mainAccount = createRandomAccount();

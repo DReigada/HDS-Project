@@ -2,6 +2,7 @@ package com.tecnico.sec.hds.server.controllers;
 
 import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
+import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.server.db.rules.GetTransactionRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import domain.Transaction;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
-import java.security.GeneralSecurityException;
 import java.util.Optional;
 
 @Controller
@@ -25,9 +25,9 @@ public class GetTransactionController implements GetTransactionApi {
   private GetTransactionRules getTransactionRules;
 
 
-  public GetTransactionController(CryptoAgent cryptoAgent) {
+  public GetTransactionController(CryptoAgent cryptoAgent, QueryHelpers queryHelpers) {
     this.cryptoAgent = cryptoAgent;
-    getTransactionRules = new GetTransactionRules();
+    getTransactionRules = new GetTransactionRules(queryHelpers);
   }
 
   @Override

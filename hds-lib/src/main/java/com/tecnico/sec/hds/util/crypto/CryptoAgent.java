@@ -28,7 +28,7 @@ import java.util.List;
 
 public class CryptoAgent {
   private final char[] GLOBAL_KS_PASS;
-  private String username;
+  public String username;
   private PublicKey publicKey;
   private PrivateKey privateKey;
 

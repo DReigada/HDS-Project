@@ -1,6 +1,7 @@
 package com.tecnico.sec.hds.server.rules;
 
 import com.tecnico.sec.hds.server.db.commands.util.Migrations;
+import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.server.db.rules.SendAmountRules;
 import domain.Transaction;
 import com.tecnico.sec.hds.server.util.Tuple;
@@ -15,16 +16,17 @@ import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
 public class SendAmountTest {
+  private QueryHelpers queryHelpers = new QueryHelpers();
 
   @BeforeClass
   public static void beforeClass() {
-    Migrations.migrate();
+    Migrations.migrate(new QueryHelpers());
   }
 
 
   @Test
   public void hashesShouldBeValidForIndependentTransactions() throws Exception {
-    SendAmountRules rules = new SendAmountRules();
+    SendAmountRules rules = new SendAmountRules(queryHelpers);
 
     Tuple<String, String> firstAccount = createRandomAccount();
     Tuple<String, String> secondAccount = createRandomAccount();
@@ -50,7 +52,7 @@ public class SendAmountTest {
 
   @Test
   public void hashesShouldBeValidForSequentialTransactions() throws Exception {
-    SendAmountRules rules = new SendAmountRules();
+    SendAmountRules rules = new SendAmountRules(queryHelpers);
 
     Tuple<String, String> account = createRandomAccount();
 
