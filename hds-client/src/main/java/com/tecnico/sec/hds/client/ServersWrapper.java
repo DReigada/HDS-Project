@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ServersWrapper {
+  public final SecurityHelper securityHelper;
   private final Map<String, DefaultApi> servers;
-  private final SecurityHelper securityHelper;
   private final QuorumHelper quorumHelper;
 
   public ServersWrapper(String user, String pass) throws IOException, OperatorCreationException, GeneralSecurityException {

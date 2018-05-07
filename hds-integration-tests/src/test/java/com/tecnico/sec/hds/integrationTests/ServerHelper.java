@@ -14,7 +14,6 @@ public class ServerHelper {
     return IntStream.range(0, servers)
         .mapToObj(i -> {
           System.setProperty("server.port", "808" + i);
-          System.setProperty("spring.config.name", "808" + i);
           Application.main(new String[]{});
           try {
             String ip = InetAddress.getLocalHost().getCanonicalHostName();
