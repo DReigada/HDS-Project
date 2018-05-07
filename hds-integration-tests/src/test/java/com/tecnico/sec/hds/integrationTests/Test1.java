@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.List;
 
 public class Test1 {
+  private static ServerHelper serverHelper = new ServerHelper();
 
   @AfterClass
   public static void afterClass() {
@@ -17,12 +18,13 @@ public class Test1 {
 
   @Test
   public void test1() throws Exception {
-    List<String> serversUrls = ServerHelper.startServers(2);
-
+    List<String> serversUrls = serverHelper.startServers(3);
 
     ServersWrapper server = new ServersWrapper("user1", "pass", serversUrls);
 
     server.register();
     server.checkAccount(new CheckAccountRequest());
+
+    serverHelper.stopServers();
   }
 }

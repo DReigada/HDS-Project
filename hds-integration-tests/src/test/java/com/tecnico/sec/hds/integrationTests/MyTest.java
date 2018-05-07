@@ -19,10 +19,13 @@ import static junit.framework.TestCase.assertTrue;
 
 public class MyTest {
   private static ServersWrapper server;
+  private static ServerHelper serverHelper;
 
   @BeforeClass
-  public static void start() throws GeneralSecurityException, IOException, OperatorCreationException, InterruptedException {
-    List<String> serversUrls = ServerHelper.startServers(3);
+  public static void start() throws GeneralSecurityException, IOException, OperatorCreationException {
+    serverHelper = new ServerHelper();
+    List<String> serversUrls = serverHelper.startServers(3);
+
     server = new ServersWrapper("user1", "pass1", serversUrls);
 
     server.register();
@@ -30,6 +33,7 @@ public class MyTest {
 
   @AfterClass
   public static void afterClass() {
+    serverHelper.stopServers();
     new File("user1KeyStore.jce").delete();
   }
 
