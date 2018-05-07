@@ -1,6 +1,5 @@
 package com.tecnico.sec.hds.server.controllers;
 
-import com.tecnico.sec.hds.server.app.Application;
 import com.tecnico.sec.hds.server.controllers.util.TransactionFormatter;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.rules.AuditRules;
@@ -12,17 +11,13 @@ import io.swagger.api.CheckAccountApi;
 import io.swagger.model.CheckAccountRequest;
 import io.swagger.model.CheckAccountResponse;
 import io.swagger.model.Signature;
-import io.swagger.model.TransactionInformation;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
-import java.io.IOException;
-import java.security.*;
-import java.security.cert.CertificateException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,13 +25,14 @@ import java.util.List;
 @Controller
 public class CheckAccountController implements CheckAccountApi {
 
-  private CryptoAgent cryptoAgent = Application.cryptoAgent;
+  private final CryptoAgent cryptoAgent;
   private AuditRules auditRules;
   private CheckAccountRules checkAccountRules;
 
-  public CheckAccountController() throws NoSuchAlgorithmException, IOException, UnrecoverableKeyException, CertificateException, OperatorCreationException, KeyStoreException {
+  public CheckAccountController(CryptoAgent cryptoAgent) {
     checkAccountRules = new CheckAccountRules();
-    auditRules =  new AuditRules();
+    auditRules = new AuditRules();
+    this.cryptoAgent = cryptoAgent;
   }
 
   @Override

@@ -17,9 +17,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-
 public class SendAmountControllerTest {
+  public static CryptoAgent cryptoAgent;
   private static List<SendAmountRequest> transactions;
   private static CryptoAgent agent1;
   private static CryptoAgent agent2;
@@ -28,9 +27,10 @@ public class SendAmountControllerTest {
   @BeforeClass
   public static void populate() throws Exception {
     Migrations.migrate();
+    cryptoAgent = new CryptoAgent("bank", "bank");
     agent1 = new CryptoAgent("user12345", "pass");
     agent2 = new CryptoAgent("user23456", "otherpass");
-    RegisterController registerController = new RegisterController();
+    RegisterController registerController = new RegisterController(cryptoAgent);
     RegisterRequest registerRequest1 = new RegisterRequest().publicKey(new PubKey().value(agent1.getStringPublicKey()));
     registerRequest1.setSignature(new Signature().value(agent1.generateSignature(agent1.getStringPublicKey())));
     RegisterRequest registerRequest2 = new RegisterRequest().publicKey(new PubKey().value(agent2.getStringPublicKey()));
@@ -47,7 +47,7 @@ public class SendAmountControllerTest {
     sendAmountRequest.setDestKey(new PubKey().value(agent2.getStringPublicKey()));
     sendAmountRequest.setSourceKey(new PubKey().value(agent1.getStringPublicKey()));
     sendAmountRequest.setSignature(signature);
-    sendAmountController = new SendAmountController();
+    sendAmountController = new SendAmountController(cryptoAgent);
     sendAmountController.sendAmount(sendAmountRequest);
     transactions.add(sendAmountRequest);
   }
@@ -66,7 +66,7 @@ public class SendAmountControllerTest {
         sendAmountController.sendAmount(request);
       }
     }
-    CheckAccountController checkAccountController = new CheckAccountController();
+    CheckAccountController checkAccountController = new CheckAccountController(cryptoAgent);
     CheckAccountRequest checkAccountRequest = new CheckAccountRequest().publicKey(new PubKey().value(agent1.getStringPublicKey()));
     CheckAccountResponse response = checkAccountController.checkAccount(checkAccountRequest).getBody();
     //assertEquals("900", response.getAmount()); TODO: FIX THIS SHIT
