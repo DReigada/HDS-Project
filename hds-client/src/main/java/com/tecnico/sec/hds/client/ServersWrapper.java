@@ -25,8 +25,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ServersWrapper {
-  final Map<String, DefaultApi> servers;
-  final SecurityHelper securityHelper;
+  private final Map<String, DefaultApi> servers;
+  private final SecurityHelper securityHelper;
+  private final QuorumHelper quorumHelper;
 
   public ServersWrapper(String user, String pass) throws IOException, OperatorCreationException, GeneralSecurityException {
     this(user, pass, getServersConfig());
@@ -36,6 +37,7 @@ public class ServersWrapper {
     securityHelper = new SecurityHelper(user, pass);
     servers = new HashMap<>();
     initializeServers(serversUrls.stream());
+    quorumHelper = new QuorumHelper(servers.size());
   }
 
   private static List<String> getServersConfig() {
@@ -258,24 +260,7 @@ public class ServersWrapper {
       Function<RES, List<TransactionInformation>> responseToList,
       Predicate<Tuple<DefaultApi, RES>> responseVerifier
   ) {
-    List<Tuple<DefaultApi, RES>> allServersWithResponses =
-        forEachServer(serverCall)
-            .filter(responseVerifier)
-            .collect(Collectors.toList()); // TODO should we call all servers??
-
-    List<Tuple<DefaultApi, RES>> serversWithResponses =
-        QuorumHelper.getTransactionsQuorum(allServersWithResponses, a -> responseToList.apply(a.second), getServersThreshold())
-            .collect(Collectors.toList());
-
-    if (serversWithResponses.size() > 0) {
-      Tuple<DefaultApi, RES> quorumResponse = serversWithResponses.get(0);
-
-      List<Tuple<DefaultApi, RES>> serversWithMissingTransactions = serversWithResponses.stream().skip(1).collect(Collectors.toList());
-
-      return Optional.of(new Tuple<>(quorumResponse, serversWithMissingTransactions));
-    } else {
-      return Optional.empty();
-    }
+    return quorumHelper.getReadQuorumFromResponses(forEachServer(serverCall), responseToList, responseVerifier);
   }
 
   <A> Stream<Tuple<DefaultApi, A>> forEachServer(ServerCall<A> serverCall) {
@@ -289,14 +274,6 @@ public class ServersWrapper {
             return Stream.empty();
           }
         });
-  }
-
-  private int getServersThreshold() {
-    return (int) ((servers.size() + getNumberOfFaults(servers.size())) / 2.0);
-  }
-
-  private int getNumberOfFaults(int serversNumber) {
-    return 1; // TODO change this
   }
 
   @FunctionalInterface
