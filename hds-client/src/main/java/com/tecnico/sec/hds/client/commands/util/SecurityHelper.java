@@ -53,5 +53,4 @@ public class SecurityHelper {
   public void setLastHash(Hash lastHash) {
     this.lastHash = lastHash;
   }
-
 }

@@ -19,7 +19,6 @@ public class Test1 {
   public void test1() throws Exception {
     List<String> serversUrls = ServerHelper.startServers(2);
 
-
     ServersWrapper server = new ServersWrapper("user1", "pass", serversUrls);
 
     server.register();

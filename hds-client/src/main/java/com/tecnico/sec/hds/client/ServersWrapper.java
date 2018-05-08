@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 
 public class ServersWrapper {
   final Map<String, DefaultApi> servers;
-  final SecurityHelper securityHelper;
+  SecurityHelper securityHelper;
 
   public ServersWrapper(String user, String pass) throws IOException, OperatorCreationException, GeneralSecurityException {
     this(user, pass, getServersConfig());
@@ -290,6 +290,10 @@ public class ServersWrapper {
           }
         });
   }
+
+  void setSecurityHelper(SecurityHelper securityHelper){this.securityHelper = securityHelper;}
+
+  public int getNumberOfServers(){return servers.size();}
 
   private int getServersThreshold() {
     return (int) ((servers.size() + getNumberOfFaults(servers.size())) / 2.0);

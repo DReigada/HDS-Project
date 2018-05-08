@@ -1,14 +1,15 @@
 package com.tecnico.sec.hds.client;
 
-import com.tecnico.sec.hds.client.commands.RegisterCommand;
-import com.tecnico.sec.hds.client.commands.SendAmountCommand;
+import com.tecnico.sec.hds.client.commands.util.SecurityHelper;
 import com.tecnico.sec.hds.util.Tuple;
+import com.tecnico.sec.hds.util.crypto.ChainHelper;
+import io.swagger.client.ApiClient;
 import io.swagger.client.api.DefaultApi;
-import io.swagger.client.model.AuditRequest;
-import io.swagger.client.model.AuditResponse;
-import io.swagger.client.model.TransactionInformation;
+import io.swagger.client.model.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,21 +18,19 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class ServersWrapperTests {
-  static ServersWrapper serversWrapper;
   static Client client;
+  static ServersWrapper serversWrapper;
 
   @BeforeClass
   public static void populate() throws Exception{
-    serversWrapper = mock(ServersWrapper.class);
-    RegisterCommand registerCommand = new RegisterCommand();
     client = new Client("1r0wo", "1r0wo");
-    registerCommand.doRun(client, null);
+    serversWrapper = spy(new ServersWrapper("1r0wo","1r0wo"));
   }
 
   /*@AfterClass
@@ -50,44 +49,74 @@ public class ServersWrapperTests {
   }*/
 
   @Test
-  public void auditTransactionInDifOrder(){
-    SendAmountCommand sendAmountCommand = new SendAmountCommand();
-    String[] args = {client.server.securityHelper.key.getValue(), "100" };
-    for (int i = 0; i < 5 ; i++) {sendAmountCommand.doRun(client,args);}
-    AuditRequest auditRequest = new AuditRequest();
-    auditRequest.setPublicKey(client.server.securityHelper.key);
-    Optional<AuditResponse> auditResponse = client.server.audit(auditRequest);
-    List<TransactionInformation> transactions = new ArrayList<>();
-    if (auditResponse.isPresent()) {
-      transactions = client.server.audit(auditRequest).get().getList();
-    }
-    else {
-      fail();
+  public void auditTransactionInDifOrder() throws Exception {
+    List<TransactionInformation> transactions = createChainTransactions(5);
+    DefaultApi dummyDefaultApi = mock(DefaultApi.class);
+    ApiClient dummyApiClient = mock(ApiClient.class);
+    when(dummyApiClient.getBasePath()).thenReturn("");
+    when(dummyDefaultApi.getApiClient()).thenReturn(dummyApiClient);
+
+    //---------------- Create List With Response From Each Server -----------------------------
+    List<Tuple<DefaultApi, AuditResponse>> forEachServerResponse = new ArrayList<>();
+    AuditResponse auditResponse = new AuditResponse();
+    transactions.forEach(auditResponse::addListItem);
+    for(int i = 0 ; i<4 ; i++){
+      forEachServerResponse.add(new Tuple<>(dummyDefaultApi, auditResponse));
     }
 
-    List<Tuple<DefaultApi, AuditResponse>> forEachServerResponse = new ArrayList<>();
-    int i = 0;
-    while(i < client.server.servers.size() - 1){
-      forEachServerResponse.add(new Tuple<>(client.server.servers.get(i), auditResponse.get()));
-      i++;
-    }
+    //---------------- Shuffle Last Transaction ------------------------------------------------
     List<TransactionInformation> transactionsShuffled = new ArrayList<>(transactions);
     Collections.shuffle(transactionsShuffled);
+
+    //---------------- Add Shuffle Transaction To List Of Server Responses ---------------------
     AuditResponse mockedResponse = new AuditResponse();
     transactionsShuffled.stream().forEach(mockedResponse::addListItem);
+    forEachServerResponse.add(0,new Tuple<>(dummyDefaultApi, mockedResponse));
 
-    System.out.println("i:" + i + " list size" + client.server.servers.size());
-
-    forEachServerResponse.add(new Tuple<>(client.server.servers.get(i), mockedResponse));
+    //--------------- Mock Methods -------------------------------------------------------------
     Stream stream = forEachServerResponse.stream();
-    when(serversWrapper.forEachServer(any())).thenReturn(stream);
-
+    SecurityHelper securityHelper = spy(new SecurityHelper("1r0wo","1r0wo"));
+    serversWrapper.setSecurityHelper(securityHelper);
+    doReturn(true).when(serversWrapper.securityHelper).verifySignature(any(),any(),any());
+    doReturn(stream).when(serversWrapper).forEachServer(any());
+    AuditRequest auditRequest = new AuditRequest().publicKey(client.server.securityHelper.key);
     Optional<AuditResponse> auditResponseCaseTest = serversWrapper.audit(auditRequest);
-    if (auditResponseCaseTest.isPresent()) {
-      assertEquals(transactions,auditResponseCaseTest.get());
+    assertTrue("Audit shouldn't return null after running quorum", auditResponseCaseTest.isPresent());
+    assertEquals("Different list result", transactions, auditResponseCaseTest.get());
+  }
+
+  private List<TransactionInformation> createChainTransactions(int n){
+    List<TransactionInformation> transactions = new ArrayList<>();
+    String hash = "";
+    for (int i = 0 ; i< n ; i++){
+      String message = client.server.securityHelper.key.getValue()
+          + client.server.securityHelper.key.getValue()
+          + i
+          + hash;
+      TransactionInformation transactionInformation = new TransactionInformation();
+      transactionInformation.setSourceKey(client.server.securityHelper.key.getValue());
+      transactionInformation.setDestKey(client.server.securityHelper.key.getValue());
+      transactionInformation.setAmount("" + i);
+      transactionInformation.setPending(true);
+      transactionInformation.setReceive(false);
+      transactionInformation.setTransID(i);
+      transactionInformation.setSendHash(new Hash().value(hash));
+      transactionInformation.receiveHash(new Hash().value(""));
+
+      String signature = client.server.securityHelper.cryptoAgent.generateSignature(message);
+      transactionInformation.setSignature(new Signature().value(signature));
+
+      hash = client.server.securityHelper.chainHelper.generateTransactionHash(
+          Optional.of(hash),
+          Optional.of(""),
+          client.server.securityHelper.key.getValue(),
+          client.server.securityHelper.key.getValue(),
+          i,
+          ChainHelper.TransactionType.SEND_AMOUNT,
+          signature);
+    transactions.add(transactionInformation);
     }
-    else {
-      fail();
-    }
+    Collections.reverse(transactions);
+    return transactions;
   }
 }
