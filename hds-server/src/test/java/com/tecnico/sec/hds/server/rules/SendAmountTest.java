@@ -29,22 +29,24 @@ public class SendAmountTest {
     SendAmountRules rules = new SendAmountRules(queryHelpers);
 
     Tuple<String, String> firstAccount = createRandomAccount();
+    Tuple<String, String> firstDestAccount = createRandomAccount();
     Tuple<String, String> secondAccount = createRandomAccount();
+    Tuple<String, String> secondDestAccount = createRandomAccount();
 
-    Optional<Transaction> t1opt = rules.sendAmount(firstAccount.first, createRandomAccount().first, 1, "a", firstAccount.second);
-    Optional<Transaction> t2opt = rules.sendAmount(secondAccount.first, createRandomAccount().first, 2, "b", secondAccount.second);
+    String hash1 = new ChainHelper().generateTransactionHash(Optional.of(firstAccount.second), Optional.empty(), firstAccount.first, firstDestAccount.first, 1,
+        ChainHelper.TransactionType.SEND_AMOUNT);
+
+    String hash2 = new ChainHelper().generateTransactionHash(Optional.of(secondAccount.second), Optional.empty(), secondAccount.first, secondDestAccount.first, 2,
+        ChainHelper.TransactionType.SEND_AMOUNT);
+
+    Optional<Transaction> t1opt = rules.sendAmount(firstAccount.first, firstDestAccount.first, 1, "a", hash1);
+    Optional<Transaction> t2opt = rules.sendAmount(secondAccount.first, secondDestAccount.first, 2, "b", hash2);
 
     assertTrue(t1opt.isPresent());
     assertTrue(t2opt.isPresent());
 
     Transaction t1 = t1opt.get();
     Transaction t2 = t2opt.get();
-
-    String hash1 = new ChainHelper().generateTransactionHash(Optional.of(firstAccount.second), Optional.empty(),t1.sourceKey, t1.destKey,
-        t1.amount, ChainHelper.TransactionType.SEND_AMOUNT);
-
-    String hash2 = new ChainHelper().generateTransactionHash(Optional.of(secondAccount.second), Optional.empty(),t2.sourceKey, t2.destKey,
-        t2.amount, ChainHelper.TransactionType.SEND_AMOUNT);
 
     assertEquals(hash1, t1.hash);
     assertEquals(hash2, t2.hash);
@@ -55,20 +57,26 @@ public class SendAmountTest {
     SendAmountRules rules = new SendAmountRules(queryHelpers);
 
     Tuple<String, String> account = createRandomAccount();
+    Tuple<String, String> firstDest = createRandomAccount();
+    Tuple<String, String> secondDest = createRandomAccount();
 
-    Optional<Transaction> t1opt = rules.sendAmount(account.first, createRandomAccount().first, 1, "a", account.second);
+
+    String hash1 = new ChainHelper().generateTransactionHash(Optional.of(account.second), Optional.empty(), account.first, firstDest.first,
+        1, ChainHelper.TransactionType.SEND_AMOUNT);
+
+
+    Optional<Transaction> t1opt = rules.sendAmount(account.first, firstDest.first, 1, "a", hash1);
     assertTrue(t1opt.isPresent());
     Transaction t1 = t1opt.get();
 
-    Optional<Transaction> t2opt = rules.sendAmount(account.first, createRandomAccount().first, 2, "b", t1opt.get().hash);
+
+    String hash2 = new ChainHelper().generateTransactionHash(Optional.of(t1.hash), Optional.empty(), account.first, secondDest.first,
+        2, ChainHelper.TransactionType.SEND_AMOUNT);
+
+
+    Optional<Transaction> t2opt = rules.sendAmount(account.first, secondDest.first, 2, "b", hash2);
     assertTrue(t2opt.isPresent());
     Transaction t2 = t2opt.get();
-
-    String hash1 = new ChainHelper().generateTransactionHash(Optional.of(account.second), Optional.empty(),t1.sourceKey, t1.destKey,
-        t1.amount, ChainHelper.TransactionType.SEND_AMOUNT);
-
-    String hash2 = new ChainHelper().generateTransactionHash(Optional.of(t1.hash), Optional.empty(),t2.sourceKey, t2.destKey,
-        t2.amount, ChainHelper.TransactionType.SEND_AMOUNT);
 
     assertEquals(hash1, t1.hash);
     assertEquals(hash2, t2.hash);
