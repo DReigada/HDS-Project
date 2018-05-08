@@ -74,6 +74,13 @@ public class ServersWrapper {
     });
   }
 
+  public void broadcast(BroadcastRequest body) {
+    forEachServer(s -> {
+      s.broadcast(body);
+      return true;
+    });
+  }
+
   public Optional<AuditResponse> audit(AuditRequest body) {
     Optional<Tuple<Tuple<DefaultApi, AuditResponse>, List<Tuple<DefaultApi, AuditResponse>>>> serversWithResponsesQuorum =
         serverReadWithQuorums(server -> server.audit(body), AuditResponse::getList, this::verifyAuditResponse);

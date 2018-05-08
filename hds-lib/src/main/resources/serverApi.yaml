@@ -212,10 +212,12 @@ definitions:
         $ref: "#/definitions/PubKey"
       amount:
         type: integer
-      lastHash:
+      hash:
         $ref: "#/definitions/Hash"
       Signature:
         $ref: "#/definitions/Signature"
+      writeBack:
+        type: boolean
 
   SendAmountResponse:
     type: object
@@ -244,12 +246,14 @@ definitions:
         $ref: "#/definitions/PubKey"
       amount:
         type: integer
-      lastHash:
+      hash:
         $ref: "#/definitions/Hash"
       transHash:
         $ref: "#/definitions/Hash"
       Signature:
         $ref: "#/definitions/Signature"
+      writeBack:
+        type: boolean
 
   ReceiveAmountResponse:
     type: object
@@ -296,8 +300,8 @@ definitions:
   BroadcastRequest:
     type: object
     properties:
-      url:
-        type: string
+      publicKey:
+        $ref: "#/definitions/PubKey"
       isEcho:
         type: boolean
       isReady:
