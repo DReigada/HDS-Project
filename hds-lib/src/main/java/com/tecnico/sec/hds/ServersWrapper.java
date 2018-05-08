@@ -82,7 +82,7 @@ public class ServersWrapper {
     forEachServer(s -> {
       s.broadcast(body);
       return true;
-    });
+    }).collect(Collectors.toList());
   }
 
   public Optional<AuditResponse> audit(AuditRequest body) {

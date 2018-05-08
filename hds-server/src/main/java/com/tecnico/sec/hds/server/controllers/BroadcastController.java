@@ -56,7 +56,7 @@ public class BroadcastController implements BroadcastApi {
   }
 
   private void echoController(BroadcastRequest body) {
-    ReliableBroadcastSession session = reliableBroadcastHelper.createIfNotExists(body.getPublicKey().getValue());
+    ReliableBroadcastSession session = reliableBroadcastHelper.createIfNotExists(body.getTransaction().getSendHash().getValue());
 
     String serverPublicKey = body.getPublicKey().getValue();
     session.putEcho(serverPublicKey);
@@ -67,7 +67,7 @@ public class BroadcastController implements BroadcastApi {
   }
 
   private void readyController(BroadcastRequest body) {
-    ReliableBroadcastSession session = reliableBroadcastHelper.createIfNotExists(body.getPublicKey().getValue());
+    ReliableBroadcastSession session = reliableBroadcastHelper.createIfNotExists(body.getTransaction().getSendHash().getValue());
 
     String serverPublicKey = body.getPublicKey().getValue();
     session.putReady(serverPublicKey);

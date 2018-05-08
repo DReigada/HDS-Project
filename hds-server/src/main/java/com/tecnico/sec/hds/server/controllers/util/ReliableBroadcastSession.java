@@ -26,12 +26,12 @@ public class ReliableBroadcastSession {
     this.numberOfFailures = (int) ((servers - 1) / 3.0);
   }
 
-  public void putEcho(String hash) {
-    echos.add(hash);
+  public synchronized void putEcho(String serverPublicKey) {
+    echos.add(serverPublicKey);
   }
 
-  public void putReady(String hash) {
-    readys.add(hash);
+  public synchronized void putReady(String serverPublicKey) {
+    readys.add(serverPublicKey);
   }
 
   public synchronized boolean canBroadcastEcho() {
