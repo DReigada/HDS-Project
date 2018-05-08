@@ -110,6 +110,24 @@ paths:
           400:
             description: "Invalid Key"
 
+  /broadcast:
+    post:
+      operationId: "broadcast"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/BroadcastRequest"
+      responses:
+        200:
+          description: "successful operation"
+          scheme:
+            $ref: "#/definitions/BroadcastResponse"
+        400:
+          description: "Invalid Key"
+
+
 definitions:
   PubKey:
     type: object
@@ -270,6 +288,20 @@ definitions:
   GetTransactionResponse:
     type: object
     properties:
+      transaction:
+        $ref: "#/definitions/TransactionInformation"
+      signature:
+        $ref: "#/definitions/Signature"
+
+  BroadcastRequest:
+    type: object
+    properties:
+      url:
+        type: string
+      isEcho:
+        type: boolean
+      isReady:
+        type: boolean
       transaction:
         $ref: "#/definitions/TransactionInformation"
       signature:
