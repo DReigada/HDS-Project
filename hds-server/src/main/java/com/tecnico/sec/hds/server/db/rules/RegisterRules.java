@@ -26,8 +26,7 @@ public class RegisterRules {
           "",
           publicKey,
           1000,
-          ChainHelper.TransactionType.ACCEPT,
-          "");
+          ChainHelper.TransactionType.ACCEPT);
 
       accountQueries.register(publicKey);
 

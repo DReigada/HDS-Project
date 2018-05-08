@@ -4,6 +4,7 @@ import com.tecnico.sec.hds.client.commands.util.QuorumHelper;
 import com.tecnico.sec.hds.client.commands.util.SecurityHelper;
 import com.tecnico.sec.hds.client.commands.util.TransactionGetter;
 import com.tecnico.sec.hds.util.Tuple;
+import com.tecnico.sec.hds.util.crypto.ChainHelper;
 import domain.Transaction;
 import io.swagger.client.ApiClient;
 import io.swagger.client.ApiException;
@@ -182,13 +183,20 @@ public class ServersWrapper {
   public boolean receiveAmount(ReceiveAmountRequest body) throws GeneralSecurityException, IOException {
 
     body.setDestKey(securityHelper.key);
-    body.setLastHash(securityHelper.getLastHash());
+
+    body.setLastHash(securityHelper.createHash(
+        Optional.of(securityHelper.getLastHash().getValue()),
+        Optional.of(body.getTransHash().getValue()),
+        body.getSourceKey().getValue(),
+        body.getDestKey().getValue(),
+        body.getAmount(),
+        ChainHelper.TransactionType.ACCEPT));
 
     securityHelper.signMessage(
         body.getSourceKey().getValue()
             + securityHelper.key.getValue()
             + body.getAmount()
-            + securityHelper.getLastHash().getValue()
+            + body.getLastHash().getValue()
             + body.getTransHash().getValue(),
         body::setSignature);
 
@@ -206,13 +214,19 @@ public class ServersWrapper {
 
   public String sendAmount(SendAmountRequest body) throws GeneralSecurityException, IOException {
 
-    body.setLastHash(securityHelper.getLastHash());
+    body.setLastHash(securityHelper.createHash(
+        Optional.of(securityHelper.getLastHash().getValue()),
+        Optional.empty(),
+        securityHelper.key.getValue(),
+        body.getDestKey().getValue(), body.getAmount(),
+        ChainHelper.TransactionType.SEND_AMOUNT));
+
     body.sourceKey(securityHelper.key);
 
     String message = securityHelper.key.getValue()
         + body.getDestKey().getValue()
         + body.getAmount().toString()
-        + securityHelper.getLastHash().getValue();
+        + body.getLastHash().getValue();
 
     securityHelper.signMessage(message, body::setSignature);
 
