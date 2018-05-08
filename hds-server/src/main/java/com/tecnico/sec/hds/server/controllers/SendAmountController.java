@@ -1,13 +1,16 @@
 package com.tecnico.sec.hds.server.controllers;
 
 import com.tecnico.sec.hds.ServersWrapper;
+import com.tecnico.sec.hds.server.controllers.converters.Converters;
 import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastHelper;
 import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastSession;
+import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.server.db.rules.GetTransactionRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import domain.Transaction;
 import io.swagger.api.SendAmountApi;
+import io.swagger.client.model.TransactionInformation;
 import io.swagger.model.Hash;
 import io.swagger.model.SendAmountRequest;
 import io.swagger.model.SendAmountResponse;
@@ -53,12 +56,23 @@ public class SendAmountController implements SendAmountApi {
     if (cryptoAgent.verifySignature(sourceKey + destKey + String.valueOf(amount) + hash, clientSignature, sourceKey)) {
       ReliableBroadcastSession session = reliableBroadcastHelper.createIfNotExists(hash);
 
-      if (session.canBroadcastEcho()) {
-        serversWrapper.broadcast(); // TODO echo
-        session.wait();
-      }
+      Optional<Transaction> result = Optional.empty();
 
-      Optional<Transaction> result = getTransactionRules.getTransaction(hash);
+      try {
+        if (session.canBroadcastEcho()) {
+          TransactionInformation trans = Converters.createTransaction(sourceKey, destKey, amount, hash, "", clientSignature);
+          serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
+          synchronized (session){
+            session.wait();
+          }
+        }
+
+        result = getTransactionRules.getTransaction(hash);
+
+      } catch (InterruptedException | DBException e) {
+        System.err.println("Failed to receive amount:");
+        e.printStackTrace();
+      }
 
       if (result.isPresent()) {
         newHash.setValue(result.get().hash);

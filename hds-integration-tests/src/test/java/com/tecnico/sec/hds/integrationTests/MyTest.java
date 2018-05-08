@@ -24,7 +24,7 @@ public class MyTest {
   @BeforeClass
   public static void start() throws GeneralSecurityException, IOException, OperatorCreationException {
     serverHelper = new ServerHelper();
-    List<String> serversUrls = serverHelper.startServers(3);
+    List<String> serversUrls = serverHelper.startServers(4);
 
     server = new ServersWrapper("user1", "pass1", serversUrls);
 

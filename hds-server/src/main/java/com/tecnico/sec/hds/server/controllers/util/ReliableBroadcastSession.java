@@ -8,17 +8,22 @@ public class ReliableBroadcastSession {
   // Strings are the servers' public keys
   private final Set<String> echos;
   private final Set<String> readys;
+  private final int servers;
   private boolean sentEcho;
   private boolean sentReady;
   private boolean delivered;
 
-  public ReliableBroadcastSession() {
+  private int numberOfFailures;
+
+  public ReliableBroadcastSession(int servers) {
     sentEcho = false;
     sentReady = false;
     delivered = false;
-
     echos = new HashSet<>();
     readys = new HashSet<>();
+
+    this.servers = servers;
+    this.numberOfFailures = (int) ((servers - 1) / 3.0);
   }
 
   public void putEcho(String hash) {
@@ -67,15 +72,15 @@ public class ReliableBroadcastSession {
   }
 
   private int echoMajority() {
-    return 1; // TODO fix this
+    return (int) ((servers + numberOfFailures) / 2.0);
   }
 
   private int readyMajorityToSend() {
-    return 1; // TODO fix this
+    return numberOfFailures;
   }
 
   private int readyMajorityToDeliver() {
-    return 1; // TODO fix this
+    return 2 * numberOfFailures;
   }
 
   private int getEchosSize() {
@@ -85,4 +90,5 @@ public class ReliableBroadcastSession {
   private int getReadysSize() {
     return readys.size();
   }
+
 }

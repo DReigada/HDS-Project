@@ -1,6 +1,7 @@
 package com.tecnico.sec.hds.server.controllers;
 
 import com.tecnico.sec.hds.ServersWrapper;
+import com.tecnico.sec.hds.server.controllers.converters.Converters;
 import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastHelper;
 import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastSession;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
@@ -9,11 +10,14 @@ import com.tecnico.sec.hds.server.db.rules.ReceiveAmountRules;
 import com.tecnico.sec.hds.server.db.rules.SendAmountRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.api.BroadcastApi;
+import io.swagger.client.model.PubKey;
+import io.swagger.client.model.Signature;
 import io.swagger.model.BroadcastRequest;
 import io.swagger.model.TransactionInformation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 
@@ -36,14 +40,16 @@ public class BroadcastController implements BroadcastApi {
   }
 
   @Override
-  public ResponseEntity<Void> broadcast(@Valid BroadcastRequest body) {
+  public ResponseEntity<Void> broadcast(@Valid @RequestBody BroadcastRequest body) {
     // TODO: verify signature
     // verify if the public key exists on the server list
 
     if (body.isIsEcho()) {
       echoController(body);
-    } else {
+    } else if (body.isIsReady()) {
       readyController(body);
+    } else {
+      System.err.println("This should never happen™");
     }
 
     return new ResponseEntity<>(HttpStatus.OK);
@@ -56,9 +62,7 @@ public class BroadcastController implements BroadcastApi {
     session.putEcho(serverPublicKey);
 
     if (session.canBroadcastReadyAfterEcho()) {
-      runThread(() -> {
-        serversWrapper.broadcast(); //TODO READY);
-      });
+      runThread(() -> serversWrapper.broadcast(getReadySignedRequest(body)));
     }
   }
 
@@ -69,9 +73,7 @@ public class BroadcastController implements BroadcastApi {
     session.putReady(serverPublicKey);
 
     if (session.canBroadcastReadyAfterReady()) {
-      runThread(() -> {
-        serversWrapper.broadcast(); //TODO READY);
-      });
+      runThread(() -> serversWrapper.broadcast(getReadySignedRequest(body)));
     }
 
     if (session.canDeliver()) {
@@ -100,5 +102,16 @@ public class BroadcastController implements BroadcastApi {
 
   private void runThread(Runnable r) {
     new Thread(r).run();
+  }
+
+  private io.swagger.client.model.BroadcastRequest getReadySignedRequest(BroadcastRequest body) {
+    io.swagger.client.model.BroadcastRequest newBody =
+        Converters.serverBroadcastRequestToClient(body)
+            .publicKey(new PubKey().value(cryptoAgent.getStringPublicKey()))
+            .isReady(true)
+            .isEcho(false);
+
+    return newBody
+        .signature(new Signature().value(reliableBroadcastHelper.signBroadcastBody(newBody)));
   }
 }

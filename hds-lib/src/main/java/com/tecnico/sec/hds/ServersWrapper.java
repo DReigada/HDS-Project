@@ -66,6 +66,10 @@ public class ServersWrapper {
     return new BufferedReader(new InputStreamReader((ServersWrapper.class.getResourceAsStream("/conf/servers.conf")))).lines();
   }
 
+  public int getNumberOfServers() {
+    return servers.size();
+  }
+
   private void initializeServers(Stream<String> urls) {
     urls.forEach(url -> {
       ApiClient client = new ApiClient().setBasePath(url);
@@ -191,7 +195,7 @@ public class ServersWrapper {
 
     body.setDestKey(securityHelper.key);
 
-    body.setLastHash(securityHelper.createHash(
+    body.setHash(securityHelper.createHash(
         Optional.of(securityHelper.getLastHash().getValue()),
         Optional.of(body.getTransHash().getValue()),
         body.getSourceKey().getValue(),
@@ -203,7 +207,7 @@ public class ServersWrapper {
         body.getSourceKey().getValue()
             + securityHelper.key.getValue()
             + body.getAmount()
-            + body.getLastHash().getValue()
+            + body.getHash().getValue()
             + body.getTransHash().getValue(),
         body::setSignature);
 
@@ -221,7 +225,7 @@ public class ServersWrapper {
 
   public String sendAmount(SendAmountRequest body) throws GeneralSecurityException, IOException {
 
-    body.setLastHash(securityHelper.createHash(
+    body.setHash(securityHelper.createHash(
         Optional.of(securityHelper.getLastHash().getValue()),
         Optional.empty(),
         securityHelper.key.getValue(),
@@ -233,7 +237,7 @@ public class ServersWrapper {
     String message = securityHelper.key.getValue()
         + body.getDestKey().getValue()
         + body.getAmount().toString()
-        + body.getLastHash().getValue();
+        + body.getHash().getValue();
 
     securityHelper.signMessage(message, body::setSignature);
 
