@@ -1,4 +1,4 @@
-package com.tecnico.sec.hds.client.commands.util;
+package com.tecnico.sec.hds.util;
 
 import com.tecnico.sec.hds.util.crypto.ChainHelper;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;

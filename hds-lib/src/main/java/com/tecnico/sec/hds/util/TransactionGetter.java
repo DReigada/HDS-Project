@@ -1,4 +1,4 @@
-package com.tecnico.sec.hds.client.commands.util;
+package com.tecnico.sec.hds.util;
 
 import domain.Transaction;
 import io.swagger.client.model.TransactionInformation;

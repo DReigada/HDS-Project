@@ -1,6 +1,5 @@
-package com.tecnico.sec.hds.client.commands.util;
+package com.tecnico.sec.hds.util;
 
-import com.tecnico.sec.hds.util.Tuple;
 import io.swagger.client.api.DefaultApi;
 import io.swagger.client.model.TransactionInformation;
 

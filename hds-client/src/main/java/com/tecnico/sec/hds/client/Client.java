@@ -1,5 +1,6 @@
 package com.tecnico.sec.hds.client;
 
+import com.tecnico.sec.hds.ServersWrapper;
 import com.tecnico.sec.hds.client.commands.*;
 import org.bouncycastle.operator.OperatorCreationException;
 

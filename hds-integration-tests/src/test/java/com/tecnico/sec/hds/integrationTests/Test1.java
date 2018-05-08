@@ -1,6 +1,6 @@
 package com.tecnico.sec.hds.integrationTests;
 
-import com.tecnico.sec.hds.client.ServersWrapper;
+import com.tecnico.sec.hds.ServersWrapper;
 import io.swagger.client.model.CheckAccountRequest;
 import org.junit.AfterClass;
 import org.junit.Test;

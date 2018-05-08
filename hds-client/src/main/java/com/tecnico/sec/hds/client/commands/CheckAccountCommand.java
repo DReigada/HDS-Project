@@ -1,7 +1,7 @@
 package com.tecnico.sec.hds.client.commands;
 
 import com.tecnico.sec.hds.client.Client;
-import com.tecnico.sec.hds.client.commands.util.TransactionGetter;
+import com.tecnico.sec.hds.util.TransactionGetter;
 import com.tecnico.sec.hds.util.Tuple;
 import io.swagger.client.model.CheckAccountRequest;
 import io.swagger.client.model.CheckAccountResponse;

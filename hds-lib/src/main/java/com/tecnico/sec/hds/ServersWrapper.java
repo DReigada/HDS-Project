@@ -1,8 +1,8 @@
-package com.tecnico.sec.hds.client;
+package com.tecnico.sec.hds;
 
-import com.tecnico.sec.hds.client.commands.util.QuorumHelper;
-import com.tecnico.sec.hds.client.commands.util.SecurityHelper;
-import com.tecnico.sec.hds.client.commands.util.TransactionGetter;
+import com.tecnico.sec.hds.util.QuorumHelper;
+import com.tecnico.sec.hds.util.SecurityHelper;
+import com.tecnico.sec.hds.util.TransactionGetter;
 import com.tecnico.sec.hds.util.Tuple;
 import com.tecnico.sec.hds.util.crypto.ChainHelper;
 import domain.Transaction;

@@ -1,6 +1,6 @@
 package com.tecnico.sec.hds.integrationTests;
 
-import com.tecnico.sec.hds.client.ServersWrapper;
+import com.tecnico.sec.hds.ServersWrapper;
 import com.tecnico.sec.hds.util.Tuple;
 import io.swagger.client.model.*;
 import org.bouncycastle.operator.OperatorCreationException;
