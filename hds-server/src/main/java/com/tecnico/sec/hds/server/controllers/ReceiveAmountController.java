@@ -61,11 +61,10 @@ public class ReceiveAmountController implements ReceiveAmountApi {
       Optional<Transaction> result = Optional.empty();
 
       try {
-        if (session.canBroadcastEcho()) {
+        session.runIfEchoIsPossibleAndWait(() -> {
           TransactionInformation trans = Converters.createTransaction(sourceKey, destKey, amount, true, true, hash, receiveHash, transSignature);
           serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-          session.monitorWait();
-        }
+        });
 
         result = getTransactionRules.getTransaction(hash);
       } catch (DBException e) {

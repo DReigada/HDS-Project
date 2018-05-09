@@ -20,10 +20,16 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+@FunctionalInterface
+interface ServerCall<R> {
+  R apply(DefaultApi t) throws ApiException;
+}
 
 public class ServersWrapper {
   public final SecurityHelper securityHelper;
@@ -80,10 +86,13 @@ public class ServersWrapper {
 
   public void broadcast(BroadcastRequest body) {
     forEachServer(s -> {
+      System.out.println("Calling server");
       s.broadcast(body);
+      System.out.println("Called server");
       return true;
     }).collect(Collectors.toList());
   }
+
 
   public Optional<AuditResponse> audit(AuditRequest body) {
     Optional<Tuple<Tuple<DefaultApi, AuditResponse>, List<Tuple<DefaultApi, AuditResponse>>>> serversWithResponsesQuorum =
@@ -289,20 +298,42 @@ public class ServersWrapper {
   }
 
   <A> Stream<Tuple<DefaultApi, A>> forEachServer(ServerCall<A> serverCall) {
-    return servers.entrySet().stream().parallel()
-        .flatMap(entry -> {
-          try {
-            DefaultApi server = entry.getValue();
-            return Stream.of(new Tuple<>(server, serverCall.apply(server)));
-          } catch (ApiException e) {
-            System.out.println("Failed to call server: " + entry.getKey());
-            return Stream.empty();
-          }
-        });
-  }
+    ExecutorService EXEC = Executors.newCachedThreadPool();
 
-  @FunctionalInterface
-  interface ServerCall<R> {
-    R apply(DefaultApi t) throws ApiException;
+    ConcurrentLinkedQueue<Callable<Optional<Tuple<DefaultApi, A>>>> tasks = new ConcurrentLinkedQueue<>();
+
+    for (HashMap.Entry<String, DefaultApi> entry : servers.entrySet()) {
+      tasks.add(() -> {
+        try {
+          DefaultApi server = entry.getValue();
+          A result = serverCall.apply(server);
+
+          return Optional.of(new Tuple<>(server, result));
+        } catch (ApiException e) {
+          System.out.println("Failed to call server: " + entry.getKey());
+          return Optional.empty();
+        }
+      });
+    }
+
+    ArrayList<Optional<Tuple<DefaultApi, A>>> results = new ArrayList<>();
+
+    try {
+      for (Future<Optional<Tuple<DefaultApi, A>>> resultFut : EXEC.invokeAll(tasks)) {
+        try {
+          results.add(resultFut.get());
+        } catch (InterruptedException | ExecutionException e) {
+          System.out.println("Failed to wait for server response. This should never happen™");
+          e.printStackTrace();
+        }
+      }
+    } catch (InterruptedException e) {
+      System.out.println("Failed to wait for all servers responses. This should never happen™");
+      e.printStackTrace();
+    }
+
+    return results.stream()
+        .filter(Optional::isPresent)
+        .map(Optional::get);
   }
 }

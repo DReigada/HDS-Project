@@ -26,14 +26,16 @@ public class ReliableBroadcastSession {
     this.numberOfFailures = (int) ((servers - 1) / 3.0);
   }
 
-  public synchronized void monitorWait() {
-    try {
-      this.wait();
-    } catch (Throwable e) {
-      throw new RuntimeException("Failed to wait on session", e);
+  public void runIfEchoIsPossibleAndWait(Runnable runnable) {
+    if (canBroadcastEcho()) {
+      runnable.run();
+      synchronized (this) {
+        if (!delivered) {
+          this.monitorWait();
+        }
+      }
     }
   }
-
 
   public synchronized void monitorNotify() {
     try {
@@ -51,15 +53,6 @@ public class ReliableBroadcastSession {
     readys.add(serverPublicKey);
   }
 
-  public synchronized boolean canBroadcastEcho() {
-    if (!sentEcho) {
-      sentEcho = true;
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   public synchronized boolean canBroadcastReadyAfterEcho() {
     if (!sentReady && getEchosSize() > echoMajority()) {
       sentReady = true;
@@ -68,7 +61,6 @@ public class ReliableBroadcastSession {
       return false;
     }
   }
-
 
   public synchronized boolean canBroadcastReadyAfterReady() {
     if (!sentReady && getReadysSize() > readyMajorityToSend()) {
@@ -85,6 +77,23 @@ public class ReliableBroadcastSession {
       return true;
     } else {
       return false;
+    }
+  }
+
+  private boolean canBroadcastEcho() {
+    if (!sentEcho) {
+      sentEcho = true;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private void monitorWait() {
+    try {
+      this.wait();
+    } catch (Throwable e) {
+      throw new RuntimeException("Failed to wait on session", e);
     }
   }
 

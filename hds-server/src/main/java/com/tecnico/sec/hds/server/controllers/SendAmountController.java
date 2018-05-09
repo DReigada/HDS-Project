@@ -59,11 +59,10 @@ public class SendAmountController implements SendAmountApi {
       Optional<Transaction> result = Optional.empty();
 
       try {
-        if (session.canBroadcastEcho()) {
+        session.runIfEchoIsPossibleAndWait(() -> {
           TransactionInformation trans = Converters.createTransaction(sourceKey, destKey, amount, true, false, hash, "", clientSignature);
           serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-          session.monitorWait();
-        }
+        });
 
         result = getTransactionRules.getTransaction(hash);
 

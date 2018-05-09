@@ -62,7 +62,7 @@ public class BroadcastController implements BroadcastApi {
     session.putEcho(serverPublicKey);
 
     if (session.canBroadcastReadyAfterEcho()) {
-      runThread(() -> serversWrapper.broadcast(getReadySignedRequest(body)));
+      startThread(() -> serversWrapper.broadcast(getReadySignedRequest(body)));
     }
   }
 
@@ -73,11 +73,11 @@ public class BroadcastController implements BroadcastApi {
     session.putReady(serverPublicKey);
 
     if (session.canBroadcastReadyAfterReady()) {
-      runThread(() -> serversWrapper.broadcast(getReadySignedRequest(body)));
+      startThread(() -> serversWrapper.broadcast(getReadySignedRequest(body)));
     }
 
     if (session.canDeliver()) {
-      runThread(() -> {
+      startThread(() -> {
         TransactionInformation trans = body.getTransaction();
         String hash = trans.getSendHash().getValue();
         String sourceKey = trans.getSourceKey();
@@ -101,8 +101,8 @@ public class BroadcastController implements BroadcastApi {
     }
   }
 
-  private void runThread(Runnable r) {
-    new Thread(r).run();
+  private void startThread(Runnable r) {
+    new Thread(r).start();
   }
 
   private io.swagger.client.model.BroadcastRequest getReadySignedRequest(BroadcastRequest body) {

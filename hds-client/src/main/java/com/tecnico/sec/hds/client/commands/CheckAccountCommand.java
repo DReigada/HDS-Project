@@ -19,7 +19,7 @@ public class CheckAccountCommand extends AbstractCommand {
     Optional<Tuple<CheckAccountResponse, Long>> response = client.server.checkAccount(checkAccountRequest);
 
     if (response.isPresent()) {
-//        System.out.println("Public Key: " + response.get().key);
+      System.out.println("Public Key: " + client.server.securityHelper.key.getValue());
       String pendingString = TransactionGetter.getTransactionListMessage(response.get().first.getPending());
 
       System.out.println("Balance: " + response.get().second + "\n");

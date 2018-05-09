@@ -1,11 +1,7 @@
 package com.tecnico.sec.hds.client;
 
-import com.tecnico.sec.hds.client.Client;
 import com.tecnico.sec.hds.client.commands.AbstractCommand;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -18,6 +14,8 @@ public class ClientApp {
     String password = reader.nextLine();
 
     try {
+      System.setProperty("http.maxConnections", "100");
+
       Client client = new Client(username, password);
 
       while (true) {
