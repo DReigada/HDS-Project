@@ -81,7 +81,7 @@ public class BroadcastController implements BroadcastApi {
         TransactionInformation trans = body.getTransaction();
         String hash = trans.getSendHash().getValue();
         String sourceKey = trans.getSourceKey();
-        String destKey = trans.getSourceKey();
+        String destKey = trans.getDestKey();
         int amount = Integer.valueOf(trans.getAmount());
         String signature = trans.getSignature().getValue();
 
