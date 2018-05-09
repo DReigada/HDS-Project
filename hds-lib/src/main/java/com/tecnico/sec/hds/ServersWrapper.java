@@ -161,6 +161,10 @@ public class ServersWrapper {
 
       writeBackTransactionsAsync(checkAmountResponse.getHistory(), transactionsFromOutdatedServers);
 
+      if (body.getPublicKey().getValue().equals(securityHelper.key.getValue())) {
+        securityHelper.setLastHash(checkAmountResponse.getHistory().get(0).getSendHash());
+      }
+
       return new Tuple<>(serversWithResponsesQuorum.first.second, getBalanceFromTransactions(checkAmountResponse.getHistory()));
     });
   }
@@ -243,6 +247,10 @@ public class ServersWrapper {
     String message = receiveAmountResponse.getNewHash().getValue() + receiveAmountResponse.getMessage();
     String signature = receiveAmountResponse.getSignature().getValue();
 
+    if (receiveAmountResponse.isSuccess()) {
+      securityHelper.setLastHash(receiveAmountResponse.getNewHash());
+    }
+
     return securityHelper.verifyBankSignature(message, signature, response.first.getApiClient().getBasePath())
         && receiveAmountResponse.isSuccess();
   }
@@ -275,7 +283,11 @@ public class ServersWrapper {
     if (securityHelper.verifyBankSignature(message, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
         && sendAmountResponse.isSuccess()) {
 
-      securityHelper.setLastHash(sendAmountResponse.getNewHash());
+      if (sendAmountResponse.isSuccess()) {
+        securityHelper.setLastHash(sendAmountResponse.getNewHash());
+      }
+
+
       return sendAmountResponse.getMessage();
     }
 
