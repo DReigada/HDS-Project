@@ -26,6 +26,23 @@ public class ReliableBroadcastSession {
     this.numberOfFailures = (int) ((servers - 1) / 3.0);
   }
 
+  public synchronized void monitorWait() {
+    try {
+      this.wait();
+    } catch (Throwable e) {
+      throw new RuntimeException("Failed to wait on session", e);
+    }
+  }
+
+
+  public synchronized void monitorNotify() {
+    try {
+      this.notifyAll();
+    } catch (Throwable e) {
+      throw new RuntimeException("Failed to notify on session", e);
+    }
+  }
+
   public synchronized void putEcho(String serverPublicKey) {
     echos.add(serverPublicKey);
   }

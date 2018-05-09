@@ -62,14 +62,12 @@ public class SendAmountController implements SendAmountApi {
         if (session.canBroadcastEcho()) {
           TransactionInformation trans = Converters.createTransaction(sourceKey, destKey, amount, true, false, hash, "", clientSignature);
           serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-          synchronized (session){
-            session.wait();
-          }
+          session.monitorWait();
         }
 
         result = getTransactionRules.getTransaction(hash);
 
-      } catch (InterruptedException | DBException e) {
+      } catch (DBException e) {
         System.err.println("Failed to receive amount:");
         e.printStackTrace();
       }

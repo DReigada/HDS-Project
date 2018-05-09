@@ -64,13 +64,11 @@ public class ReceiveAmountController implements ReceiveAmountApi {
         if (session.canBroadcastEcho()) {
           TransactionInformation trans = Converters.createTransaction(sourceKey, destKey, amount, true, true, hash, receiveHash, transSignature);
           serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-          synchronized (session){
-            session.wait();
-          }
+          session.monitorWait();
         }
 
         result = getTransactionRules.getTransaction(hash);
-      } catch (InterruptedException | DBException e) {
+      } catch (DBException e) {
         System.err.println("Failed to receive amount:");
         e.printStackTrace();
       }

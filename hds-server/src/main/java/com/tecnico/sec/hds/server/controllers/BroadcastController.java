@@ -95,9 +95,8 @@ public class BroadcastController implements BroadcastApi {
         } catch (DBException e) {
           System.err.println("Failed to store transaction: " + hash + " isReceive: " + trans.isReceive());
         }
-        synchronized (session){
-          session.notifyAll();
-        }
+
+        session.monitorNotify();
       });
     }
   }
