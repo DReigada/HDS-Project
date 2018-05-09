@@ -205,12 +205,12 @@ public class CryptoAgent {
     }
   }
 
-  public boolean verifyTransactionsSignature(List<Transaction> transactions) {
+  public boolean verifyTransactionsSignature(List<Transaction> transactions, String publicKey) {
     for (int i = 1; i < transactions.size(); i++) {
       String message = transactions.get(i).sourceKey + transactions.get(i).destKey + transactions.get(i).amount
           + transactions.get(i).hash + transactions.get(i).receiveHash;
 
-      if (!verifySignature(message, transactions.get(i).signature, getStringPublicKey())) {
+      if (!verifySignature(message, transactions.get(i).signature, publicKey)) {
         return false;
       }
     }

@@ -36,14 +36,14 @@ public class SecurityHelper {
     setSignature.accept(signature);
   }
 
-  public boolean verifySignature(String message, String signature, String port) throws GeneralSecurityException, IOException {
+  public boolean verifyBankSignature(String message, String signature, String url) {
 
-    return cryptoAgent.verifyBankSignature(message, signature, port);
+    return cryptoAgent.verifyBankSignature(message, signature, url);
   }
 
-  public boolean verifyTransactionsSignaturesAndChain(List<Transaction> transactions) throws GeneralSecurityException {
+  public boolean verifyTransactionsSignaturesAndChain(List<Transaction> transactions, String publicKey) throws GeneralSecurityException {
 
-    return cryptoAgent.verifyTransactionsSignature(transactions)
+    return cryptoAgent.verifyTransactionsSignature(transactions, publicKey)
         && chainHelper.verifyTransaction(transactions);
   }
 

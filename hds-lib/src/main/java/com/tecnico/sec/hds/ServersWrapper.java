@@ -95,8 +95,9 @@ public class ServersWrapper {
 
 
   public Optional<AuditResponse> audit(AuditRequest body) {
+    String publicKey = body.getPublicKey().getValue();
     Optional<Tuple<Tuple<DefaultApi, AuditResponse>, List<Tuple<DefaultApi, AuditResponse>>>> serversWithResponsesQuorum =
-        serverReadWithQuorums(server -> server.audit(body), AuditResponse::getList, this::verifyAuditResponse);
+        serverReadWithQuorums(server -> server.audit(body), AuditResponse::getList, response -> verifyAuditResponse(publicKey, response));
 
     //TODO implement writeBack
     //serversWithResponsesQuorum.stream()
@@ -106,7 +107,7 @@ public class ServersWrapper {
     return serversWithResponsesQuorum.map(tuple -> {
       AuditResponse auditResponse = tuple.first.second;
 
-      if (body.getPublicKey().equals(securityHelper.key)) {
+      if (body.getPublicKey().getValue().equals(securityHelper.key.getValue())) {
         securityHelper.setLastHash(auditResponse.getList().get(0).getSendHash());
       }
 
@@ -114,20 +115,20 @@ public class ServersWrapper {
     });
   }
 
-  private boolean verifyAuditResponse(Tuple<DefaultApi, AuditResponse> serverWithResponse) {
+  private boolean verifyAuditResponse(String publicKey, Tuple<DefaultApi, AuditResponse> serverWithResponse) {
     String serverUrl = serverWithResponse.first.getApiClient().getBasePath();
     AuditResponse response = serverWithResponse.second;
     List<TransactionInformation> transactionList = response.getList();
-    if (transactionList != null) {
+    if (transactionList != null && response.getSignature() != null) {
       String transactionListMessage = TransactionGetter.getTransactionListMessage(transactionList);
       List<Transaction> transactions = TransactionGetter.InformationToTransaction(transactionList);
       Collections.reverse(transactions);
 
       try {
         String signature = response.getSignature().getValue();
-        return securityHelper.verifySignature(transactionListMessage, signature, serverUrl)
-            && securityHelper.verifyTransactionsSignaturesAndChain(transactions);
-      } catch (GeneralSecurityException | IOException e) {
+        return securityHelper.verifyBankSignature(transactionListMessage, signature, serverUrl)
+            && securityHelper.verifyTransactionsSignaturesAndChain(transactions, publicKey);
+      } catch (GeneralSecurityException e) {
         System.err.println("Failed to verify response from server: " + serverUrl);
         e.printStackTrace();
         return false;
@@ -141,7 +142,10 @@ public class ServersWrapper {
     body.setPublicKey(securityHelper.key);
 
     Optional<Tuple<Tuple<DefaultApi, CheckAccountResponse>, List<Tuple<DefaultApi, CheckAccountResponse>>>> serversWithResponsesQuorumOpt =
-        serverReadWithQuorums(server -> server.checkAccount(body), CheckAccountResponse::getHistory, this::verifyCheckAccount); // TODO change this
+        serverReadWithQuorums(
+            server -> server.checkAccount(body),
+            CheckAccountResponse::getHistory,
+            response -> verifyCheckAccount(securityHelper.key.getValue(), response));
 
     return serversWithResponsesQuorumOpt.map(serversWithResponsesQuorum -> {
       CheckAccountResponse checkAmountResponse = serversWithResponsesQuorum.first.second;
@@ -150,7 +154,7 @@ public class ServersWrapper {
     });
   }
 
-  private boolean verifyCheckAccount(Tuple<DefaultApi, CheckAccountResponse> serverWithResponse) {
+  private boolean verifyCheckAccount(String publicKey, Tuple<DefaultApi, CheckAccountResponse> serverWithResponse) {
     String serverUrl = serverWithResponse.first.getApiClient().getBasePath();
     CheckAccountResponse response = serverWithResponse.second;
 
@@ -164,9 +168,9 @@ public class ServersWrapper {
     try {
       Collections.reverse(transactionsHistory);
       return
-          securityHelper.verifyTransactionsSignaturesAndChain(transactionsHistory) &&
-              securityHelper.verifySignature(serverMessage, response.getSignature().getValue(), serverUrl);
-    } catch (GeneralSecurityException | IOException e) {
+          securityHelper.verifyTransactionsSignaturesAndChain(transactionsHistory, publicKey) &&
+              securityHelper.verifyBankSignature(serverMessage, response.getSignature().getValue(), serverUrl);
+    } catch (GeneralSecurityException e) {
       System.err.println("Failed to verify response from server: " + serverUrl);
       e.printStackTrace();
       return false;
@@ -191,7 +195,7 @@ public class ServersWrapper {
     RegisterResponse registerResponse = response.second;
     String message = registerResponse.getMessage() + registerResponse.getHash().getValue();
 
-    if (securityHelper.verifySignature(message, registerResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())) {
+    if (securityHelper.verifyBankSignature(message, registerResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())) {
 
       securityHelper.setLastHash(registerResponse.getHash());
       return registerResponse.getMessage();
@@ -228,7 +232,7 @@ public class ServersWrapper {
     String message = receiveAmountResponse.getNewHash().getValue() + receiveAmountResponse.getMessage();
     String signature = receiveAmountResponse.getSignature().getValue();
 
-    return securityHelper.verifySignature(message, signature, response.first.getApiClient().getBasePath())
+    return securityHelper.verifyBankSignature(message, signature, response.first.getApiClient().getBasePath())
         && receiveAmountResponse.isSuccess();
   }
 
@@ -257,7 +261,7 @@ public class ServersWrapper {
     SendAmountResponse sendAmountResponse = response.second;
     message = sendAmountResponse.getNewHash().getValue() + sendAmountResponse.getMessage();
 
-    if (securityHelper.verifySignature(message, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
+    if (securityHelper.verifyBankSignature(message, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
         && sendAmountResponse.isSuccess()) {
 
       securityHelper.setLastHash(sendAmountResponse.getNewHash());
@@ -274,7 +278,7 @@ public class ServersWrapper {
         .get(0);
 
     GetTransactionResponse getTransactionResponse = (GetTransactionResponse) response.second;
-    if (securityHelper.verifySignature(
+    if (securityHelper.verifyBankSignature(
         TransactionGetter.getTransactionListMessage(getTransactionResponse.getTransaction()),
         getTransactionResponse.getSignature().getValue(),
         response.first.getApiClient().getBasePath())) {
