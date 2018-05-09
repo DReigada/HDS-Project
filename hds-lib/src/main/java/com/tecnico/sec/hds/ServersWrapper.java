@@ -99,8 +99,7 @@ public class ServersWrapper {
     return servers.keySet();
   }
 
-
-  public Optional<AuditResponse> audit(AuditRequest body) {
+  public Optional<AuditResponse> audit(AuditRequest body, boolean withWriteBack) {
     String publicKey = body.getPublicKey().getValue();
     Optional<Tuple<Tuple<DefaultApi, AuditResponse>, List<Tuple<DefaultApi, AuditResponse>>>> serversWithResponsesQuorumOpt =
         serverReadWithQuorums(server -> server.audit(body), AuditResponse::getList, response -> verifyAuditResponse(publicKey, response));
@@ -108,12 +107,14 @@ public class ServersWrapper {
     return serversWithResponsesQuorumOpt.map(serversWithResponsesQuorum -> {
       AuditResponse auditResponse = serversWithResponsesQuorum.first.second;
 
-      List<List<TransactionInformation>> transactionsFromOutdatedServers =
+      List<DefaultApi> outdatedServers =
           serversWithResponsesQuorum.second.stream()
-              .map(a -> a.second.getList())
+              .map(a -> a.first)
               .collect(Collectors.toList());
 
-      writeBackTransactionsAsync(auditResponse.getList(), transactionsFromOutdatedServers);
+      if (withWriteBack) {
+        writeBackTransactionsAsync(publicKey, auditResponse.getList(), outdatedServers);
+      }
 
       if (body.getPublicKey().getValue().equals(securityHelper.key.getValue())) {
         securityHelper.setLastHash(auditResponse.getList().get(0).getSendHash());
@@ -146,7 +147,7 @@ public class ServersWrapper {
     }
   }
 
-  public Optional<Tuple<CheckAccountResponse, Long>> checkAccount(CheckAccountRequest body) {
+  public Optional<Tuple<CheckAccountResponse, Long>> checkAccount(CheckAccountRequest body, boolean withWriteBack) {
     body.setPublicKey(securityHelper.key);
 
     Optional<Tuple<Tuple<DefaultApi, CheckAccountResponse>, List<Tuple<DefaultApi, CheckAccountResponse>>>> serversWithResponsesQuorumOpt =
@@ -158,12 +159,14 @@ public class ServersWrapper {
     return serversWithResponsesQuorumOpt.map(serversWithResponsesQuorum -> {
       CheckAccountResponse checkAmountResponse = serversWithResponsesQuorum.first.second;
 
-      List<List<TransactionInformation>> transactionsFromOutdatedServers =
+      List<DefaultApi> transactionsFromOutdatedServers =
           serversWithResponsesQuorum.second.stream()
-              .map(a -> a.second.getHistory())
+              .map(a -> a.first)
               .collect(Collectors.toList());
 
-      writeBackTransactionsAsync(checkAmountResponse.getHistory(), transactionsFromOutdatedServers);
+      if (withWriteBack) {
+        writeBackTransactionsAsync(securityHelper.key.getValue(), checkAmountResponse.getHistory(), transactionsFromOutdatedServers);
+      }
 
       if (body.getPublicKey().getValue().equals(securityHelper.key.getValue())) {
         securityHelper.setLastHash(checkAmountResponse.getHistory().get(0).getSendHash());
@@ -366,35 +369,30 @@ public class ServersWrapper {
         .map(Optional::get);
   }
 
-  private void writeBackTransactionsAsync(List<TransactionInformation> transactionsQuorum,
-                                          List<List<TransactionInformation>> transactionsFromOutdatedServers) {
-    executorService.submit(() -> {
-      System.err.println("Checking if write-back is necessary");
-      Optional<List<TransactionInformation>> leastAmountTransactions =
-          transactionsFromOutdatedServers.stream()
-              .min(Comparator.comparingInt(List::size));
+  private void writeBackTransactionsAsync(String publicKey,
+                                          List<TransactionInformation> transactionsQuorum,
+                                          List<DefaultApi> outdatedServers) {
+    List<Hash> hashes = transactionsQuorum.stream()
+        .map(TransactionInformation::getSendHash)
+        .collect(Collectors.toList());
 
+    WriteBackRequest request = new WriteBackRequest()
+        .publicKey(new PubKey().value(publicKey))
+        .missingTransactions(hashes);
 
-      leastAmountTransactions.ifPresent(leastTransactions -> {
-        System.err.println("Starting write-back");
-        List<TransactionInformation> quorum = new ArrayList<>(transactionsQuorum);
-        quorum.removeAll(leastTransactions);
-        Collections.reverse(leastTransactions);
+    System.err.println("Calling writeback on " + outdatedServers.size() + " servers");
 
-        quorum.forEach(trans -> {
-          try {
-            if (trans.isReceive()) {
-              receiveAmount(LibConverters.transactionInformationToReceiveAmountRequest(trans, true));
-            } else {
-              sendAmount(LibConverters.transactionInformationToSendAmountRequest(trans, true));
-            }
-          } catch (GeneralSecurityException e) {
-            System.err.println("Failed to writeback transaction: " + trans.getSendHash().getValue());
-            e.printStackTrace();
-          }
-        });
-
-        System.err.println("Write-back ended");
+    outdatedServers.forEach(server -> {
+      executorService.submit(() -> {
+        String serverUrl = server.getApiClient().getBasePath();
+        try {
+          System.err.println("Calling writeback on server: " + serverUrl);
+          server.writeBack(request);
+          System.err.println("Finished writeback on server: " + serverUrl);
+        } catch (ApiException e) {
+          System.err.println("Failed calling writeback on server: " + serverUrl);
+          e.printStackTrace();
+        }
       });
     });
   }

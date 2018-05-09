@@ -62,14 +62,13 @@ public class ReceiveAmountController implements ReceiveAmountApi {
         && receiveAmountRules.verifyReceiveAmount(receiveHash, sourceKey, destKey, amount, hash)) {
       ReliableBroadcastSession session = reliableBroadcastHelper.createIfNotExists(hash);
 
+      session.runIfEchoIsPossibleAndWait(() -> {
+        TransactionInformation trans = Converters.createTransaction(sourceKey, destKey, amount, true, true, hash, receiveHash, transSignature);
+        serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
+      });
+
       Optional<Transaction> result = Optional.empty();
-
       try {
-        session.runIfEchoIsPossibleAndWait(() -> {
-          TransactionInformation trans = Converters.createTransaction(sourceKey, destKey, amount, true, true, hash, receiveHash, transSignature);
-          serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-        });
-
         result = getTransactionRules.getTransaction(hash);
       } catch (DBException e) {
         System.err.println("Failed to receive amount:");

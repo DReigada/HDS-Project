@@ -23,7 +23,7 @@ public class Test1 {
     ServersWrapper server = new ServersWrapper("user1", "pass", serversUrls);
 
     server.register();
-    server.checkAccount(new CheckAccountRequest());
+    server.checkAccount(new CheckAccountRequest(), false);
 
     serverHelper.stopServers();
   }

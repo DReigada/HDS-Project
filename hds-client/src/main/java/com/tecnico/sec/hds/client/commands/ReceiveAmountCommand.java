@@ -19,7 +19,7 @@ public class ReceiveAmountCommand extends AbstractCommand {
 
     AuditRequest auditRequest = new AuditRequest().publicKey(sourceKey);
 
-    Optional<AuditResponse> auditResponseOpt = client.server.audit(auditRequest);
+    Optional<AuditResponse> auditResponseOpt = client.server.audit(auditRequest, true);
 
     if (auditResponseOpt.isPresent()) {
       Optional<TransactionInformation> transactionOpt =

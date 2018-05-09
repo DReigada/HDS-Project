@@ -16,7 +16,7 @@ public class CheckAccountCommand extends AbstractCommand {
 
     CheckAccountRequest checkAccountRequest = new CheckAccountRequest();
 
-    Optional<Tuple<CheckAccountResponse, Long>> response = client.server.checkAccount(checkAccountRequest);
+    Optional<Tuple<CheckAccountResponse, Long>> response = client.server.checkAccount(checkAccountRequest, true);
 
     if (response.isPresent()) {
       System.out.println("Public Key: " + client.server.securityHelper.key.getValue());

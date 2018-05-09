@@ -31,8 +31,8 @@ public class ReliableBroadcastHelper {
     return reliableBroadcastSessions.computeIfAbsent(hash, s -> new ReliableBroadcastSession(servers));
   }
 
-  public synchronized ReliableBroadcastSession get(String hash) {
-    return reliableBroadcastSessions.get(hash);
+  public synchronized Optional<ReliableBroadcastSession> get(String hash) {
+    return Optional.ofNullable(reliableBroadcastSessions.get(hash));
   }
 
   public BroadcastRequest createEchoRequest(TransactionInformation transaction) {
