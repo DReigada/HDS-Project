@@ -37,7 +37,7 @@ public class ApplicationConfig {
 
   @Bean
   public ReliableBroadcastHelper reliableBroadcastHelper(CryptoAgent cryptoAgent, ServersWrapper serversWrapper) {
-    return new ReliableBroadcastHelper(cryptoAgent, serversWrapper.getNumberOfServers());
+    return new ReliableBroadcastHelper(cryptoAgent, serversWrapper.getNumberOfServers(), serversWrapper.getServersUrl());
   }
 
   @Bean

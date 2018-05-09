@@ -93,6 +93,10 @@ public class ServersWrapper {
     }).collect(Collectors.toList());
   }
 
+  public Set<String> getServersUrl() {
+    return servers.keySet();
+  }
+
 
   public Optional<AuditResponse> audit(AuditRequest body) {
     String publicKey = body.getPublicKey().getValue();

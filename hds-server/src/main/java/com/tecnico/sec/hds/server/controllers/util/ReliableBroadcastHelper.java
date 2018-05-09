@@ -3,21 +3,24 @@ package com.tecnico.sec.hds.server.controllers.util;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.client.model.BroadcastRequest;
 import io.swagger.client.model.PubKey;
+import io.swagger.client.model.Signature;
 import io.swagger.client.model.TransactionInformation;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ReliableBroadcastHelper {
   // the keys are the hashes
   private final Map<String, ReliableBroadcastSession> reliableBroadcastSessions;
   private final CryptoAgent cryptoAgent;
+  private final List serverKeys;
   private final int servers;
 
-  public ReliableBroadcastHelper(CryptoAgent cryptoAgent, int numberOfServers) {
+  public ReliableBroadcastHelper(CryptoAgent cryptoAgent, int numberOfServers, Set<String> urls) {
     reliableBroadcastSessions = new HashMap<>();
+    serverKeys = new ArrayList<>();
     this.cryptoAgent = cryptoAgent;
     this.servers = numberOfServers;
+    populateServerKeysList(urls);
   }
 
   /**
@@ -33,18 +36,20 @@ public class ReliableBroadcastHelper {
   }
 
   public BroadcastRequest createEchoRequest(TransactionInformation transaction) {
-    return new BroadcastRequest()
+    BroadcastRequest broadcastBody = new BroadcastRequest()
         .publicKey(new PubKey().value(cryptoAgent.getStringPublicKey()))
         .isEcho(true)
         .isReady(false)
         .transaction(transaction);
+
+    return broadcastBody.signature(new Signature().value(signBroadcastBody(broadcastBody)));
   }
 
   public String signBroadcastBody(BroadcastRequest body) {
     return cryptoAgent.generateSignature(getStringToSign(body));
   }
 
-  private String getStringToSign(BroadcastRequest body) {
+  public String getStringToSign(BroadcastRequest body) {
     TransactionInformation trans = body.getTransaction();
     return
         body.getPublicKey().getValue() +
@@ -54,5 +59,13 @@ public class ReliableBroadcastHelper {
             trans.getAmount() +
             trans.getSendHash() +
             trans.getReceiveHash();
+  }
+
+  private void populateServerKeysList(Set<String> urls) {
+    urls.forEach(url -> serverKeys.add(cryptoAgent.getBankPublicKey(url)));
+  }
+
+  public boolean verifyMessage(String key, String message, String signature) {
+    return serverKeys.contains(key) && cryptoAgent.verifySignature(message, signature, key);
   }
 }

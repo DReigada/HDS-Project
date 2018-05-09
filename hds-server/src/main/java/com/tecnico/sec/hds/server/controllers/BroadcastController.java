@@ -56,48 +56,55 @@ public class BroadcastController implements BroadcastApi {
   }
 
   private void echoController(BroadcastRequest body) {
-    ReliableBroadcastSession session = reliableBroadcastHelper.createIfNotExists(body.getTransaction().getSendHash().getValue());
-
     String serverPublicKey = body.getPublicKey().getValue();
-    session.putEcho(serverPublicKey);
+    String broadcastSignature = body.getSignature().getValue();
+    String echoMessage = reliableBroadcastHelper.getStringToSign(Converters.serverBroadcastRequestToClient(body));
+    if (reliableBroadcastHelper.verifyMessage(serverPublicKey, echoMessage, broadcastSignature)) {
+      ReliableBroadcastSession session = reliableBroadcastHelper.createIfNotExists(body.getTransaction().getSendHash().getValue());
+      session.putEcho(serverPublicKey);
 
-    if (session.canBroadcastReadyAfterEcho()) {
-      startThread(() -> serversWrapper.broadcast(getReadySignedRequest(body)));
+      if (session.canBroadcastReadyAfterEcho()) {
+        startThread(() -> serversWrapper.broadcast(getReadySignedRequest(body)));
+      }
     }
   }
 
   private void readyController(BroadcastRequest body) {
-    ReliableBroadcastSession session = reliableBroadcastHelper.createIfNotExists(body.getTransaction().getSendHash().getValue());
-
     String serverPublicKey = body.getPublicKey().getValue();
-    session.putReady(serverPublicKey);
+    String broadcastSignature = body.getSignature().getValue();
+    String readyMessage = reliableBroadcastHelper.getStringToSign(Converters.serverBroadcastRequestToClient(body));
+    if (reliableBroadcastHelper.verifyMessage(serverPublicKey, readyMessage, broadcastSignature)) {
+      ReliableBroadcastSession session = reliableBroadcastHelper.createIfNotExists(body.getTransaction().getSendHash().getValue());
 
-    if (session.canBroadcastReadyAfterReady()) {
-      startThread(() -> serversWrapper.broadcast(getReadySignedRequest(body)));
-    }
+      session.putReady(serverPublicKey);
 
-    if (session.canDeliver()) {
-      startThread(() -> {
-        TransactionInformation trans = body.getTransaction();
-        String hash = trans.getSendHash().getValue();
-        String sourceKey = trans.getSourceKey();
-        String destKey = trans.getDestKey();
-        int amount = Integer.valueOf(trans.getAmount());
-        String signature = trans.getSignature().getValue();
+      if (session.canBroadcastReadyAfterReady()) {
+        startThread(() -> serversWrapper.broadcast(getReadySignedRequest(body)));
+      }
 
-        try {
-          if (body.getTransaction().isReceive()) {
-            String receiveHash = trans.getReceiveHash().getValue();
-            receiveAmountRules.receiveAmount(receiveHash, sourceKey, destKey, amount, hash, signature);
-          } else {
-            sendAmountRules.sendAmount(sourceKey, destKey, amount, signature, hash);
+      if (session.canDeliver()) {
+        startThread(() -> {
+          TransactionInformation trans = body.getTransaction();
+          String hash = trans.getSendHash().getValue();
+          String sourceKey = trans.getSourceKey();
+          String destKey = trans.getDestKey();
+          int amount = Integer.valueOf(trans.getAmount());
+          String signature = trans.getSignature().getValue();
+
+          try {
+            if (body.getTransaction().isReceive()) {
+              String receiveHash = trans.getReceiveHash().getValue();
+              receiveAmountRules.receiveAmount(receiveHash, sourceKey, destKey, amount, hash, signature);
+            } else {
+              sendAmountRules.sendAmount(sourceKey, destKey, amount, signature, hash);
+            }
+          } catch (DBException e) {
+            System.err.println("Failed to store transaction: " + hash + " isReceive: " + trans.isReceive());
           }
-        } catch (DBException e) {
-          System.err.println("Failed to store transaction: " + hash + " isReceive: " + trans.isReceive());
-        }
 
-        session.monitorNotify();
-      });
+          session.monitorNotify();
+        });
+      }
     }
   }
 
