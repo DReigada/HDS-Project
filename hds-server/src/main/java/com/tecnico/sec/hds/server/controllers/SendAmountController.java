@@ -93,6 +93,5 @@ public class SendAmountController implements SendAmountApi {
 
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
-
 }
 
