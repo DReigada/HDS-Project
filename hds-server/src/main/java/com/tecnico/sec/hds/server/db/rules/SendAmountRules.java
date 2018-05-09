@@ -47,13 +47,18 @@ public class SendAmountRules {
   public Optional<Transaction> sendAmount(String sourceKey, String destKey,
                                           long amount, String signature, String newHash) throws DBException {
 
-    return queryHelpers.withTransaction(conn -> {
-      TransactionQueries transferQueries = new TransactionQueries(conn);
+    if (verifySendAmount(sourceKey, destKey, amount, newHash)) {
+      return queryHelpers.withTransaction(conn -> {
+        TransactionQueries transferQueries = new TransactionQueries(conn);
 
-      transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, false, signature, newHash, Optional.empty());
+        transferQueries.insertNewTransaction(sourceKey, destKey, amount, true, false, signature, newHash, Optional.empty());
 
-      return transferQueries.getLastInsertedTransaction();
-    });
+        return transferQueries.getLastInsertedTransaction();
+      });
+    } else {
+      return Optional.empty();
+    }
+
   }
 
 }
