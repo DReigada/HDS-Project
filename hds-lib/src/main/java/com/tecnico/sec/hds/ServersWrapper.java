@@ -32,8 +32,8 @@ interface ServerCall<R> {
 }
 
 public class ServersWrapper {
-  public final SecurityHelper securityHelper;
-  private final Map<String, DefaultApi> servers;
+  public SecurityHelper securityHelper;
+  public Map<String, DefaultApi> servers;
   private final QuorumHelper quorumHelper;
 
   public ServersWrapper(String user, String pass) throws IOException, OperatorCreationException, GeneralSecurityException {

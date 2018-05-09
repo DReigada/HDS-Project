@@ -39,4 +39,14 @@ public class ServerHelper {
   public void stopServers() {
     serversApps.stream().parallel().forEach(ConfigurableApplicationContext::close);
   }
+
+  public String startByzantineServer(int i) throws Exception {
+    String port = "808" + i;
+    System.setProperty("server.port", port);
+    String ip = InetAddress.getLocalHost().getCanonicalHostName();
+    ConfigurableApplicationContext app = Application.runApplication();
+    app.getEnvironment().addActiveProfile("ByzantineReliableBroadCast");
+    serversApps.add(app);
+    return "http://" + ip + ":" + port;
+  }
 }
