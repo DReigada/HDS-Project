@@ -47,9 +47,12 @@ public class ApplicationConfig {
 
   private ServersWrapper createServersWrapper() {
     try {
+      boolean useLocalhost = Boolean.getBoolean(System.getProperty("hds.coin.crypto.useLocalhost", "true"));
+
       String ip = InetAddress.getLocalHost().getCanonicalHostName().replace(".", "_");
+      String hostName = useLocalhost ? "localhost" : ip;
       String port = System.getProperty("server.port", "8080");
-      String fileName = "bank" + ip + "_" + port;
+      String fileName = "bank" + hostName + "_" + port;
 
       logger.info("Creating keystore on file: " + fileName);
 
