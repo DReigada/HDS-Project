@@ -2,6 +2,7 @@ package com.tecnico.sec.hds.util.crypto;
 
 import com.tecnico.sec.hds.util.crypto.exceptions.CryptoAgentException;
 import domain.Transaction;
+import io.swagger.client.model.TransactionInformation;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;

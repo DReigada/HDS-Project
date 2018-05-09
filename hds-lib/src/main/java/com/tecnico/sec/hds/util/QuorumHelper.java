@@ -65,11 +65,11 @@ public class QuorumHelper {
   }
 
   private int getServersThreshold() {
-    return (int) ((servers + getNumberOfFaults(servers)) / 2.0);
+    return (int) ((servers + getNumberOfFaults()) / 2.0);
   }
 
-  private int getNumberOfFaults(int serversNumber) {
-    return 1; // TODO change this
+  private int getNumberOfFaults() {
+    return (int) ((servers - 1) / 3.0);
   }
 
 }

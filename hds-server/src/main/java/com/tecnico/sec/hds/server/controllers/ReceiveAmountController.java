@@ -1,40 +1,43 @@
 package com.tecnico.sec.hds.server.controllers;
 
+import com.tecnico.sec.hds.ServersWrapper;
+import com.tecnico.sec.hds.server.controllers.converters.Converters;
+import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastHelper;
+import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastSession;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
-import com.tecnico.sec.hds.server.db.rules.ReceiveAmountRules;
+import com.tecnico.sec.hds.server.db.rules.GetTransactionRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import domain.Transaction;
 import io.swagger.annotations.ApiParam;
 import io.swagger.api.ReceiveAmountApi;
+import io.swagger.client.model.TransactionInformation;
 import io.swagger.model.Hash;
 import io.swagger.model.ReceiveAmountRequest;
 import io.swagger.model.ReceiveAmountResponse;
 import io.swagger.model.Signature;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.Optional;
 
 
 @Controller
 public class ReceiveAmountController implements ReceiveAmountApi {
   private final CryptoAgent cryptoAgent;
+  private final ReliableBroadcastHelper reliableBroadcastHelper;
+  private final ServersWrapper serversWrapper;
+  private final GetTransactionRules getTransactionRules;
 
-  private ReceiveAmountRules receiveAmountRules;
-
-  public ReceiveAmountController(CryptoAgent cryptoAgent, QueryHelpers queryHelpers) {
+  public ReceiveAmountController(CryptoAgent cryptoAgent, QueryHelpers queryHelpers,
+                                 ServersWrapper serversWrapper, ReliableBroadcastHelper reliableBroadcastHelper) {
     this.cryptoAgent = cryptoAgent;
-    receiveAmountRules = new ReceiveAmountRules(queryHelpers);
+    this.serversWrapper = serversWrapper;
+    this.reliableBroadcastHelper = reliableBroadcastHelper;
+    getTransactionRules = new GetTransactionRules(queryHelpers);
   }
 
   @Override
@@ -42,8 +45,8 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     String sourceKey = body.getSourceKey().getValue();
     String destKey = body.getDestKey().getValue();
     long amount = body.getAmount();
-    String lastHash = body.getLastHash().getValue();
-    String transHash = body.getTransHash().getValue();
+    String hash = body.getHash().getValue();
+    String receiveHash = body.getTransHash().getValue();
     String transSignature = body.getSignature().getValue();
 
     ReceiveAmountResponse response = new ReceiveAmountResponse();
@@ -52,8 +55,23 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     Hash newHash = new Hash();
     Signature signature = new Signature();
 
-    if (cryptoAgent.verifySignature(sourceKey + destKey + amount + lastHash + transHash, transSignature, destKey)) {
-      Optional<Transaction> result = receiveAmount(sourceKey, destKey, amount, lastHash, transSignature, transHash);
+    if (cryptoAgent.verifySignature(sourceKey + destKey + amount + hash + receiveHash, transSignature, destKey)) {
+      ReliableBroadcastSession session = reliableBroadcastHelper.createIfNotExists(hash);
+
+      Optional<Transaction> result = Optional.empty();
+
+      try {
+        session.runIfEchoIsPossibleAndWait(() -> {
+          TransactionInformation trans = Converters.createTransaction(sourceKey, destKey, amount, true, true, hash, receiveHash, transSignature);
+          serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
+        });
+
+        result = getTransactionRules.getTransaction(hash);
+      } catch (DBException e) {
+        System.err.println("Failed to receive amount:");
+        e.printStackTrace();
+      }
+
       if (result.isPresent()) {
         newHash.setValue(result.get().hash);
         response.setNewHash(newHash);
@@ -76,15 +94,5 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     response.setSignature(signature);
 
     return new ResponseEntity<>(response, HttpStatus.OK);
-  }
-
-  public Optional<Transaction> receiveAmount(String sourceKey, String destKey, long amount, String lastHash,
-                                             String signature, String transHash) {
-    try {
-      return receiveAmountRules.receiveAmount(transHash, sourceKey, destKey, amount, lastHash, signature);
-    } catch (DBException e) {
-      e.printStackTrace();
-    }
-    return Optional.empty();
   }
 }

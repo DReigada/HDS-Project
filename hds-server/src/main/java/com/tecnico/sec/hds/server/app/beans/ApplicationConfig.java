@@ -1,8 +1,11 @@
 package com.tecnico.sec.hds.server.app.beans;
 
+import com.tecnico.sec.hds.ServersWrapper;
+import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastHelper;
 import com.tecnico.sec.hds.server.db.commands.util.Migrations;
 import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationRunner;
@@ -11,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.security.GeneralSecurityException;
 
 @Configuration
 public class ApplicationConfig {
@@ -22,8 +26,18 @@ public class ApplicationConfig {
   }
 
   @Bean
-  public CryptoAgent cryptoAgent() {
-    return createCryptoAgent();
+  public CryptoAgent cryptoAgent(ServersWrapper wrapper) {
+    return wrapper.securityHelper.cryptoAgent;
+  }
+
+  @Bean
+  public ServersWrapper serversWrapper() {
+    return createServersWrapper();
+  }
+
+  @Bean
+  public ReliableBroadcastHelper reliableBroadcastHelper(CryptoAgent cryptoAgent, ServersWrapper serversWrapper) {
+    return new ReliableBroadcastHelper(cryptoAgent, serversWrapper.getNumberOfServers());
   }
 
   @Bean
@@ -31,7 +45,7 @@ public class ApplicationConfig {
     return new QueryHelpers();
   }
 
-  private CryptoAgent createCryptoAgent() {
+  private ServersWrapper createServersWrapper() {
     try {
       String ip = InetAddress.getLocalHost().getCanonicalHostName().replace(".", "_");
       String port = System.getProperty("server.port", "8080");
@@ -39,8 +53,8 @@ public class ApplicationConfig {
 
       logger.info("Creating keystore on file: " + fileName);
 
-      return new CryptoAgent(fileName, fileName);
-    } catch (IOException e) {
+      return new ServersWrapper(fileName, fileName);
+    } catch (GeneralSecurityException | OperatorCreationException | IOException e) {
       e.printStackTrace();
       System.exit(1);
       return null;
