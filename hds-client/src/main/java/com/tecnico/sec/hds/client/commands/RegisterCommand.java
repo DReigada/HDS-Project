@@ -14,7 +14,7 @@ public class RegisterCommand extends AbstractCommand {
   public void doRun(Client client, String[] args){
     try {
       System.out.print(client.server.register());
-    } catch (GeneralSecurityException | IOException e) {
+    } catch (GeneralSecurityException e) {
       e.printStackTrace();
     }
   }
