@@ -47,7 +47,7 @@ public class ReceiveAmountCommand extends AbstractCommand {
           }
         }
 
-      } catch (GeneralSecurityException | IOException e) {
+      } catch (GeneralSecurityException e) {
         System.out.println("Failed to call receive amount");
         e.printStackTrace();
       }

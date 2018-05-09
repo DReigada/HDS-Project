@@ -23,32 +23,6 @@
 
     <build>
         <plugins>
-            <!-- Swagger code gen plugin -->
-            <plugin>
-                <groupId>io.swagger</groupId>
-                <artifactId>swagger-codegen-maven-plugin</artifactId>
-                <version>2.3.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <inputSpec>hds-lib/src/main/resources/serverApi.yaml</inputSpec>
-                            <language>java</language>
-                            <generateApiTests>false</generateApiTests>
-                            <generateModelTests>false</generateModelTests>
-                            <!--<generateApiDocumentation>false</generateApiDocumentation>-->
-                            <!--<generateModelDocumentation>false</generateModelDocumentation>-->
-                            <configOptions>
-                                <sourceFolder>src/gen/java/main</sourceFolder>
-                                <dateLibrary>joda</dateLibrary>
-                            </configOptions>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
             <!-- Exec Plugin -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

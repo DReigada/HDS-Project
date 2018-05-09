@@ -33,6 +33,7 @@ interface ServerCall<R> {
 
 public class ServersWrapper {
   public final SecurityHelper securityHelper;
+  private final ExecutorService executorService;
   private final Map<String, DefaultApi> servers;
   private final QuorumHelper quorumHelper;
 
@@ -45,6 +46,7 @@ public class ServersWrapper {
     servers = new HashMap<>();
     initializeServers(serversUrls.stream());
     quorumHelper = new QuorumHelper(servers.size());
+    executorService = Executors.newCachedThreadPool();
   }
 
   private static List<String> getServersConfig() {
@@ -100,16 +102,18 @@ public class ServersWrapper {
 
   public Optional<AuditResponse> audit(AuditRequest body) {
     String publicKey = body.getPublicKey().getValue();
-    Optional<Tuple<Tuple<DefaultApi, AuditResponse>, List<Tuple<DefaultApi, AuditResponse>>>> serversWithResponsesQuorum =
+    Optional<Tuple<Tuple<DefaultApi, AuditResponse>, List<Tuple<DefaultApi, AuditResponse>>>> serversWithResponsesQuorumOpt =
         serverReadWithQuorums(server -> server.audit(body), AuditResponse::getList, response -> verifyAuditResponse(publicKey, response));
 
-    //TODO implement writeBack
-    //serversWithResponsesQuorum.stream()
-    //    .skip(1)  // skip the quorum response
-    //    .forEach(writeBack);
+    return serversWithResponsesQuorumOpt.map(serversWithResponsesQuorum -> {
+      AuditResponse auditResponse = serversWithResponsesQuorum.first.second;
 
-    return serversWithResponsesQuorum.map(tuple -> {
-      AuditResponse auditResponse = tuple.first.second;
+      List<List<TransactionInformation>> transactionsFromOutdatedServers =
+          serversWithResponsesQuorum.second.stream()
+              .map(a -> a.second.getList())
+              .collect(Collectors.toList());
+
+      writeBackTransactionsAsync(auditResponse.getList(), transactionsFromOutdatedServers);
 
       if (body.getPublicKey().getValue().equals(securityHelper.key.getValue())) {
         securityHelper.setLastHash(auditResponse.getList().get(0).getSendHash());
@@ -154,6 +158,17 @@ public class ServersWrapper {
     return serversWithResponsesQuorumOpt.map(serversWithResponsesQuorum -> {
       CheckAccountResponse checkAmountResponse = serversWithResponsesQuorum.first.second;
 
+      List<List<TransactionInformation>> transactionsFromOutdatedServers =
+          serversWithResponsesQuorum.second.stream()
+              .map(a -> a.second.getHistory())
+              .collect(Collectors.toList());
+
+      writeBackTransactionsAsync(checkAmountResponse.getHistory(), transactionsFromOutdatedServers);
+
+      if (body.getPublicKey().getValue().equals(securityHelper.key.getValue())) {
+        securityHelper.setLastHash(checkAmountResponse.getHistory().get(0).getSendHash());
+      }
+
       return new Tuple<>(serversWithResponsesQuorum.first.second, getBalanceFromTransactions(checkAmountResponse.getHistory()));
     });
   }
@@ -187,7 +202,7 @@ public class ServersWrapper {
         .sum();
   }
 
-  public String register() throws GeneralSecurityException, IOException {
+  public String register() throws GeneralSecurityException {
 
     RegisterRequest body = new RegisterRequest().publicKey(securityHelper.key);
     securityHelper.signMessage(securityHelper.key.getValue(), body::setSignature);
@@ -208,7 +223,7 @@ public class ServersWrapper {
     return "Unexpected error from server. \n Try Again Later.";
   }
 
-  public boolean receiveAmount(ReceiveAmountRequest body) throws GeneralSecurityException, IOException {
+  public boolean receiveAmount(ReceiveAmountRequest body) throws GeneralSecurityException {
 
     body.setDestKey(securityHelper.key);
 
@@ -236,11 +251,15 @@ public class ServersWrapper {
     String message = receiveAmountResponse.getNewHash().getValue() + receiveAmountResponse.getMessage();
     String signature = receiveAmountResponse.getSignature().getValue();
 
+    if (receiveAmountResponse.isSuccess()) {
+      securityHelper.setLastHash(receiveAmountResponse.getNewHash());
+    }
+
     return securityHelper.verifyBankSignature(message, signature, response.first.getApiClient().getBasePath())
         && receiveAmountResponse.isSuccess();
   }
 
-  public String sendAmount(SendAmountRequest body) throws GeneralSecurityException, IOException {
+  public String sendAmount(SendAmountRequest body) throws GeneralSecurityException {
 
     body.setHash(securityHelper.createHash(
         Optional.of(securityHelper.getLastHash().getValue()),
@@ -268,7 +287,11 @@ public class ServersWrapper {
     if (securityHelper.verifyBankSignature(message, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
         && sendAmountResponse.isSuccess()) {
 
-      securityHelper.setLastHash(sendAmountResponse.getNewHash());
+      if (sendAmountResponse.isSuccess()) {
+        securityHelper.setLastHash(sendAmountResponse.getNewHash());
+      }
+
+
       return sendAmountResponse.getMessage();
     }
 
@@ -306,8 +329,6 @@ public class ServersWrapper {
   }
 
   <A> Stream<Tuple<DefaultApi, A>> forEachServer(ServerCall<A> serverCall) {
-    ExecutorService EXEC = Executors.newCachedThreadPool();
-
     ConcurrentLinkedQueue<Callable<Optional<Tuple<DefaultApi, A>>>> tasks = new ConcurrentLinkedQueue<>();
 
     for (HashMap.Entry<String, DefaultApi> entry : servers.entrySet()) {
@@ -327,7 +348,7 @@ public class ServersWrapper {
     ArrayList<Optional<Tuple<DefaultApi, A>>> results = new ArrayList<>();
 
     try {
-      for (Future<Optional<Tuple<DefaultApi, A>>> resultFut : EXEC.invokeAll(tasks)) {
+      for (Future<Optional<Tuple<DefaultApi, A>>> resultFut : executorService.invokeAll(tasks)) {
         try {
           results.add(resultFut.get());
         } catch (InterruptedException | ExecutionException e) {
@@ -343,5 +364,38 @@ public class ServersWrapper {
     return results.stream()
         .filter(Optional::isPresent)
         .map(Optional::get);
+  }
+
+  private void writeBackTransactionsAsync(List<TransactionInformation> transactionsQuorum,
+                                          List<List<TransactionInformation>> transactionsFromOutdatedServers) {
+    executorService.submit(() -> {
+      System.err.println("Checking if write-back is necessary");
+      Optional<List<TransactionInformation>> leastAmountTransactions =
+          transactionsFromOutdatedServers.stream()
+              .min(Comparator.comparingInt(List::size));
+
+
+      leastAmountTransactions.ifPresent(leastTransactions -> {
+        System.err.println("Starting write-back");
+        List<TransactionInformation> quorum = new ArrayList<>(transactionsQuorum);
+        quorum.removeAll(leastTransactions);
+        Collections.reverse(leastTransactions);
+
+        quorum.forEach(trans -> {
+          try {
+            if (trans.isReceive()) {
+              receiveAmount(LibConverters.transactionInformationToReceiveAmountRequest(trans, true));
+            } else {
+              sendAmount(LibConverters.transactionInformationToSendAmountRequest(trans, true));
+            }
+          } catch (GeneralSecurityException e) {
+            System.err.println("Failed to writeback transaction: " + trans.getSendHash().getValue());
+            e.printStackTrace();
+          }
+        });
+
+        System.err.println("Write-back ended");
+      });
+    });
   }
 }
