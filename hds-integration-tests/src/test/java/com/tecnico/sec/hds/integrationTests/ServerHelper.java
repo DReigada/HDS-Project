@@ -55,8 +55,8 @@ public class ServerHelper {
     System.clearProperty("servers.urls.file");
   }
 
-  public List<String> startServers(int servers, ServerTypeWrapper.ServerType type) {
-    return IntStream.range(0, servers)
+  public List<String> startServers(int start, int servers,ServerTypeWrapper.ServerType type) {
+    return IntStream.range(start, servers)
         .mapToObj(i -> {
           String port = "808" + i;
           System.setProperty("server.port", port);

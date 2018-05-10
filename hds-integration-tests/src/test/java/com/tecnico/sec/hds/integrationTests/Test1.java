@@ -26,7 +26,7 @@ public class Test1 {
   public void test1() throws Exception {
     serverHelper.writeConfig(3);
 
-    List<String> serversUrls = serverHelper.startServers(3, ServerTypeWrapper.ServerType.NORMAL);
+    List<String> serversUrls = serverHelper.startServers(0, 3, ServerTypeWrapper.ServerType.NORMAL);
 
     ServersWrapper server = new ServersWrapper("user1", "pass", serversUrls);
 

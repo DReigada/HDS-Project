@@ -26,7 +26,7 @@ public class MyTest {
   public static void start() throws GeneralSecurityException, IOException, OperatorCreationException {
     serverHelper = new ServerHelper();
     serverHelper.writeConfig(4);
-    List<String> serversUrls = serverHelper.startServers(4, ServerTypeWrapper.ServerType.NORMAL);
+    List<String> serversUrls = serverHelper.startServers(0, 4, ServerTypeWrapper.ServerType.NORMAL);
 
     server = new ServersWrapper("user1", "pass1", serversUrls);
 

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
+import java.util.Base64;
 
 @Controller
 public class ReceiveAmountControllerProxy implements ReceiveAmountApi {
@@ -41,7 +42,7 @@ public class ReceiveAmountControllerProxy implements ReceiveAmountApi {
         return null;
       case BADSIGN:
         response = receiveAmountController.receiveAmount(body);
-        response.getBody().setSignature(new Signature().value("Fake Signature"));
+        response.getBody().setSignature(new Signature().value(Base64.getEncoder().encodeToString("FakeSignature".getBytes())));
       default:
         throw new RuntimeException("This should never happen");
     }

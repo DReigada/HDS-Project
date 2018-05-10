@@ -31,7 +31,9 @@ public class ServerProxyConfig extends ApplicationConfig {
 
   @Bean
   public ServerTypeWrapper serverTypeWrapper(){
-    return new ServerTypeWrapper(arguments.getSourceArgs()[0]);
+    ServerTypeWrapper wrapper = new ServerTypeWrapper(arguments.getSourceArgs()[0]);
+    ServerTypeWrapper.add(wrapper);
+    return wrapper;
   }
 
   @Bean

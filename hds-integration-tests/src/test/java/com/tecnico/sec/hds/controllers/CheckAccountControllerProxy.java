@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
+import java.util.Base64;
 
 @Controller
 public class CheckAccountControllerProxy implements CheckAccountApi {
@@ -38,7 +39,7 @@ public class CheckAccountControllerProxy implements CheckAccountApi {
         return null;
       case BADSIGN:
         response = checkAccountController.checkAccount(body);
-        response.getBody().setSignature(new Signature().value("Fake Signature"));
+        response.getBody().setSignature(new Signature().value(Base64.getEncoder().encodeToString("FakeSignature".getBytes())));
         return response;
       default:
         throw new RuntimeException("This should never happen");
