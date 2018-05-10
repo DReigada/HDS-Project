@@ -7,6 +7,7 @@ import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastSession;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.server.db.rules.GetTransactionRules;
+import com.tecnico.sec.hds.server.db.rules.SendAmountRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import domain.Transaction;
 import io.swagger.api.SendAmountApi;
@@ -29,6 +30,7 @@ public class SendAmountController implements SendAmountApi {
   private final ServersWrapper serversWrapper;
   private final ReliableBroadcastHelper reliableBroadcastHelper;
   private final GetTransactionRules getTransactionRules;
+  private final SendAmountRules sendAmountRules;
 
   public SendAmountController(CryptoAgent cryptoAgent, QueryHelpers queryHelpers,
                               ServersWrapper serversWrapper, ReliableBroadcastHelper reliableBroadcastHelper) {
@@ -36,6 +38,7 @@ public class SendAmountController implements SendAmountApi {
     this.serversWrapper = serversWrapper;
     this.reliableBroadcastHelper = reliableBroadcastHelper;
     getTransactionRules = new GetTransactionRules(queryHelpers);
+    sendAmountRules = new SendAmountRules(queryHelpers);
   }
 
   @Override
@@ -46,14 +49,14 @@ public class SendAmountController implements SendAmountApi {
     String hash = body.getHash().getValue();
     String clientSignature = body.getSignature().getValue();
 
-
     SendAmountResponse response = new SendAmountResponse();
     String message;
     boolean success;
     Hash newHash = new Hash();
     Signature signature = new Signature();
 
-    if (cryptoAgent.verifySignature(sourceKey + destKey + String.valueOf(amount) + hash, clientSignature, sourceKey)) {
+    if (cryptoAgent.verifySignature(sourceKey + destKey + String.valueOf(amount) + hash, clientSignature, sourceKey)
+        && sendAmountRules.verifySendAmount(sourceKey, destKey, amount, hash)) {
       ReliableBroadcastSession session = reliableBroadcastHelper.createIfNotExists(hash);
 
       Optional<Transaction> result = Optional.empty();

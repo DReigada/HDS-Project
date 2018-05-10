@@ -1,6 +1,9 @@
 package com.tecnico.sec.hds.integrationTests;
 
 import com.tecnico.sec.hds.ServersWrapper;
+import com.tecnico.sec.hds.util.Tuple;
+import io.swagger.client.model.CheckAccountRequest;
+import io.swagger.client.model.CheckAccountResponse;
 import io.swagger.client.model.SendAmountRequest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -8,6 +11,9 @@ import org.junit.Test;
 
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
+
+import static org.junit.Assert.assertEquals;
 
 public class BroadCastTester {
   private static ServersWrapper server;
@@ -15,9 +21,11 @@ public class BroadCastTester {
 
   @BeforeClass
   public static void start() throws Exception {
+    System.setProperty("hds.coin.crypto.useLocalhost", "false");
     serverHelper = new ServerHelper();
-    List<String> serversUrls = serverHelper.startServers(3);
-    serversUrls.add(serverHelper.startByzantineServer(8));
+    List<String> serversUrls = serverHelper.startServers(2);
+    serversUrls.add(serverHelper.startByzantineServer(2));
+    serversUrls.add(serverHelper.startByzantineServer(3));
     server = new ServersWrapper(
         "user1",
         "pass1",
@@ -34,20 +42,10 @@ public class BroadCastTester {
   public void sendAmountSucess()throws Exception{
     server.register();
     SendAmountRequest body = new SendAmountRequest().amount(200).destKey(server.securityHelper.key);
-    String response = server.sendAmount(body);
-    System.out.println(response);
+    server.sendAmount(body);
+
+    Optional<Tuple<CheckAccountResponse, Long>> response = server.checkAccount(new CheckAccountRequest(), false);
+    long balance = response.get().second;
+    assertEquals(balance, 1000);
   }
-
-
-
-  /*private Tuple<String, DefaultApi> spyServer(String url) throws Exception{
-    ApiClient client = new ApiClient().setBasePath(url);
-    DefaultApi spyServer = spy(new DefaultApi(client));
-    String[] urlParsed = url.split(":");
-    String port = urlParsed[2];
-    String ip = urlParsed[1].substring(2);
-    String fileName = "bank" + ip + "_" + port;
-    ReliableBroadcastHelper reliableBroadcastHelper = spy(new ReliableBroadcastHelper());
-
-  }*/
 }

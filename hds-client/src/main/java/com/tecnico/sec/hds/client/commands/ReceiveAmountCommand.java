@@ -1,12 +1,10 @@
 package com.tecnico.sec.hds.client.commands;
 
 import com.tecnico.sec.hds.client.Client;
+import com.tecnico.sec.hds.util.Tuple;
 import io.swagger.client.model.*;
 
-import java.io.IOException;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
+import java.security.GeneralSecurityException;
 import java.util.Optional;
 
 public class ReceiveAmountCommand extends AbstractCommand {
@@ -14,17 +12,15 @@ public class ReceiveAmountCommand extends AbstractCommand {
 
   @Override
   public void doRun(Client client, String[] args) {
-    PubKey sourceKey = new PubKey().value(args[0].trim());
-    Hash hash = new Hash().value(args[1].trim());
+    Hash hash = new Hash().value(args[0].trim());
 
-    AuditRequest auditRequest = new AuditRequest().publicKey(sourceKey);
+    Optional<Tuple<CheckAccountResponse, Long>> checkAccountResponseOpt =
+        client.server.checkAccount(new CheckAccountRequest(), true);
 
-    Optional<AuditResponse> auditResponseOpt = client.server.audit(auditRequest);
-
-    if (auditResponseOpt.isPresent()) {
+    if (checkAccountResponseOpt.isPresent()) {
       Optional<TransactionInformation> transactionOpt =
-          auditResponseOpt.get()
-              .getList().stream()
+          checkAccountResponseOpt.get()
+              .first.getPending().stream()
               .filter(a -> a.getSendHash().getValue().equals(hash.getValue()))
               .findFirst();
 
@@ -47,7 +43,7 @@ public class ReceiveAmountCommand extends AbstractCommand {
           }
         }
 
-      } catch (GeneralSecurityException | IOException e) {
+      } catch (GeneralSecurityException e) {
         System.out.println("Failed to call receive amount");
         e.printStackTrace();
       }

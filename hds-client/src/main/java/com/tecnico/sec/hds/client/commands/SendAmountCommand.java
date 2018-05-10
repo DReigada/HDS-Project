@@ -24,7 +24,7 @@ public class SendAmountCommand extends AbstractCommand {
 
     try {
       System.out.println(client.server.sendAmount(sendAmount));
-    } catch (GeneralSecurityException | IOException e) {
+    } catch (GeneralSecurityException e) {
       e.printStackTrace();
     }
 

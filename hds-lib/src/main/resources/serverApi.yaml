@@ -122,11 +122,21 @@ paths:
       responses:
         200:
           description: "successful operation"
-          scheme:
-            $ref: "#/definitions/BroadcastResponse"
         400:
           description: "Invalid Key"
 
+  /writeBack:
+    post:
+      operationId: "writeBack"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/WriteBackRequest"
+      responses:
+        200:
+          description: "successful operation"
 
 definitions:
   PubKey:
@@ -310,3 +320,13 @@ definitions:
         $ref: "#/definitions/TransactionInformation"
       signature:
         $ref: "#/definitions/Signature"
+
+  WriteBackRequest:
+    type: object
+    properties:
+      publicKey:
+        $ref: "#/definitions/PubKey"
+      missingTransactions:
+        type: array
+        items:
+          $ref: "#/definitions/Hash"

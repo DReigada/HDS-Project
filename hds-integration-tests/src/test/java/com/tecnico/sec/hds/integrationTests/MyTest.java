@@ -38,7 +38,7 @@ public class MyTest {
   }
 
   public static Tuple<CheckAccountResponse, Long> verifyAmount(long expected) {
-    Optional<Tuple<CheckAccountResponse, Long>> checkAccount2 = server.checkAccount(new CheckAccountRequest());
+    Optional<Tuple<CheckAccountResponse, Long>> checkAccount2 = server.checkAccount(new CheckAccountRequest(), false);
 
     assertTrue(checkAccount2.isPresent());
     assertEquals(expected, (long) checkAccount2.get().second);

@@ -1,29 +1,24 @@
-package com.tecnico.sec.hds.server.app.beans;
+package com.tecnico.sec.hds.integrationTests.byzantineApp.beans;
 
 import com.tecnico.sec.hds.ServersWrapper;
+import com.tecnico.sec.hds.server.app.beans.ApplicationConfig;
 import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastHelper;
 import com.tecnico.sec.hds.server.db.commands.util.Migrations;
 import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.security.GeneralSecurityException;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-
-@Profile("ByzantineReliableBroadCast")
-@Primary
 @Configuration
 public class ByzantineTestConfig {
   private static final Logger logger = LoggerFactory.getLogger(ApplicationConfig.class);
@@ -45,11 +40,11 @@ public class ByzantineTestConfig {
 
   @Bean
   public ReliableBroadcastHelper reliableBroadcastHelper(CryptoAgent cryptoAgent, ServersWrapper serversWrapper) {
-    ReliableBroadcastHelper reliableBroadcastHelper = spy(new ReliableBroadcastHelper(cryptoAgent,
+    ReliableBroadcastHelper reliableBroadcastHelper = Mockito.spy(new ReliableBroadcastHelper(cryptoAgent,
         serversWrapper.getNumberOfServers(),
         serversWrapper.getServersUrl()));
 
-    doReturn("Server Byzantino!").when(reliableBroadcastHelper).signBroadcastBody(any());
+    Mockito.doReturn("Server Byzantino!").when(reliableBroadcastHelper).signBroadcastBody(Matchers.any());
     return reliableBroadcastHelper;
   }
 
