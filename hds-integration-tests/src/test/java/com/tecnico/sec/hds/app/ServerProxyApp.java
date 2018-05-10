@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
@@ -12,13 +13,15 @@ import org.springframework.context.annotation.ComponentScan;
 public class ServerProxyApp {
   private static final Logger logger = LoggerFactory.getLogger(com.tecnico.sec.hds.server.app.Application.class);
 
-  public static void main(String[] args) {
-    System.setProperty("type", args[0]);
-    runApplication();
+  public static void main(String[] args){
+    runApplication(ServerTypeWrapper.ServerType.BYZANTINE);
   }
 
-  public static ConfigurableApplicationContext runApplication() {
-    return SpringApplication.run(com.tecnico.sec.hds.server.app.Application.class);
+  public static ConfigurableApplicationContext runApplication(ServerTypeWrapper.ServerType type) {
+
+
+    return SpringApplication.run(ServerProxyApp.class, type.toString());
   }
+
 
 }

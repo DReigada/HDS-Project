@@ -1,10 +1,12 @@
 package com.tecnico.sec.hds.controllers;
 
-import com.tecnico.sec.hds.controllers.converters.RequestConverter;
-import com.tecnico.sec.hds.controllers.converters.ResponseConverter;
-import io.swagger.api.ApiException;
+import com.tecnico.sec.hds.ServersWrapper;
+import com.tecnico.sec.hds.app.ServerTypeWrapper;
+import com.tecnico.sec.hds.server.controllers.BroadcastController;
+import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastHelper;
+import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
+import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.api.BroadcastApi;
-import io.swagger.client.api.DefaultApi;
 import io.swagger.model.BroadcastRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,13 +18,14 @@ import javax.validation.Valid;
 @Controller
 public class BroadcastControllerProxy implements BroadcastApi {
 
-  DefaultApi server;
+  private final BroadcastController broadcastController;
 
-  String type;
+  private ServerTypeWrapper serverTypeWrapper;
 
-  public BroadcastControllerProxy(DefaultApi server) {
-    this.server = server;
-    type = System.getProperty("type");
+  public BroadcastControllerProxy(ServersWrapper serversWrapper, CryptoAgent cryptoAgent, QueryHelpers queryHelpers,
+                                  ReliableBroadcastHelper reliableBroadcastHelper, ServerTypeWrapper serverTypeWrapper) {
+    this.serverTypeWrapper = serverTypeWrapper;
+    this.broadcastController = new BroadcastController(cryptoAgent, queryHelpers, serversWrapper, reliableBroadcastHelper);
   }
 
   @Override

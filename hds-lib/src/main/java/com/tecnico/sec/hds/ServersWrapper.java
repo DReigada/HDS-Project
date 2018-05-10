@@ -281,6 +281,7 @@ public class ServersWrapper {
     securityHelper.signMessage(message, body::setSignature);
 
     Tuple<DefaultApi, SendAmountResponse> response = forEachServer(server -> server.sendAmount(body))
+        .filter(a -> a.second.isSuccess()) // TODO quorum ?
         .collect(Collectors.toList())
         .get(0);
 

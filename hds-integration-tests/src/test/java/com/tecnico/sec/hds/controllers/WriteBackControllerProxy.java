@@ -1,5 +1,11 @@
 package com.tecnico.sec.hds.controllers;
 
+import com.tecnico.sec.hds.ServersWrapper;
+import com.tecnico.sec.hds.app.ServerTypeWrapper;
+import com.tecnico.sec.hds.server.controllers.WriteBackController;
+import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastHelper;
+import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
+import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.api.WriteBackApi;
 import io.swagger.client.api.DefaultApi;
 import io.swagger.model.WriteBackRequest;
@@ -13,13 +19,14 @@ import javax.validation.Valid;
 @Controller
 public class WriteBackControllerProxy implements WriteBackApi {
 
-  DefaultApi server;
+  private WriteBackController writeBackController;
 
-  String type;
+  private ServerTypeWrapper serverTypeWrapper;
 
-  public WriteBackControllerProxy(DefaultApi server) {
-    this.server = server;
-    type = System.getProperty("type");
+  public WriteBackControllerProxy(ReliableBroadcastHelper reliableBroadcastHelper, QueryHelpers queryHelpers,
+                                  ServersWrapper serversWrapper, ServerTypeWrapper serverTypeWrapper) {
+    this.writeBackController = new WriteBackController(reliableBroadcastHelper, serversWrapper, queryHelpers);
+    this.serverTypeWrapper = serverTypeWrapper;
   }
 
   @Override

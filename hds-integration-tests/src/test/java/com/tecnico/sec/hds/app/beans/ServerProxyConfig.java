@@ -1,11 +1,17 @@
 package com.tecnico.sec.hds.app.beans;
 
 import com.tecnico.sec.hds.ServersWrapper;
+import com.tecnico.sec.hds.app.ServerTypeWrapper;
+import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastHelper;
+import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
+import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.client.ApiClient;
 import io.swagger.client.api.DefaultApi;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,6 +35,30 @@ public class ServerProxyConfig {
     ApiClient client = new ApiClient().setBasePath(url);
     DefaultApi server = new DefaultApi(client);
     return server;
+  }
+
+  @Autowired
+  private ApplicationArguments arguments;
+
+  @Bean
+  public ServerTypeWrapper serverTypeWrapper(){
+    return new ServerTypeWrapper(arguments.getSourceArgs()[0]);
+  }
+
+  @Bean
+  public CryptoAgent cryptoAgent(ServersWrapper wrapper) {
+    return wrapper.securityHelper.cryptoAgent;
+  }
+
+  @Bean
+  public QueryHelpers queryHelpers() {
+    return new QueryHelpers();
+  }
+
+
+  @Bean
+  public ReliableBroadcastHelper reliableBroadcastHelper(CryptoAgent cryptoAgent, ServersWrapper serversWrapper) {
+    return new ReliableBroadcastHelper(cryptoAgent, serversWrapper.getNumberOfServers(), serversWrapper.getServersUrl());
   }
 
   @Bean
