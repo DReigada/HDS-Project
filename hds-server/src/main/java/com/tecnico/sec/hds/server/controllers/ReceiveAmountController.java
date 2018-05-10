@@ -7,6 +7,7 @@ import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastSession;
 import com.tecnico.sec.hds.server.db.commands.exceptions.DBException;
 import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.server.db.rules.GetTransactionRules;
+import com.tecnico.sec.hds.server.db.rules.ReceiveAmountRules;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import domain.Transaction;
 import io.swagger.annotations.ApiParam;
@@ -31,6 +32,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
   private final ReliableBroadcastHelper reliableBroadcastHelper;
   private final ServersWrapper serversWrapper;
   private final GetTransactionRules getTransactionRules;
+  private final ReceiveAmountRules receiveAmountRules;
 
   public ReceiveAmountController(CryptoAgent cryptoAgent, QueryHelpers queryHelpers,
                                  ServersWrapper serversWrapper, ReliableBroadcastHelper reliableBroadcastHelper) {
@@ -38,6 +40,7 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     this.serversWrapper = serversWrapper;
     this.reliableBroadcastHelper = reliableBroadcastHelper;
     getTransactionRules = new GetTransactionRules(queryHelpers);
+    receiveAmountRules = new ReceiveAmountRules(queryHelpers);
   }
 
   @Override
@@ -55,17 +58,17 @@ public class ReceiveAmountController implements ReceiveAmountApi {
     Hash newHash = new Hash();
     Signature signature = new Signature();
 
-    if (cryptoAgent.verifySignature(sourceKey + destKey + amount + hash + receiveHash, transSignature, destKey)) {
+    if (cryptoAgent.verifySignature(sourceKey + destKey + amount + hash + receiveHash, transSignature, destKey)
+        && receiveAmountRules.verifyReceiveAmount(receiveHash, sourceKey, destKey, amount, hash)) {
       ReliableBroadcastSession session = reliableBroadcastHelper.createIfNotExists(hash);
 
+      session.runIfEchoIsPossibleAndWait(() -> {
+        TransactionInformation trans = Converters.createTransaction(sourceKey, destKey, amount, true, true, hash, receiveHash, transSignature);
+        serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
+      });
+
       Optional<Transaction> result = Optional.empty();
-
       try {
-        session.runIfEchoIsPossibleAndWait(() -> {
-          TransactionInformation trans = Converters.createTransaction(sourceKey, destKey, amount, true, true, hash, receiveHash, transSignature);
-          serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-        });
-
         result = getTransactionRules.getTransaction(hash);
       } catch (DBException e) {
         System.err.println("Failed to receive amount:");

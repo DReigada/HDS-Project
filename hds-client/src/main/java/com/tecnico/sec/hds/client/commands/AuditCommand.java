@@ -16,7 +16,7 @@ public class AuditCommand extends AbstractCommand {
     PubKey key = new PubKey().value(args[0].trim());
     AuditRequest auditRequest = new AuditRequest().publicKey(key);
 
-    Optional<AuditResponse> response = client.server.audit(auditRequest);
+    Optional<AuditResponse> response = client.server.audit(auditRequest, true);
 
     if (response.isPresent()) {
       System.out.println(response.get());

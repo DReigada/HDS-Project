@@ -121,11 +121,14 @@ public class ReceiveAmountTest {
     String hash2 = new ChainHelper().generateTransactionHash(Optional.of(destAcc.second), Optional.of(sendAmountTrans.hash), sourceAcc.first, destAcc.first,
         1, ChainHelper.TransactionType.ACCEPT);
 
+
+    assertTrue(receiveAmountRules.verifyReceiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, hash2));
+
     Optional<Transaction> receiveAmountTransOpt1 = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, hash2, "qwerty");
-    Optional<Transaction> receiveAmountTransOpt2 = receiveAmountRules.receiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, hash2, "qwerty");
 
     assertTrue(receiveAmountTransOpt1.isPresent());
-    assertFalse(receiveAmountTransOpt2.isPresent());
+
+    assertFalse(receiveAmountRules.verifyReceiveAmount(sendAmountTrans.hash, sendAmountTrans.sourceKey, sendAmountTrans.destKey, sendAmountTrans.amount, hash2));
   }
 
 }

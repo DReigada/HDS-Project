@@ -23,12 +23,12 @@ public class CryptoAgentTest {
   private static CryptoAgent agent;
   private static CryptoAgent bank;
 
-  private static String serverUrl = "http://test:8080";
+  private static String serverUrl = "http://localhost:8080";
 
   @BeforeClass
   public static void before() throws Exception {
     agent = new CryptoAgent("user1", "pass");
-    bank = new CryptoAgent("banktest_8080", "banktest_8080");
+    bank = new CryptoAgent("banklocalhost_8080", "banklocalhost_8080");
   }
 
   @Property
