@@ -26,16 +26,17 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@FunctionalInterface
-interface ServerCall<R> {
-  R apply(DefaultApi t) throws ApiException;
-}
 
 public class ServersWrapper {
   public final SecurityHelper securityHelper;
-  private final ExecutorService executorService;
-  private final Map<String, DefaultApi> servers;
+  protected final ExecutorService executorService;
+  protected final Map<String, DefaultApi> servers;
   private final QuorumHelper quorumHelper;
+
+  @FunctionalInterface
+  protected interface ServerCall<R> {
+    R apply(DefaultApi t) throws ApiException;
+  }
 
   public ServersWrapper(String user, String pass) throws IOException, OperatorCreationException, GeneralSecurityException {
     this(user, pass, getServersConfig());
@@ -331,7 +332,7 @@ public class ServersWrapper {
     return quorumHelper.getReadQuorumFromResponses(forEachServer(serverCall), responseToList, responseVerifier);
   }
 
-  <A> Stream<Tuple<DefaultApi, A>> forEachServer(ServerCall<A> serverCall) {
+  protected <A> Stream<Tuple<DefaultApi, A>> forEachServer(ServerCall<A> serverCall) {
     ConcurrentLinkedQueue<Callable<Optional<Tuple<DefaultApi, A>>>> tasks = new ConcurrentLinkedQueue<>();
 
     for (HashMap.Entry<String, DefaultApi> entry : servers.entrySet()) {

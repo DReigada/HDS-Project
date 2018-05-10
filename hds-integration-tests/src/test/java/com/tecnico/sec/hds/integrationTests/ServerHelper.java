@@ -18,13 +18,13 @@ public class ServerHelper {
   public List<String> startServers(int servers) {
     return IntStream.range(0, servers)
         .mapToObj(i -> {
-          String port = "808" + i;
+          String port = "818" + i;
           System.setProperty("server.port", port);
 
           ConfigurableApplicationContext app = Application.runApplication();
           serversApps.add(app);
 
-          return "http://localhost:" + port;
+          return "http://DESKTOP-6ON3D5U:" + port;
         })
         .collect(Collectors.toList());
   }
