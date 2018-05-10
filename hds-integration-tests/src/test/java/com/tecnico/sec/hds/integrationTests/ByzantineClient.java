@@ -37,7 +37,7 @@ public class ByzantineClient {
     System.setProperty("hds.coin.crypto.useLocalhost", "false");
     serverHelper = new ServerHelper();
     serverHelper.writeConfig(4);
-    List<String> serversUrls = serverHelper.startServers(0,4,ServerTypeWrapper.ServerType.NORMAL);
+    List<String> serversUrls = serverHelper.startServers(0, 4, ServerTypeWrapper.ServerType.NORMAL);
 
     byzantineClient = new bla("user1", "pass1", serversUrls);
     normalClient = new ServersWrapper("user2", "pass2", serversUrls);
@@ -61,7 +61,7 @@ public class ByzantineClient {
   }
 
   @AfterClass
-  public static void clearEverything(){
+  public static void clearEverything() {
     serverHelper.deleteConfig();
   }
 
@@ -101,6 +101,7 @@ public class ByzantineClient {
         changedBody);
     assertTrue(transactionResponses);
   }
+
   @Test
   public void allWrongSignatures() throws Exception {
     SendAmountRequest body = sendAmountRequest();
@@ -114,8 +115,6 @@ public class ByzantineClient {
         changedBody);
     assertTrue(transactionResponses);
   }
-
-
 
 
   private boolean compareTransactions(List<Transaction> transactionResponses,
@@ -155,7 +154,7 @@ public class ByzantineClient {
       return checkAccountResponses;
     }
 
-    public String sendAmount(SendAmountRequest normalBody, SendAmountRequest changedBody, int n) throws GeneralSecurityException {
+    public String sendAmount(SendAmountRequest normalBody, SendAmountRequest changedBody, int n) {
       Tuple<DefaultApi, SendAmountResponse> response = forEachServer(server -> {
         List serversNoneByzantine = new ArrayList<>(servers.keySet().stream().skip(n).collect(Collectors.toList()));
         if (serversNoneByzantine.contains(server.getApiClient().getBasePath())) {
@@ -168,14 +167,16 @@ public class ByzantineClient {
           .get(0);
 
       SendAmountResponse sendAmountResponse = response.second;
-      String message = sendAmountResponse.getNewHash().getValue() + sendAmountResponse.getMessage();
-
+      String message;
+      if (sendAmountResponse.getNewHash() != null) {
+        message = sendAmountResponse.getNewHash().getValue() + sendAmountResponse.getMessage();
+      } else {
+        message = sendAmountResponse.getMessage();
+      }
       if (securityHelper.verifyBankSignature(message, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
           && sendAmountResponse.isSuccess()) {
 
-        if (sendAmountResponse.isSuccess()) {
-          securityHelper.setLastHash(sendAmountResponse.getNewHash());
-        }
+        securityHelper.setLastHash(sendAmountResponse.getNewHash());
 
 
         return sendAmountResponse.getMessage();

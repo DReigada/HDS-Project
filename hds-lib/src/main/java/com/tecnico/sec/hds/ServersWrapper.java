@@ -292,11 +292,7 @@ public class ServersWrapper {
     if (securityHelper.verifyBankSignature(message, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
         && sendAmountResponse.isSuccess()) {
 
-      if (sendAmountResponse.isSuccess()) {
-        securityHelper.setLastHash(sendAmountResponse.getNewHash());
-      }
-
-
+      securityHelper.setLastHash(sendAmountResponse.getNewHash());
       return sendAmountResponse.getMessage();
     }
 
