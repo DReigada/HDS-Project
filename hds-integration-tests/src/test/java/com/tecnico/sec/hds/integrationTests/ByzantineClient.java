@@ -18,14 +18,10 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ByzantineClient {
   private static bla byzantineClient;
@@ -79,14 +75,15 @@ public class ByzantineClient {
 
   @Test
   public void transactionDiffTo2Server() throws Exception {
-    SendAmountRequest body = sendAmountRequest();
-    SendAmountRequest normalBody = byzantineClient.getSendAmountBody(body);
-    SendAmountRequest changedBody = byzantineClient.getSendAmountBody(body.amount(91));
+    SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
+    SendAmountRequest changedBody = byzantineClient.getSendAmountBody(sendAmountRequest().amount(91));
     byzantineClient.sendAmount(normalBody, changedBody, 2);
-    boolean transactionResponses = compareTransactions(byzantineClient.checkAccountFromAllServers(),
-        normalBody,
-        changedBody);
-    assertFalse(transactionResponses);
+
+    Optional<Tuple<CheckAccountResponse, Long>> check_account =
+        byzantineClient.checkAccount(new CheckAccountRequest(), true);
+
+    assertTrue(check_account.isPresent());
+    assertEquals(1, check_account.get().first.getHistory().size());
   }
 
   @Test
@@ -155,34 +152,17 @@ public class ByzantineClient {
     }
 
     public String sendAmount(SendAmountRequest normalBody, SendAmountRequest changedBody, int n) {
-      Tuple<DefaultApi, SendAmountResponse> response = forEachServer(server -> {
-        List serversNoneByzantine = new ArrayList<>(servers.keySet().stream().skip(n).collect(Collectors.toList()));
+      forEachServer(server -> {
+        Set<String> serversNoneByzantine = servers.keySet().stream().skip(n).collect(Collectors.toSet());
         if (serversNoneByzantine.contains(server.getApiClient().getBasePath())) {
           return server.sendAmount(normalBody);
         } else {
-          System.out.println("ByzEntrei");
           return server.sendAmount(changedBody);
         }
-      }).collect(Collectors.toList())
-          .get(0);
+      })
+          .collect(Collectors.toList());
 
-      SendAmountResponse sendAmountResponse = response.second;
-      String message;
-      if (sendAmountResponse.getNewHash() != null) {
-        message = sendAmountResponse.getNewHash().getValue() + sendAmountResponse.getMessage();
-      } else {
-        message = sendAmountResponse.getMessage();
-      }
-      if (securityHelper.verifyBankSignature(message, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
-          && sendAmountResponse.isSuccess()) {
-
-        securityHelper.setLastHash(sendAmountResponse.getNewHash());
-
-
-        return sendAmountResponse.getMessage();
-      }
-
-      return "Unexpected error from server. \n Try Again Later.";
+      return "asdf";
     }
 
     public SendAmountRequest getSendAmountBody(SendAmountRequest body) throws GeneralSecurityException {
