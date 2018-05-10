@@ -1,6 +1,7 @@
 package com.tecnico.sec.hds.integrationTests;
 
 import com.tecnico.sec.hds.ServersWrapper;
+import com.tecnico.sec.hds.app.ServerTypeWrapper;
 import com.tecnico.sec.hds.util.TransactionGetter;
 import com.tecnico.sec.hds.util.Tuple;
 import com.tecnico.sec.hds.util.crypto.ChainHelper;
@@ -10,6 +11,7 @@ import io.swagger.client.api.DefaultApi;
 import io.swagger.client.model.*;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,7 +36,8 @@ public class ByzantineClient {
   public void start() throws GeneralSecurityException, IOException, OperatorCreationException {
     System.setProperty("hds.coin.crypto.useLocalhost", "false");
     serverHelper = new ServerHelper();
-    List<String> serversUrls = serverHelper.startServers(4);
+    serverHelper.writeConfig(4);
+    List<String> serversUrls = serverHelper.startServers(0,4,ServerTypeWrapper.ServerType.NORMAL);
 
     byzantineClient = new bla("user1", "pass1", serversUrls);
     normalClient = new ServersWrapper("user2", "pass2", serversUrls);
@@ -50,10 +54,15 @@ public class ByzantineClient {
     new File("HDSDB8183.mv.db").delete();
     new File("user1KeyStore.jce").delete();
     new File("user2KeyStore.jce").delete();
-    /*new File("bankDESKTOP-6ON3D5U_8180KeyStore.jce").delete();
-    new File("bankDESKTOP-6ON3D5U_8181KeyStore.jce").delete();
-    new File("bankDESKTOP-6ON3D5U_8182KeyStore.jce").delete();
-    new File("bankDESKTOP-6ON3D5U_8183KeyStore.jce").delete();*/
+    new File("banklocalhost_8180KeyStore.jce").delete();
+    new File("banklocalhost_8181KeyStore.jce").delete();
+    new File("banklocalhost_8182KeyStore.jce").delete();
+    new File("banklocalhost_8183KeyStore.jce").delete();
+  }
+
+  @AfterClass
+  public static void clearEverything(){
+    serverHelper.deleteConfig();
   }
 
   @Test
@@ -85,7 +94,7 @@ public class ByzantineClient {
     SendAmountRequest body = sendAmountRequest();
     SendAmountRequest normalBody = byzantineClient.getSendAmountBody(body);
     SendAmountRequest changedBody = byzantineClient.getSendAmountBody(body.amount(91));
-    changedBody.setSignature(new Signature().value("Im Byzantine!"));
+    changedBody.signature(new Signature().value(Base64.getEncoder().encodeToString("Im Byzantine!".getBytes())));
     byzantineClient.sendAmount(normalBody, changedBody, 2);
     boolean transactionResponses = compareTransactions(byzantineClient.checkAccountFromAllServers(),
         normalBody,
@@ -97,8 +106,8 @@ public class ByzantineClient {
     SendAmountRequest body = sendAmountRequest();
     SendAmountRequest normalBody = byzantineClient.getSendAmountBody(body);
     SendAmountRequest changedBody = byzantineClient.getSendAmountBody(body.amount(91));
-    changedBody.setSignature(new Signature().value("Im Byzantine!"));
-    normalBody.setSignature(new Signature().value("Im Byzantine!!!"));
+    changedBody.signature(new Signature().value(Base64.getEncoder().encodeToString("Im Byzantine!".getBytes())));
+    normalBody.signature(new Signature().value(Base64.getEncoder().encodeToString("Im Byzantine!!!".getBytes())));
     byzantineClient.sendAmount(normalBody, changedBody, 2);
     boolean transactionResponses = compareTransactions(byzantineClient.checkAccountFromAllServers(),
         normalBody,

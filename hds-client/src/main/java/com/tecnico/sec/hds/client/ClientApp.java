@@ -12,12 +12,18 @@ public class ClientApp {
     String username = reader.nextLine();
     System.out.println("\nEnter Password:");
     String password = reader.nextLine();
+    Client client;
 
     try {
       System.setProperty("http.maxConnections", "100");
 
-      Client client = new Client(username, password);
+      client = new Client(username, password);
 
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(1);
+      return;
+    }
       while (true) {
         System.out.println("\nEnter a command: ");
         String[] commandLine = reader.nextLine().split(" ");
@@ -27,16 +33,16 @@ public class ClientApp {
 
         AbstractCommand command = client.getCommands().get(commandName);
 
-        if (command != null) {
-          command.run(client, commandArgs);
-        } else {
-          System.err.println("Invalid command: " + commandLine[0]);
+        try {
+          if (command != null) {
+            command.run(client, commandArgs);
+          } else {
+            System.err.println("Invalid command: " + commandLine[0]);
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
         }
       }
-
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
 
   }
 }
