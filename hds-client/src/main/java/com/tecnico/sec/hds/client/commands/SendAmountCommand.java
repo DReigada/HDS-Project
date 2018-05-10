@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Optional;
 
 public class SendAmountCommand extends AbstractCommand {
   private static final String name = "send_amount";
@@ -23,7 +24,13 @@ public class SendAmountCommand extends AbstractCommand {
     sendAmount.setAmount(amount);
 
     try {
-      System.out.println(client.server.sendAmount(sendAmount));
+      Optional<String> response = client.server.sendAmount(sendAmount);
+
+      if(response.isPresent()){
+        System.out.println(client.server.sendAmount(sendAmount));
+      } else {
+        System.out.println("Could not get response from servers");
+      }
     } catch (GeneralSecurityException e) {
       e.printStackTrace();
     }

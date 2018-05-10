@@ -41,6 +41,8 @@ public class CheckAccountControllerProxy implements CheckAccountApi {
         response = checkAccountController.checkAccount(body);
         response.getBody().setSignature(new Signature().value(Base64.getEncoder().encodeToString("FakeSignature".getBytes())));
         return response;
+      case BADORDER:
+        return null;
       default:
         throw new RuntimeException("This should never happen");
     }

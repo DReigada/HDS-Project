@@ -226,7 +226,7 @@ public class ServersWrapper {
     return "Unexpected error from server. \n Try Again Later.";
   }
 
-  public boolean receiveAmount(ReceiveAmountRequest body) throws GeneralSecurityException {
+  public Optional<String> receiveAmount(ReceiveAmountRequest body) throws GeneralSecurityException {
 
     body.setDestKey(securityHelper.key);
 
@@ -246,23 +246,31 @@ public class ServersWrapper {
             + body.getTransHash().getValue(),
         body::setSignature);
 
-    Tuple<DefaultApi, ReceiveAmountResponse> response = forEachServer(server -> server.receiveAmount(body))
+    Optional<Tuple<DefaultApi, ReceiveAmountResponse>> responseOpt = forEachServer(server -> server.receiveAmount(body))
         .collect(Collectors.toList())
-        .get(0);
+        .stream()
+        .findFirst();
 
-    ReceiveAmountResponse receiveAmountResponse = response.second;
-    String message = receiveAmountResponse.getNewHash().getValue() + receiveAmountResponse.getMessage();
-    String signature = receiveAmountResponse.getSignature().getValue();
 
-    if (receiveAmountResponse.isSuccess()) {
-      securityHelper.setLastHash(receiveAmountResponse.getNewHash());
-    }
+    return responseOpt.map(response -> {
+      ReceiveAmountResponse receiveAmountResponse = response.second;
+      String message = receiveAmountResponse.getNewHash().getValue() + receiveAmountResponse.getMessage();
+      String signature = receiveAmountResponse.getSignature().getValue();
 
-    return securityHelper.verifyBankSignature(message, signature, response.first.getApiClient().getBasePath())
-        && receiveAmountResponse.isSuccess();
+      if (receiveAmountResponse.isSuccess()) {
+        securityHelper.setLastHash(receiveAmountResponse.getNewHash());
+      }
+
+      if(securityHelper.verifyBankSignature(message, signature, response.first.getApiClient().getBasePath())
+          && receiveAmountResponse.isSuccess()){
+        return response.second.getMessage();
+      } else {
+        return "Failed to verify bank signature";
+      }
+    });
   }
 
-  public String sendAmount(SendAmountRequest body) throws GeneralSecurityException {
+  public Optional<String> sendAmount(SendAmountRequest body) throws GeneralSecurityException {
 
     body.setHash(securityHelper.createHash(
         Optional.of(securityHelper.getLastHash().getValue()),
@@ -280,26 +288,28 @@ public class ServersWrapper {
 
     securityHelper.signMessage(message, body::setSignature);
 
-    Tuple<DefaultApi, SendAmountResponse> response = forEachServer(server -> server.sendAmount(body))
-        .filter(a -> a.second.isSuccess()) // TODO quorum ?
-        .collect(Collectors.toList())
-        .get(0);
+    Optional<Tuple<DefaultApi, SendAmountResponse>> responseOpt =
+        forEachServer(server -> server.sendAmount(body))
+            .filter(a -> a.second.isSuccess())
+            .collect(Collectors.toList())
+            .stream().findFirst();
 
-    SendAmountResponse sendAmountResponse = response.second;
-    message = sendAmountResponse.getNewHash().getValue() + sendAmountResponse.getMessage();
+    return responseOpt.map(response -> {
+      SendAmountResponse sendAmountResponse = response.second;
+      String receiveMessage = sendAmountResponse.getNewHash().getValue() + sendAmountResponse.getMessage();
 
-    if (securityHelper.verifyBankSignature(message, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
-        && sendAmountResponse.isSuccess()) {
+      if (securityHelper.verifyBankSignature(receiveMessage, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
+          && sendAmountResponse.isSuccess()) {
 
-      if (sendAmountResponse.isSuccess()) {
-        securityHelper.setLastHash(sendAmountResponse.getNewHash());
+        if (sendAmountResponse.isSuccess()) {
+          securityHelper.setLastHash(sendAmountResponse.getNewHash());
+        }
+
+
+        return sendAmountResponse.getMessage();
       }
-
-
-      return sendAmountResponse.getMessage();
-    }
-
-    return "Unexpected error from server. \n Try Again Later.";
+      return "Failed to verify bank signature";
+    });
   }
 
   public GetTransactionResponse getTransaction(GetTransactionRequest body) throws GeneralSecurityException, IOException {

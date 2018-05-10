@@ -31,6 +31,6 @@ public class ServerTypeWrapper {
   }
 
   public enum ServerType {
-    BYZANTINE, NORMAL, BADSIGN
+    BYZANTINE, NORMAL, BADSIGN, BADORDER
   }
 }
