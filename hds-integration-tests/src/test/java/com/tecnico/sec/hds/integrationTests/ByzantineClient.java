@@ -32,6 +32,11 @@ public class ByzantineClient {
   private static ServersWrapper normalClient;
   private static ServerHelper serverHelper;
 
+  @AfterClass
+  public static void clearEverything() {
+    serverHelper.deleteConfig();
+  }
+
   @Before
   public void start() throws GeneralSecurityException, IOException, OperatorCreationException {
     System.setProperty("hds.coin.crypto.useLocalhost", "false");
@@ -58,11 +63,6 @@ public class ByzantineClient {
     new File("banklocalhost_8181KeyStore.jce").delete();
     new File("banklocalhost_8182KeyStore.jce").delete();
     new File("banklocalhost_8183KeyStore.jce").delete();
-  }
-
-  @AfterClass
-  public static void clearEverything() {
-    serverHelper.deleteConfig();
   }
 
   @Test

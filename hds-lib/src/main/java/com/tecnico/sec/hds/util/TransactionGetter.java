@@ -18,7 +18,7 @@ public class TransactionGetter {
 
   public static List<Transaction> InformationToTransaction(List<TransactionInformation> transactions){
     return transactions.stream().parallel().map(s ->
-    new Transaction(s.getTransID(),
+    new Transaction(
         s.getSourceKey(),
         s.getDestKey(),
         Long.valueOf(s.getAmount()),
