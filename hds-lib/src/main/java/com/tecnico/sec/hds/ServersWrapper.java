@@ -88,9 +88,9 @@ public class ServersWrapper {
 
   public void broadcast(BroadcastRequest body) {
     forEachServer(s -> {
-      System.out.println("Calling server");
+      System.out.println("Calling server: " + s.getApiClient().getBasePath());
       s.broadcast(body);
-      System.out.println("Called server");
+      System.out.println("Called server: " + s.getApiClient().getBasePath());
       return true;
     }).collect(Collectors.toList());
   }

@@ -9,6 +9,7 @@ import io.swagger.model.RegisterRequest;
 import io.swagger.model.RegisterResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 
@@ -25,7 +26,7 @@ public class RegisterControllerProxy implements RegisterApi {
   }
 
   @Override
-  public ResponseEntity<RegisterResponse> register(@Valid RegisterRequest body) {
+  public ResponseEntity<RegisterResponse> register(@RequestBody @Valid RegisterRequest body) {
     return registerController.register(body);
   }
 }

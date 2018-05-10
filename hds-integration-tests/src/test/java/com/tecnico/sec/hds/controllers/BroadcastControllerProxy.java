@@ -30,6 +30,18 @@ public class BroadcastControllerProxy implements BroadcastApi {
 
   @Override
   public ResponseEntity<Void> broadcast(@RequestBody @Valid BroadcastRequest body) {
-    return new ResponseEntity<>(HttpStatus.OK);
+    switch (serverTypeWrapper.getType()) {
+      case NORMAL:
+        return broadcastController.broadcast(body);
+      case BYZANTINE:
+        return null;
+      case BADSIGN:
+        broadcastController.broadcast(body);
+        return new ResponseEntity<>(HttpStatus.OK);
+      default:
+        throw new RuntimeException("This should never happen");
+    }
+
+
   }
 }

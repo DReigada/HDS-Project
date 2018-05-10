@@ -1,6 +1,7 @@
 package com.tecnico.sec.hds.integrationTests;
 
 import com.tecnico.sec.hds.ServersWrapper;
+import com.tecnico.sec.hds.app.ServerTypeWrapper;
 import com.tecnico.sec.hds.util.Tuple;
 import io.swagger.client.model.*;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -24,7 +25,8 @@ public class MyTest {
   @BeforeClass
   public static void start() throws GeneralSecurityException, IOException, OperatorCreationException {
     serverHelper = new ServerHelper();
-    List<String> serversUrls = serverHelper.startServers(4);
+    serverHelper.writeConfig(4);
+    List<String> serversUrls = serverHelper.startServers(4, ServerTypeWrapper.ServerType.NORMAL);
 
     server = new ServersWrapper("user1", "pass1", serversUrls);
 
@@ -34,6 +36,7 @@ public class MyTest {
   @AfterClass
   public static void afterClass() {
     serverHelper.stopServers();
+    serverHelper.deleteConfig();
     new File("user1KeyStore.jce").delete();
   }
 

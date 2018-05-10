@@ -2,6 +2,7 @@ package com.tecnico.sec.hds.app.beans;
 
 import com.tecnico.sec.hds.ServersWrapper;
 import com.tecnico.sec.hds.app.ServerTypeWrapper;
+import com.tecnico.sec.hds.server.app.beans.ApplicationConfig;
 import com.tecnico.sec.hds.server.controllers.util.ReliableBroadcastHelper;
 import com.tecnico.sec.hds.server.db.commands.util.QueryHelpers;
 import com.tecnico.sec.hds.util.crypto.CryptoAgent;
@@ -21,21 +22,9 @@ import java.security.GeneralSecurityException;
 
 
 @Configuration
-public class ServerProxyConfig {
+public class ServerProxyConfig extends ApplicationConfig {
   private static final Logger logger = LoggerFactory.getLogger(ServerProxyConfig.class);
 
-
-  @Bean
-  public DefaultApi server(){
-    return getServer();
-  }
-
-  public DefaultApi getServer(){
-    String url = "";
-    ApiClient client = new ApiClient().setBasePath(url);
-    DefaultApi server = new DefaultApi(client);
-    return server;
-  }
 
   @Autowired
   private ApplicationArguments arguments;
@@ -46,36 +35,15 @@ public class ServerProxyConfig {
   }
 
   @Bean
-  public CryptoAgent cryptoAgent(ServersWrapper wrapper) {
-    return wrapper.securityHelper.cryptoAgent;
-  }
-
-  @Bean
-  public QueryHelpers queryHelpers() {
-    return new QueryHelpers();
-  }
-
-
-  @Bean
-  public ReliableBroadcastHelper reliableBroadcastHelper(CryptoAgent cryptoAgent, ServersWrapper serversWrapper) {
-    return new ReliableBroadcastHelper(cryptoAgent, serversWrapper.getNumberOfServers(), serversWrapper.getServersUrl());
-  }
-
-  @Bean
-  public ServersWrapper serversWrapper() {
+  @Override
+  public ServersWrapper serversWrapper(){
     return createServersWrapper();
   }
 
   private ServersWrapper createServersWrapper() {
     try {
-      boolean useLocalhost = Boolean.valueOf(System.getProperty("hds.coin.crypto.useLocalhost", "true"));
-
-      System.out.println("hds.coin.crypto.useLocalhost = " + useLocalhost);
-
-      String ip = InetAddress.getLocalHost().getCanonicalHostName().replace(".", "_");
-      String hostName = useLocalhost ? "localhost" : ip;
       String port = System.getProperty("server.port", "8080");
-      String fileName = "bank" + hostName + "_" + port;
+      String fileName = "banklocalhost_" + port;
 
       logger.info("Creating keystore on file: " + fileName);
 

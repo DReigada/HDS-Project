@@ -7,6 +7,7 @@ import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.api.AuditApi;
 import io.swagger.model.AuditRequest;
 import io.swagger.model.AuditResponse;
+import io.swagger.model.Signature;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,12 +28,20 @@ public class AuditControllerProxy implements AuditApi {
 
   @Override
   public ResponseEntity<AuditResponse> audit(@RequestBody @Valid AuditRequest body) {
+
+    ResponseEntity<AuditResponse> response;
+
     switch (serverTypeWrapper.getType()){
       case NORMAL:
-        break;
+        return auditController.audit(body);
       case BYZANTINE:
-        break;
+        return null;
+      case BADSIGN:
+        response = auditController.audit(body);
+        response.getBody().setSignature(new Signature().value("Fake Signature"));
+        return response;
+      default:
+        throw new RuntimeException("This should never happen");
     }
-    return auditController.audit(body);
   }
 }

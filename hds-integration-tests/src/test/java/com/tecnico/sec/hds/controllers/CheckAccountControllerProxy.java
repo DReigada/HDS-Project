@@ -7,6 +7,7 @@ import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.api.CheckAccountApi;
 import io.swagger.model.CheckAccountRequest;
 import io.swagger.model.CheckAccountResponse;
+import io.swagger.model.Signature;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,6 +29,19 @@ public class CheckAccountControllerProxy implements CheckAccountApi {
   @Override
   public ResponseEntity<CheckAccountResponse> checkAccount(@RequestBody @Valid CheckAccountRequest body) {
 
-    return checkAccountController.checkAccount(body);
+    ResponseEntity<CheckAccountResponse> response;
+
+    switch (serverTypeWrapper.getType()) {
+      case NORMAL:
+        return checkAccountController.checkAccount(body);
+      case BYZANTINE:
+        return null;
+      case BADSIGN:
+        response = checkAccountController.checkAccount(body);
+        response.getBody().setSignature(new Signature().value("Fake Signature"));
+        return response;
+      default:
+        throw new RuntimeException("This should never happen");
+    }
   }
 }

@@ -1,6 +1,7 @@
 package com.tecnico.sec.hds.integrationTests;
 
 import com.tecnico.sec.hds.ServersWrapper;
+import com.tecnico.sec.hds.app.ServerTypeWrapper;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.BeforeClass;
 
@@ -17,7 +18,8 @@ public class BadSigningServerTests {
   @BeforeClass
   public static void start() throws GeneralSecurityException, IOException, OperatorCreationException {
     serverHelper = new ServerHelper();
-    List<String> serversUrls = serverHelper.startServers(4);
+    List<String> serversUrls = serverHelper.startServers(7, ServerTypeWrapper.ServerType.NORMAL);
+
 
     server = new ServersWrapper("user1", "pass1", serversUrls);
 

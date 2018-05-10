@@ -12,6 +12,7 @@ import io.swagger.model.WriteBackRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 
@@ -30,7 +31,21 @@ public class WriteBackControllerProxy implements WriteBackApi {
   }
 
   @Override
-  public ResponseEntity<Void> writeBack(@Valid WriteBackRequest body) {
-    return new ResponseEntity<>(HttpStatus.OK);
+  public ResponseEntity<Void> writeBack(@RequestBody @Valid WriteBackRequest body) {
+
+    switch (serverTypeWrapper.getType()){
+      case NORMAL:
+        writeBackController.writeBack(body);
+        return new ResponseEntity<>(HttpStatus.OK);
+      case BYZANTINE:
+        return null;
+      case BADSIGN:
+        writeBackController.writeBack(body);
+        return new ResponseEntity<>(HttpStatus.OK);
+      default:
+        throw new RuntimeException("This should never happen");
+
+
+    }
   }
 }

@@ -9,6 +9,7 @@ import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.api.ReceiveAmountApi;
 import io.swagger.model.ReceiveAmountRequest;
 import io.swagger.model.ReceiveAmountResponse;
+import io.swagger.model.Signature;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,6 +31,19 @@ public class ReceiveAmountControllerProxy implements ReceiveAmountApi {
 
   @Override
   public ResponseEntity<ReceiveAmountResponse> receiveAmount(@RequestBody @Valid ReceiveAmountRequest body) {
-   return receiveAmountController.receiveAmount(body);
+
+    ResponseEntity<ReceiveAmountResponse> response;
+
+    switch (serverTypeWrapper.getType()) {
+      case NORMAL:
+        return receiveAmountController.receiveAmount(body);
+      case BYZANTINE:
+        return null;
+      case BADSIGN:
+        response = receiveAmountController.receiveAmount(body);
+        response.getBody().setSignature(new Signature().value("Fake Signature"));
+      default:
+        throw new RuntimeException("This should never happen");
+    }
   }
 }

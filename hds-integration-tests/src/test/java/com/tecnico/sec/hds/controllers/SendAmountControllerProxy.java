@@ -9,8 +9,10 @@ import com.tecnico.sec.hds.util.crypto.CryptoAgent;
 import io.swagger.api.SendAmountApi;
 import io.swagger.model.SendAmountRequest;
 import io.swagger.model.SendAmountResponse;
+import io.swagger.model.Signature;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 
@@ -28,7 +30,21 @@ public class SendAmountControllerProxy implements SendAmountApi {
   }
 
   @Override
-  public ResponseEntity<SendAmountResponse> sendAmount(@Valid SendAmountRequest body) {
-    return sendAmountController.sendAmount(body);
+  public ResponseEntity<SendAmountResponse> sendAmount(@RequestBody @Valid SendAmountRequest body) {
+
+    ResponseEntity<SendAmountResponse> response;
+
+    switch (serverTypeWrapper.getType()){
+      case NORMAL:
+        return sendAmountController.sendAmount(body);
+      case BYZANTINE:
+        return null;
+      case BADSIGN:
+        response = sendAmountController.sendAmount(body);
+        response.getBody().signature(new Signature().value("Fake signature"));
+        return response;
+       default:
+         throw new RuntimeException("This should never happen");
+    }
   }
 }
