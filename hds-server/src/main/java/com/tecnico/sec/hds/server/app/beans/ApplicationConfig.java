@@ -47,7 +47,9 @@ public class ApplicationConfig {
 
   private ServersWrapper createServersWrapper() {
     try {
-      boolean useLocalhost = Boolean.getBoolean(System.getProperty("hds.coin.crypto.useLocalhost", "true"));
+      boolean useLocalhost = Boolean.valueOf(System.getProperty("hds.coin.crypto.useLocalhost", "true"));
+
+      System.out.println("hds.coin.crypto.useLocalhost = " + useLocalhost);
 
       String ip = InetAddress.getLocalHost().getCanonicalHostName().replace(".", "_");
       String hostName = useLocalhost ? "localhost" : ip;

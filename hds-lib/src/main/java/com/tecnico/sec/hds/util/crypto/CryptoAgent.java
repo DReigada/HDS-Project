@@ -84,7 +84,7 @@ public class CryptoAgent {
     try {
       URL javaUrl = new URL(url);
 
-      boolean useLocalhost = Boolean.getBoolean(System.getProperty("hds.coin.crypto.useLocalhost", "true"));
+      boolean useLocalhost = Boolean.valueOf(System.getProperty("hds.coin.crypto.useLocalhost", "true"));
       String hostName = useLocalhost ? "localhost" : javaUrl.getHost().replace(".", "_");
 
       String name = "bank" + hostName + "_" + javaUrl.getPort();

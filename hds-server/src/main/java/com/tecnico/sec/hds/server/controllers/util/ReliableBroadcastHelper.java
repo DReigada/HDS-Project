@@ -12,15 +12,16 @@ public class ReliableBroadcastHelper {
   // the keys are the hashes
   private final Map<String, ReliableBroadcastSession> reliableBroadcastSessions;
   private final CryptoAgent cryptoAgent;
-  private final List serverKeys;
+  private final Set<String> serverKeys;
+  private final Set<String> serversUrls;
   private final int servers;
 
-  public ReliableBroadcastHelper(CryptoAgent cryptoAgent, int numberOfServers, Set<String> urls) {
+  public ReliableBroadcastHelper(CryptoAgent cryptoAgent, int numberOfServers, Set<String> serversUrls) {
     reliableBroadcastSessions = new HashMap<>();
-    serverKeys = new ArrayList<>();
+    serverKeys = new HashSet<>();
     this.cryptoAgent = cryptoAgent;
     this.servers = numberOfServers;
-    populateServerKeysList(urls);
+    this.serversUrls = serversUrls;
   }
 
   /**
@@ -66,6 +67,9 @@ public class ReliableBroadcastHelper {
   }
 
   public boolean verifyMessage(String key, String message, String signature) {
+    if (serverKeys.isEmpty()) {
+      populateServerKeysList(serversUrls);
+    }
     return serverKeys.contains(key) && cryptoAgent.verifySignature(message, signature, key);
   }
 }
