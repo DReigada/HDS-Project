@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 import java.util.Base64;
+import java.util.Collections;
 
 @Controller
 public class CheckAccountControllerProxy implements CheckAccountApi {
@@ -42,7 +43,9 @@ public class CheckAccountControllerProxy implements CheckAccountApi {
         response.getBody().setSignature(new Signature().value(Base64.getEncoder().encodeToString("FakeSignature".getBytes())));
         return response;
       case BADORDER:
-        return null;
+        response = checkAccountController.checkAccount(body);
+        Collections.shuffle(response.getBody().getHistory());
+        return response;
       default:
         throw new RuntimeException("This should never happen");
     }

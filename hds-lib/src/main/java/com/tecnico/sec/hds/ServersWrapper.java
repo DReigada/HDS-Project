@@ -254,11 +254,14 @@ public class ServersWrapper {
 
     return responseOpt.map(response -> {
       ReceiveAmountResponse receiveAmountResponse = response.second;
-      String message = receiveAmountResponse.getNewHash().getValue() + receiveAmountResponse.getMessage();
+      String message;
       String signature = receiveAmountResponse.getSignature().getValue();
 
       if (receiveAmountResponse.isSuccess()) {
+        message = receiveAmountResponse.getNewHash().getValue() + receiveAmountResponse.getMessage();
         securityHelper.setLastHash(receiveAmountResponse.getNewHash());
+      } else {
+        message = receiveAmountResponse.getMessage();
       }
 
       if(securityHelper.verifyBankSignature(message, signature, response.first.getApiClient().getBasePath())

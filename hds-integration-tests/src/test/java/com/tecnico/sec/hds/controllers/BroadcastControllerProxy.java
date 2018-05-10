@@ -39,7 +39,8 @@ public class BroadcastControllerProxy implements BroadcastApi {
         broadcastController.broadcast(body);
         return new ResponseEntity<>(HttpStatus.OK);
       default:
-        throw new RuntimeException("This should never happen");
+        return broadcastController.broadcast(body);
+        //throw new RuntimeException("This should never happen");
     }
 
 

@@ -48,13 +48,6 @@ public class BadSigningServerTests {
     new File("user3KeyStore.jce").delete();
   }
 
-  public static Tuple<CheckAccountResponse, Long> verifyAmount(ServersWrapper server, long expected) {
-    Optional<Tuple<CheckAccountResponse, Long>> checkAccount2 = server.checkAccount(new CheckAccountRequest(), false);
-
-    assertTrue(checkAccount2.isPresent());
-    assertEquals(expected, (long) checkAccount2.get().second);
-    return checkAccount2.get();
-  }
 
   @Test
   public void maxBadServers() throws GeneralSecurityException, IOException, OperatorCreationException {
@@ -63,11 +56,11 @@ public class BadSigningServerTests {
     serverTypes.get(6).setType(ServerTypeWrapper.ServerType.NORMAL);
     server.register();
 
-    verifyAmount(server, 1000L);
+    TestHelpers.verifyAmount(server, 1000L);
     SendAmountRequest send1req = new SendAmountRequest().amount(200).destKey(server.securityHelper.key);
     server.sendAmount(send1req);
 
-    Tuple<CheckAccountResponse, Long> checkAccount = verifyAmount(server, 800L);
+    Tuple<CheckAccountResponse, Long> checkAccount = TestHelpers.verifyAmount(server, 800L);
 
     String trans = checkAccount.first.getPending().get(0).getSendHash().getValue();
 
@@ -80,7 +73,7 @@ public class BadSigningServerTests {
 
     server.receiveAmount(receiveAmountRequest);
 
-    verifyAmount(server, 1000L);
+    TestHelpers.verifyAmount(server, 1000L);
   }
 
   @Test
@@ -108,12 +101,12 @@ public class BadSigningServerTests {
 
     server.register();
 
-    verifyAmount(server, 1000L);
+    TestHelpers.verifyAmount(server, 1000L);
 
     SendAmountRequest send1req = new SendAmountRequest().amount(200).destKey(server.securityHelper.key);
     server.sendAmount(send1req);
 
-    verifyAmount(server, 800L);
+    TestHelpers.verifyAmount(server, 800L);
 
     Optional<Tuple<CheckAccountResponse, Long>> checkAccount2 = server.checkAccount(new CheckAccountRequest(), false);
 
