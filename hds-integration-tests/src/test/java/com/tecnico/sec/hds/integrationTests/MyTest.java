@@ -40,24 +40,17 @@ public class MyTest {
     new File("user1KeyStore.jce").delete();
   }
 
-  public static Tuple<CheckAccountResponse, Long> verifyAmount(long expected) {
-    Optional<Tuple<CheckAccountResponse, Long>> checkAccount2 = server.checkAccount(new CheckAccountRequest(), false);
-
-    assertTrue(checkAccount2.isPresent());
-    assertEquals(expected, (long) checkAccount2.get().second);
-    return checkAccount2.get();
-  }
 
   @Test
   public void test1() throws GeneralSecurityException, IOException {
 
-    verifyAmount(1000L);
+    TestHelpers.verifyAmount(server, 1000L);
 
     SendAmountRequest send1req = new SendAmountRequest().amount(200).destKey(server.securityHelper.key);
 
     server.sendAmount(send1req);
 
-    Tuple<CheckAccountResponse, Long> checkAccount = verifyAmount(800L);
+    Tuple<CheckAccountResponse, Long> checkAccount = TestHelpers.verifyAmount(server, 800L);
 
     String trans = checkAccount.first.getPending().get(0).getSendHash().getValue();
 
@@ -70,6 +63,6 @@ public class MyTest {
 
     server.receiveAmount(receiveAmountRequest);
 
-    verifyAmount(1000L);
+    TestHelpers.verifyAmount(server, 1000L);
   }
 }

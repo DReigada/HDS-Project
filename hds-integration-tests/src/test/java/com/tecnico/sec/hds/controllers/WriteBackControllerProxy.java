@@ -43,7 +43,9 @@ public class WriteBackControllerProxy implements WriteBackApi {
         writeBackController.writeBack(body);
         return new ResponseEntity<>(HttpStatus.OK);
       default:
-        throw new RuntimeException("This should never happen");
+        writeBackController.writeBack(body);
+        return new ResponseEntity<>(HttpStatus.OK);
+        //throw new RuntimeException("This should never happen");
 
 
     }

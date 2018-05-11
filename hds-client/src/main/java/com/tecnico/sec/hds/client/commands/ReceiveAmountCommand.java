@@ -34,13 +34,9 @@ public class ReceiveAmountCommand extends AbstractCommand {
           receiveAmountRequest.amount(Integer.valueOf(transaction.getAmount()));
           receiveAmountRequest.setTransHash(transaction.getSendHash());
 
-          boolean receiveAmountResponse = client.server.receiveAmount(receiveAmountRequest);
+          Optional<String> receiveAmountResponse = client.server.receiveAmount(receiveAmountRequest);
 
-          if (receiveAmountResponse) {
-            System.out.println("Receive amount successful");
-          } else {
-            System.out.println("Failed to call receive amount");
-          }
+          System.out.println(receiveAmountResponse.orElse("Failed to call receive amount"));
         }
 
       } catch (GeneralSecurityException e) {
