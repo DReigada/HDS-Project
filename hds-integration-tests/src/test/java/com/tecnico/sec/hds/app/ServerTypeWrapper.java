@@ -31,6 +31,6 @@ public class ServerTypeWrapper {
   }
 
   public enum ServerType {
-    BYZANTINE, NORMAL, BADSIGN, BADORDER
+    BYZANTINE, NORMAL, BADSIGN, BADORDER, SAMEBADORDER, NOECHOES, NOREADIES, ECHOS10, READIES2
   }
 }

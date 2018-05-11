@@ -103,7 +103,7 @@ public class ChangeTransOrder {
 
     TestHelpers.verifyAmount(server, 850L);
 
-    TestHelpers.changeServersState(0, 10, serverTypes, ServerTypeWrapper.ServerType.BADORDER);
+    TestHelpers.changeServersState(0, 10, serverTypes, ServerTypeWrapper.ServerType.SAMEBADORDER);
 
     Optional<Tuple<CheckAccountResponse, Long>> checkAccount = server.checkAccount(new CheckAccountRequest(), false);
 

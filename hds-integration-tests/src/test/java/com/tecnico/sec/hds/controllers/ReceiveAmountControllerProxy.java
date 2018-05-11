@@ -10,6 +10,7 @@ import io.swagger.api.ReceiveAmountApi;
 import io.swagger.model.ReceiveAmountRequest;
 import io.swagger.model.ReceiveAmountResponse;
 import io.swagger.model.Signature;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,6 +44,8 @@ public class ReceiveAmountControllerProxy implements ReceiveAmountApi {
       case BADSIGN:
         response = receiveAmountController.receiveAmount(body);
         response.getBody().setSignature(new Signature().value(Base64.getEncoder().encodeToString("FakeSignature".getBytes())));
+      case ECHOS10:
+        return new ResponseEntity<>(HttpStatus.OK);
       default:
         throw new RuntimeException("This should never happen");
     }

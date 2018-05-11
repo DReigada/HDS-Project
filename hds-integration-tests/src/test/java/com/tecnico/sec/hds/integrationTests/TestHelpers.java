@@ -29,9 +29,9 @@ public class TestHelpers {
     assertFalse(checkAccount.isPresent());
   }
 
-  public static void changeServersState(int first, int second, List<ServerTypeWrapper> serversType,
+  public static void changeServersState(int first, int last, List<ServerTypeWrapper> serversType,
                                         ServerTypeWrapper.ServerType type){
-    IntStream.range(first, second).forEach(i -> serversType.get(i).setType(type));
+    IntStream.range(first, last).forEach(i -> serversType.get(i).setType(type));
   }
 
 }

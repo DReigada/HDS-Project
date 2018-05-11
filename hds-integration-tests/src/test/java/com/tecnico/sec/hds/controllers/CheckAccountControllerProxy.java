@@ -46,6 +46,10 @@ public class CheckAccountControllerProxy implements CheckAccountApi {
         response = checkAccountController.checkAccount(body);
         Collections.shuffle(response.getBody().getHistory());
         return response;
+      case SAMEBADORDER:
+        response = checkAccountController.checkAccount(body);
+        response.getBody().getHistory().remove(1);
+        return response;
       default:
         throw new RuntimeException("This should never happen");
     }
