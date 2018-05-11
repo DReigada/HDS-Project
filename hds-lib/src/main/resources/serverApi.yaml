@@ -224,8 +224,6 @@ definitions:
         $ref: "#/definitions/Hash"
       Signature:
         $ref: "#/definitions/Signature"
-      writeBack:
-        type: boolean
 
   SendAmountResponse:
     type: object
@@ -260,8 +258,6 @@ definitions:
         $ref: "#/definitions/Hash"
       Signature:
         $ref: "#/definitions/Signature"
-      writeBack:
-        type: boolean
 
   ReceiveAmountResponse:
     type: object

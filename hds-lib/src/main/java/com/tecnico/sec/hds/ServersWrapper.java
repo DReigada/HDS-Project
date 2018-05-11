@@ -32,11 +32,7 @@ public class ServersWrapper {
   protected final ExecutorService executorService;
   protected final Map<String, DefaultApi> servers;
   private final QuorumHelper quorumHelper;
-
-  @FunctionalInterface
-  protected interface ServerCall<R> {
-    R apply(DefaultApi t) throws ApiException;
-  }
+  private boolean writeBackSync;
 
   public ServersWrapper(String user, String pass) throws IOException, OperatorCreationException, GeneralSecurityException {
     this(user, pass, getServersConfig());
@@ -48,6 +44,7 @@ public class ServersWrapper {
     initializeServers(serversUrls.stream());
     quorumHelper = new QuorumHelper(servers.size());
     executorService = Executors.newCachedThreadPool();
+    writeBackSync = false;
   }
 
   private static List<String> getServersConfig() {
@@ -73,6 +70,10 @@ public class ServersWrapper {
 
   private static Stream<String> getServersConfigFromResource() {
     return new BufferedReader(new InputStreamReader((ServersWrapper.class.getResourceAsStream("/conf/servers.conf")))).lines();
+  }
+
+  public void setWriteBackSync(boolean sync) {
+    writeBackSync = sync;
   }
 
   public int getNumberOfServers() {
@@ -114,7 +115,7 @@ public class ServersWrapper {
               .collect(Collectors.toList());
 
       if (withWriteBack) {
-        writeBackTransactionsAsync(publicKey, auditResponse.getList(), outdatedServers);
+        writeBackTransactions(publicKey, auditResponse.getList(), outdatedServers);
       }
 
       if (body.getPublicKey().getValue().equals(securityHelper.key.getValue())) {
@@ -166,7 +167,7 @@ public class ServersWrapper {
               .collect(Collectors.toList());
 
       if (withWriteBack) {
-        writeBackTransactionsAsync(securityHelper.key.getValue(), checkAmountResponse.getHistory(), transactionsFromOutdatedServers);
+        writeBackTransactions(securityHelper.key.getValue(), checkAmountResponse.getHistory(), transactionsFromOutdatedServers);
       }
 
       if (body.getPublicKey().getValue().equals(securityHelper.key.getValue())) {
@@ -265,8 +266,8 @@ public class ServersWrapper {
         message = receiveAmountResponse.getMessage();
       }
 
-      if(securityHelper.verifyBankSignature(message, signature, response.first.getApiClient().getBasePath())
-          && receiveAmountResponse.isSuccess()){
+      if (securityHelper.verifyBankSignature(message, signature, response.first.getApiClient().getBasePath())
+          && receiveAmountResponse.isSuccess()) {
         return response.second.getMessage();
       } else {
         return "Failed to verify bank signature";
@@ -305,7 +306,7 @@ public class ServersWrapper {
       if (securityHelper.verifyBankSignature(receiveMessage, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
           && sendAmountResponse.isSuccess()) {
 
-          securityHelper.setLastHash(sendAmountResponse.getNewHash());
+        securityHelper.setLastHash(sendAmountResponse.getNewHash());
         return sendAmountResponse.getMessage();
       }
       return "Failed to verify bank signature";
@@ -380,9 +381,20 @@ public class ServersWrapper {
         .map(Optional::get);
   }
 
-  private void writeBackTransactionsAsync(String publicKey,
-                                          List<TransactionInformation> transactionsQuorum,
-                                          List<DefaultApi> outdatedServers) {
+  private void writeBackTransactions(String publicKey,
+                                     List<TransactionInformation> transactionsQuorum,
+                                     List<DefaultApi> outdatedServers) {
+    if (writeBackSync) {
+      writeBackTransactionsGeneric(publicKey, transactionsQuorum, outdatedServers, Function.identity());
+    } else {
+      writeBackTransactionsGeneric(publicKey, transactionsQuorum, outdatedServers, task -> () -> executorService.submit(task));
+    }
+  }
+
+  private void writeBackTransactionsGeneric(String publicKey,
+                                            List<TransactionInformation> transactionsQuorum,
+                                            List<DefaultApi> outdatedServers,
+                                            Function<Runnable, Runnable> runnable) {
     List<Hash> hashes = transactionsQuorum.stream()
         .map(TransactionInformation::getSendHash)
         .collect(Collectors.toList());
@@ -394,7 +406,7 @@ public class ServersWrapper {
     System.err.println("Calling writeback on " + outdatedServers.size() + " servers");
 
     outdatedServers.forEach(server -> {
-      executorService.submit(() -> {
+      runnable.apply(() -> {
         String serverUrl = server.getApiClient().getBasePath();
         try {
           System.err.println("Calling writeback on server: " + serverUrl);
@@ -404,7 +416,13 @@ public class ServersWrapper {
           System.err.println("Failed calling writeback on server: " + serverUrl);
           e.printStackTrace();
         }
-      });
+      }).run();
     });
+  }
+
+
+  @FunctionalInterface
+  protected interface ServerCall<R> {
+    R apply(DefaultApi t) throws ApiException;
   }
 }

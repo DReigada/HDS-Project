@@ -38,6 +38,7 @@ public class MyTest {
   public static void afterClass() {
     serverHelper.stopServers();
     serverHelper.deleteConfig();
+    ServerTypeWrapper.cleanServers();
     new File("user1KeyStore.jce").delete();
   }
 

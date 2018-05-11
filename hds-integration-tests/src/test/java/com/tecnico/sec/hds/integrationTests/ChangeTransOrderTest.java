@@ -25,20 +25,19 @@ public class ChangeTransOrderTest {
 
   private static ServerHelper serverHelper;
   private static List<String> serversUrls;
-  private static ArrayList<ServerTypeWrapper> serverTypes;
 
   @BeforeClass
   public static void start() {
     serverHelper = new ServerHelper();
     serverHelper.writeConfig(10);
     serversUrls = serverHelper.startServers(0, 10, ServerTypeWrapper.ServerType.NORMAL);
-    serverTypes = ServerTypeWrapper.get();
   }
 
   @AfterClass
   public static void afterClass() {
     serverHelper.stopServers();
     serverHelper.deleteConfig();
+    ServerTypeWrapper.cleanServers();
     new File("user1KeyStore.jce").delete();
     new File("user2KeyStore.jce").delete();
     new File("user3KeyStore.jce").delete();
@@ -49,7 +48,7 @@ public class ChangeTransOrderTest {
   @Test
   public void tooMuchoutOfOrderTransactions() throws GeneralSecurityException, IOException, OperatorCreationException {
 
-    TestHelpers.changeServersState(0, 10, serverTypes, ServerTypeWrapper.ServerType.NORMAL);
+    ServerTypeWrapper.changeServersType(0, 10, ServerTypeWrapper.ServerType.NORMAL);
 
     ServersWrapper server = new ServersWrapper("user1", "pass1", serversUrls);
 
@@ -71,7 +70,7 @@ public class ChangeTransOrderTest {
     TestHelpers.verifyAmount(server, 850L);
 
 
-    TestHelpers.changeServersState(6, 10, serverTypes, ServerTypeWrapper.ServerType.BADORDER);
+    ServerTypeWrapper.changeServersType(6, 10, ServerTypeWrapper.ServerType.BADORDER);
 
     Optional<Tuple<CheckAccountResponse, Long>> checkAccount = server.checkAccount(new CheckAccountRequest(), false);
 
@@ -83,7 +82,7 @@ public class ChangeTransOrderTest {
   @Test
   public void allServersOutOfOrder() throws GeneralSecurityException, IOException, OperatorCreationException {
 
-    TestHelpers.changeServersState(0, 10, serverTypes, ServerTypeWrapper.ServerType.NORMAL);
+    ServerTypeWrapper.changeServersType(0, 10, ServerTypeWrapper.ServerType.NORMAL);
 
 
     ServersWrapper server = new ServersWrapper("user2", "pass2", serversUrls);
@@ -105,7 +104,7 @@ public class ChangeTransOrderTest {
 
     TestHelpers.verifyAmount(server, 850L);
 
-    TestHelpers.changeServersState(0, 10, serverTypes, ServerTypeWrapper.ServerType.SAMEBADORDER);
+    ServerTypeWrapper.changeServersType(0, 10, ServerTypeWrapper.ServerType.SAMEBADORDER);
 
     Optional<Tuple<CheckAccountResponse, Long>> checkAccount = server.checkAccount(new CheckAccountRequest(), false);
 
@@ -115,7 +114,7 @@ public class ChangeTransOrderTest {
   @Test
   public void limitOutOfOrder3Transactions() throws GeneralSecurityException, IOException, OperatorCreationException {
 
-    TestHelpers.changeServersState(0, 10, serverTypes, ServerTypeWrapper.ServerType.NORMAL);
+    ServerTypeWrapper.changeServersType(0, 10, ServerTypeWrapper.ServerType.NORMAL);
 
 
     ServersWrapper server = new ServersWrapper("user3", "pass3", serversUrls);
@@ -138,7 +137,7 @@ public class ChangeTransOrderTest {
     TestHelpers.verifyAmount(server, 850L);
 
 
-    TestHelpers.changeServersState(7, 10, serverTypes, ServerTypeWrapper.ServerType.BADORDER);
+    ServerTypeWrapper.changeServersType(7, 10, ServerTypeWrapper.ServerType.BADORDER);
 
     TestHelpers.verifyAmount(server, 850L);
 
@@ -147,7 +146,7 @@ public class ChangeTransOrderTest {
   @Test
   public void limitOutOfOrderTransactions2() throws GeneralSecurityException, IOException, OperatorCreationException {
 
-    TestHelpers.changeServersState(0, 10, serverTypes, ServerTypeWrapper.ServerType.NORMAL);
+    ServerTypeWrapper.changeServersType(0, 10, ServerTypeWrapper.ServerType.NORMAL);
 
     ServersWrapper server1 = new ServersWrapper("user4", "pass4", serversUrls);
     ServersWrapper server2 = new ServersWrapper("user5", "pass5", serversUrls);
@@ -155,7 +154,7 @@ public class ChangeTransOrderTest {
     server2.register();
 
 
-    TestHelpers.changeServersState(7, 10, serverTypes, ServerTypeWrapper.ServerType.BADORDER);
+    ServerTypeWrapper.changeServersType(7, 10, ServerTypeWrapper.ServerType.BADORDER);
 
     TestHelpers.verifyAmount(server1, 1000L);
     TestHelpers.verifyAmount(server2, 1000L);

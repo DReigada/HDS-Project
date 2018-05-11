@@ -38,6 +38,7 @@ public class ReceiveAmountControllerProxy implements ReceiveAmountApi {
 
     switch (serverTypeWrapper.getType()) {
       case NORMAL:
+      case BADORDER:
         return receiveAmountController.receiveAmount(body);
       case BYZANTINE:
         return null;
@@ -46,6 +47,8 @@ public class ReceiveAmountControllerProxy implements ReceiveAmountApi {
         response.getBody().setSignature(new Signature().value(Base64.getEncoder().encodeToString("FakeSignature".getBytes())));
       case ECHOS10:
         return new ResponseEntity<>(HttpStatus.OK);
+      case IGNORE:
+        Thread.currentThread().stop();
       default:
         throw new RuntimeException("This should never happen");
     }

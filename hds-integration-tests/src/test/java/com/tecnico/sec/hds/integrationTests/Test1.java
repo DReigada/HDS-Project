@@ -38,5 +38,6 @@ public class Test1 {
 
     serverHelper.stopServers();
     serverHelper.deleteConfig();
+    ServerTypeWrapper.cleanServers();
   }
 }

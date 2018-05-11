@@ -38,6 +38,7 @@ public class SendAmountControllerProxy implements SendAmountApi {
 
     switch (serverTypeWrapper.getType()){
       case NORMAL:
+      case BADORDER:
         return sendAmountController.sendAmount(body);
       case BYZANTINE:
         return null;
@@ -47,6 +48,8 @@ public class SendAmountControllerProxy implements SendAmountApi {
         return response;
       case ECHOS10:
         return new ResponseEntity<>(HttpStatus.OK);
+      case IGNORE:
+        Thread.currentThread().stop();
        default:
          throw new RuntimeException("This should never happen");
     }

@@ -120,6 +120,7 @@ public class ByzantineClientTest {
   @After
   public void afterClass() {
     serverHelper.stopServers();
+    ServerTypeWrapper.cleanServers();
     new File("HDSDB8180.mv.db").delete();
     new File("HDSDB8181.mv.db").delete();
     new File("HDSDB8182.mv.db").delete();
