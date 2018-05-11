@@ -1,4 +1,4 @@
-package com.tecnico.sec.hds.integrationTests;
+package com.tecnico.sec.hds.integrationTests.util;
 
 import com.tecnico.sec.hds.ServersWrapper;
 import com.tecnico.sec.hds.app.ServerTypeWrapper;

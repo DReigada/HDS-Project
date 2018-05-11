@@ -2,7 +2,7 @@ package com.tecnico.sec.hds.integrationTests;
 
 import com.tecnico.sec.hds.ServersWrapper;
 import com.tecnico.sec.hds.app.ServerTypeWrapper;
-import io.swagger.client.model.SendAmountRequest;
+import com.tecnico.sec.hds.integrationTests.util.ServerHelper;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -13,9 +13,8 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class BroadcastTests {
+public class BroadcastTest {
   private static ServerHelper serverHelper;
   private static List<String> serversUrls;
   private static ArrayList<ServerTypeWrapper> serverTypes;

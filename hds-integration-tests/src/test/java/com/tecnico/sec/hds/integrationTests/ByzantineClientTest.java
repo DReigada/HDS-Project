@@ -2,6 +2,7 @@ package com.tecnico.sec.hds.integrationTests;
 
 import com.tecnico.sec.hds.ServersWrapper;
 import com.tecnico.sec.hds.app.ServerTypeWrapper;
+import com.tecnico.sec.hds.integrationTests.util.ServerHelper;
 import com.tecnico.sec.hds.util.Tuple;
 import com.tecnico.sec.hds.util.crypto.ChainHelper;
 import io.swagger.client.model.CheckAccountRequest;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class ByzantineClient {
+public class ByzantineClientTest {
   private static ByzantineWrapper byzantineClient;
   private static ServersWrapper normalClient;
   private static ServerHelper serverHelper;
