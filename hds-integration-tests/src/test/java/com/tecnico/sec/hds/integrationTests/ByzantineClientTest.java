@@ -2,9 +2,9 @@ package com.tecnico.sec.hds.integrationTests;
 
 import com.tecnico.sec.hds.ServersWrapper;
 import com.tecnico.sec.hds.app.ServerTypeWrapper;
+import com.tecnico.sec.hds.integrationTests.util.ByzantineWrapper;
 import com.tecnico.sec.hds.integrationTests.util.ServerHelper;
 import com.tecnico.sec.hds.util.Tuple;
-import com.tecnico.sec.hds.util.crypto.ChainHelper;
 import io.swagger.client.model.*;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.*;
@@ -14,10 +14,9 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
+import static com.tecnico.sec.hds.integrationTests.util.TestHelpers.verifyNumberOfPendingTransactions;
+import static com.tecnico.sec.hds.integrationTests.util.TestHelpers.verifyNumberOfTransactions;
 import static org.junit.Assert.assertTrue;
 
 public class ByzantineClientTest {
@@ -47,6 +46,13 @@ public class ByzantineClientTest {
     SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
     SendAmountRequest changedBody = byzantineClient.getSendAmountBody(sendAmountRequest().amount(91));
     byzantineClient.sendAmount(normalBody, changedBody, 2);
+
+    /*byzantineClient.setWriteBackSync(true);
+
+    byzantineClient.checkAccount(new CheckAccountRequest(), true);
+    byzantineClient.setWriteBackSync(false);*/
+
+    Thread.sleep(3000);
     verifyNumberOfTransactions(byzantineClient, 2);
     verifyNumberOfPendingTransactions(normalClient, 1);
   }
@@ -125,85 +131,30 @@ public class ByzantineClientTest {
     new File("HDSDB8181.mv.db").delete();
     new File("HDSDB8182.mv.db").delete();
     new File("HDSDB8183.mv.db").delete();
+    new File("HDSDB8184.mv.db").delete();
+    new File("HDSDB8185.mv.db").delete();
+    new File("HDSDB8186.mv.db").delete();
     new File("user1KeyStore.jce").delete();
     new File("user2KeyStore.jce").delete();
     new File("banklocalhost_8180KeyStore.jce").delete();
     new File("banklocalhost_8181KeyStore.jce").delete();
     new File("banklocalhost_8182KeyStore.jce").delete();
     new File("banklocalhost_8183KeyStore.jce").delete();
+    new File("banklocalhost_8184KeyStore.jce").delete();
+    new File("banklocalhost_8185KeyStore.jce").delete();
+    new File("banklocalhost_8186KeyStore.jce").delete();
   }
 
   @AfterClass
-  private void verifyNumberOfTransactions(ServersWrapper serversWrapper, int expected) {
-    Optional<Tuple<CheckAccountResponse, Long>> check_account =
-        serversWrapper.checkAccount(new CheckAccountRequest(), false);
-
-    assertTrue(check_account.isPresent());
-    assertEquals(expected, check_account.get().first.getHistory().size());
+  public static void clean(){
+    serverHelper.deleteConfig();
+    ServerTypeWrapper.cleanServers();
   }
 
-  private void verifyNumberOfPendingTransactions(ServersWrapper client, int expected) {
-    Optional<Tuple<CheckAccountResponse, Long>> check_account =
-        client.checkAccount(new CheckAccountRequest(), false);
-
-    assertTrue(check_account.isPresent());
-    assertEquals(expected, check_account.get().first.getPending().size());
-  }
-
-  private SendAmountRequest sendAmountRequest() {
+  protected SendAmountRequest sendAmountRequest() {
     return new SendAmountRequest()
         .amount(1)
         .sourceKey(byzantineClient.securityHelper.key)
         .destKey(normalClient.securityHelper.key);
-  }
-
-  private static class ByzantineWrapper extends ServersWrapper {
-
-    public ByzantineWrapper(String user, String pass, List<String> serversUrls) throws IOException, GeneralSecurityException, OperatorCreationException {
-      super(user, pass, serversUrls);
-    }
-
-    public void sendAmount(SendAmountRequest normalBody, SendAmountRequest changedBody, int n) {
-      forEachServer(server -> {
-        Set<String> serversNoneByzantine = servers.keySet().stream().skip(n).collect(Collectors.toSet());
-        if (serversNoneByzantine.contains(server.getApiClient().getBasePath())) {
-          return server.sendAmount(normalBody);
-        } else {
-          return server.sendAmount(changedBody);
-        }
-      }).collect(Collectors.toList());
-    }
-
-    public SendAmountRequest getSendAmountBody(SendAmountRequest body) throws GeneralSecurityException {
-      body.setHash(securityHelper.createHash(
-          Optional.of(securityHelper.getLastHash().getValue()),
-          Optional.empty(),
-          securityHelper.key.getValue(),
-          body.getDestKey().getValue(), body.getAmount(),
-          ChainHelper.TransactionType.SEND_AMOUNT));
-
-      body.sourceKey(securityHelper.key);
-
-      String message = securityHelper.key.getValue()
-          + body.getDestKey().getValue()
-          + body.getAmount().toString()
-          + body.getHash().getValue();
-
-      securityHelper.signMessage(message, body::setSignature);
-      return body;
-    }
-
-    public void setLastHash(String hash) {
-      securityHelper.getLastHash().setValue(hash);
-    }
-
-    public String getLastHash() {
-      return super.securityHelper.getLastHash().getValue();
-    }
-
-    public Signature signMessage(String message){
-      return new Signature().value(super.securityHelper.cryptoAgent.generateSignature(message));
-    }
-
   }
 }
