@@ -79,6 +79,19 @@ public class ByzantineClient {
     verifyNumberOfTransactions(1);
   }
 
+  @Test
+  public void replayAttacks() throws Exception{
+    SendAmountRequest body = byzantineClient.getSendAmountBody(sendAmountRequest());
+    String bodyHash = body.getHash().getValue();
+    String lastHash = byzantineClient.getLastHash();
+    for(int i = 0 ; i < 5 ; i++) {
+      byzantineClient.sendAmount(body);
+      byzantineClient.setLastHash(lastHash);
+      body.getHash().setValue(bodyHash);
+    }
+    verifyNumberOfTransactions(2);
+  }
+
   @After
   public void afterClass() {
     serverHelper.stopServers();
@@ -149,6 +162,14 @@ public class ByzantineClient {
 
       securityHelper.signMessage(message, body::setSignature);
       return body;
+    }
+
+    public void setLastHash(String hash){
+      securityHelper.getLastHash().setValue(hash);
+    }
+
+    public String getLastHash(){
+      return super.securityHelper.getLastHash().getValue();
     }
 
   }
