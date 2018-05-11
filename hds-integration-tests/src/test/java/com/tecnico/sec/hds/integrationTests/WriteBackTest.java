@@ -9,6 +9,7 @@ import io.swagger.client.model.CheckAccountRequest;
 import io.swagger.client.model.CheckAccountResponse;
 import io.swagger.client.model.SendAmountRequest;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,18 +40,33 @@ public class WriteBackTest {
     new File("user1KeyStore.jce").delete();
   }
 
+  @After
+  public void after() {
+    new File("user1KeyStore.jce").delete();
+  }
+
 
   @Test
-  public void writeBackOneServer() throws GeneralSecurityException, OperatorCreationException, IOException, ApiException {
-    writeBackOnServers(0);
+  public void writeBackOneTransactionOneServer() throws GeneralSecurityException, OperatorCreationException, IOException, ApiException {
+    writeBackOnServers(1, new int[]{0});
   }
 
   @Test
-  public void writeBackMultipleServer() throws GeneralSecurityException, OperatorCreationException, IOException, ApiException {
-    writeBackOnServers(0, 1);
+  public void writeBackOneTransactionMultipleServers() throws GeneralSecurityException, OperatorCreationException, IOException, ApiException {
+    writeBackOnServers(1, new int[]{0, 1});
   }
 
-  private void writeBackOnServers(int... ignoringServers) throws GeneralSecurityException, OperatorCreationException, IOException, ApiException {
+  @Test
+  public void writeBackMultipleTransactionOneServer() throws GeneralSecurityException, OperatorCreationException, IOException, ApiException {
+    writeBackOnServers(4, new int[]{0});
+  }
+
+  @Test
+  public void writeBackMultipleTransactionMultipleServers() throws GeneralSecurityException, OperatorCreationException, IOException, ApiException {
+    writeBackOnServers(4, new int[]{0, 1});
+  }
+
+  private void writeBackOnServers(int numberOfTransactions, int[] ignoringServers) throws GeneralSecurityException, OperatorCreationException, IOException, ApiException {
     ServersWrapperHelper server = new ServersWrapperHelper("user1", "pass1");
     server.register();
 
@@ -58,13 +74,18 @@ public class WriteBackTest {
       ServerTypeWrapper.changeServerType(i, ServerTypeWrapper.ServerType.IGNORE);
     }
 
-    SendAmountRequest request =
-        new SendAmountRequest()
-            .amount(10)
-            .destKey(server.securityHelper.key);
+    int accountAmount = 1000;
 
-    Optional<String> response1 = server.sendAmount(request);
-    assertTrue(response1.isPresent());
+    for (int i = 1; i <= numberOfTransactions; i++) {
+      accountAmount -= i;
+      SendAmountRequest request =
+          new SendAmountRequest()
+              .amount(i)
+              .destKey(server.securityHelper.key);
+
+      Optional<String> response1 = server.sendAmount(request);
+      assertTrue(response1.isPresent());
+    }
 
     for (int i : ignoringServers) {
       ServerTypeWrapper.changeServerType(i, ServerTypeWrapper.ServerType.NORMAL);
@@ -80,14 +101,13 @@ public class WriteBackTest {
     server.setWriteBackSync(false);
 
     assertTrue(response2.isPresent());
-    assertEquals(990, (long) response2.get().second);
+    assertEquals(accountAmount, (long) response2.get().second);
 
     for (int i : ignoringServers) {
       CheckAccountResponse responseAfterWriteBack = server.checkAccountToOneServer(i);
-      assertEquals(2, responseAfterWriteBack.getHistory().size());
+      assertEquals(numberOfTransactions + 1, responseAfterWriteBack.getHistory().size());
     }
 
-    new File("user1KeyStore.jce").delete();
   }
 
   class ServersWrapperHelper extends ServersWrapper {
