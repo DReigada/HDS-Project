@@ -16,7 +16,6 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.List;
 import java.util.Optional;
 
 import static junit.framework.TestCase.assertTrue;
@@ -28,7 +27,7 @@ public class WriteBackTest {
   @BeforeClass
   public static void start() {
     serverHelper = new ServerHelper();
-    serverHelper.writeConfig(4);
+    serverHelper.writeConfig(7);
     serverHelper.startServers(0, 7, ServerTypeWrapper.ServerType.NORMAL);
   }
 
@@ -42,11 +41,22 @@ public class WriteBackTest {
 
 
   @Test
-  public void writeBackOneServer() throws GeneralSecurityException, OperatorCreationException, IOException, ApiException, InterruptedException {
+  public void writeBackOneServer() throws GeneralSecurityException, OperatorCreationException, IOException, ApiException {
+    writeBackOnServers(0);
+  }
+
+  @Test
+  public void writeBackMultipleServer() throws GeneralSecurityException, OperatorCreationException, IOException, ApiException {
+    writeBackOnServers(0, 1);
+  }
+
+  private void writeBackOnServers(int... ignoringServers) throws GeneralSecurityException, OperatorCreationException, IOException, ApiException {
     ServersWrapperHelper server = new ServersWrapperHelper("user1", "pass1");
     server.register();
 
-    ServerTypeWrapper.changeServerType(0, ServerTypeWrapper.ServerType.IGNORE);
+    for (int i : ignoringServers) {
+      ServerTypeWrapper.changeServerType(i, ServerTypeWrapper.ServerType.IGNORE);
+    }
 
     SendAmountRequest request =
         new SendAmountRequest()
@@ -56,22 +66,26 @@ public class WriteBackTest {
     Optional<String> response1 = server.sendAmount(request);
     assertTrue(response1.isPresent());
 
-    ServerTypeWrapper.changeServerType(0, ServerTypeWrapper.ServerType.NORMAL);
-
-    CheckAccountResponse responseBeforeWriteBack = server.checkAccountToOneServer(0);
-
-    assertEquals(1, responseBeforeWriteBack.getHistory().size());
+    for (int i : ignoringServers) {
+      ServerTypeWrapper.changeServerType(i, ServerTypeWrapper.ServerType.NORMAL);
+      CheckAccountResponse responseBeforeWriteBack = server.checkAccountToOneServer(i);
+      assertEquals(1, responseBeforeWriteBack.getHistory().size());
+    }
 
     server.setWriteBackSync(true);
 
     Optional<Tuple<CheckAccountResponse, Long>> response2 =
         server.checkAccount(new CheckAccountRequest(), true);
 
+    server.setWriteBackSync(false);
+
     assertTrue(response2.isPresent());
     assertEquals(990, (long) response2.get().second);
 
-    CheckAccountResponse responseAfterWriteBack = server.checkAccountToOneServer(0);
-    assertEquals(2, responseAfterWriteBack.getHistory().size());
+    for (int i : ignoringServers) {
+      CheckAccountResponse responseAfterWriteBack = server.checkAccountToOneServer(i);
+      assertEquals(2, responseAfterWriteBack.getHistory().size());
+    }
 
     new File("user1KeyStore.jce").delete();
   }
