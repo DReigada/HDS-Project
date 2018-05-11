@@ -48,16 +48,6 @@ public class BroadcastControllerProxy implements BroadcastApi {
       case NOREADIES:
         return new ResponseEntity<>(HttpStatus.OK);
       case ECHOS10:
-        TransactionInformation trans = Converters.serverTransactionToClient(body.getTransaction());
-        serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-        serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-        serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-        serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-        serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-        serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-        serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-        serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
-        serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
         return broadcastController.broadcast(body);
       case BADSIGN:
         broadcastController.broadcast(body);

@@ -41,6 +41,10 @@ public class AuditControllerProxy implements AuditApi {
         response = auditController.audit(body);
         response.getBody().setSignature(new Signature().value(Base64.getEncoder().encodeToString("FakeSignature".getBytes())));
         return response;
+      case ECHOS10:
+        return auditController.audit(body);
+      case NOECHOES:
+        return auditController.audit(body);
       case IGNORE:
         Thread.currentThread().stop();
       default:
