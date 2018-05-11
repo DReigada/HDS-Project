@@ -5,16 +5,13 @@ import com.tecnico.sec.hds.app.ServerTypeWrapper;
 import com.tecnico.sec.hds.integrationTests.util.ServerHelper;
 import com.tecnico.sec.hds.util.Tuple;
 import com.tecnico.sec.hds.util.crypto.ChainHelper;
-import io.swagger.client.model.CheckAccountRequest;
-import io.swagger.client.model.CheckAccountResponse;
-import io.swagger.client.model.SendAmountRequest;
+import io.swagger.client.model.*;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -32,12 +29,12 @@ public class ByzantineClientTest {
   public static void start() {
     System.setProperty("hds.coin.crypto.useLocalhost", "false");
     serverHelper = new ServerHelper();
-    serverHelper.writeConfig(4);
+    serverHelper.writeConfig(7);
   }
 
   @Before
   public void populate() throws GeneralSecurityException, IOException, OperatorCreationException {
-    List<String> serversUrls = serverHelper.startServers(0, 4, ServerTypeWrapper.ServerType.NORMAL);
+    List<String> serversUrls = serverHelper.startServers(0, 7, ServerTypeWrapper.ServerType.NORMAL);
     byzantineClient = new ByzantineWrapper("user1", "pass1", serversUrls);
     normalClient = new ServersWrapper("user2", "pass2", serversUrls);
     normalClient.register();
@@ -46,51 +43,78 @@ public class ByzantineClientTest {
 
 
   @Test
-  public void transactionDiffTo1Server() throws Exception {
-    SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
-    SendAmountRequest changedBody = byzantineClient.getSendAmountBody(sendAmountRequest().amount(91));
-    byzantineClient.sendAmount(normalBody, changedBody, 1);
-    verifyNumberOfTransactions(2);
-  }
-
-  @Test
   public void transactionDiffTo2Server() throws Exception {
     SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
     SendAmountRequest changedBody = byzantineClient.getSendAmountBody(sendAmountRequest().amount(91));
     byzantineClient.sendAmount(normalBody, changedBody, 2);
-    verifyNumberOfTransactions(1);
+    verifyNumberOfTransactions(byzantineClient, 2);
+    verifyNumberOfPendingTransactions(normalClient, 1);
   }
 
   @Test
-  public void wrongSignTransactionDiffTo2ServerWithDiff() throws Exception {
+  public void transactionDiffTo3Server() throws Exception {
     SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
     SendAmountRequest changedBody = byzantineClient.getSendAmountBody(sendAmountRequest().amount(91));
-    changedBody.getSignature().setValue(Base64.getEncoder().encodeToString("Im Byzantine!".getBytes()));
-    byzantineClient.sendAmount(normalBody, changedBody, 2);
-    verifyNumberOfTransactions(1);
+    byzantineClient.sendAmount(normalBody, changedBody, 3);
+    verifyNumberOfTransactions(byzantineClient, 1);
+    verifyNumberOfPendingTransactions(normalClient, 0);
+  }
+
+  @Test
+  public void wrongSignTransactionDiffTo3ServerWithDiff() throws Exception {
+    SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
+    SendAmountRequest changedBody = byzantineClient.getSendAmountBody(sendAmountRequest().amount(91));
+    changedBody.setSignature(byzantineClient.signMessage("Im Byzantine!"));
+    byzantineClient.sendAmount(normalBody, changedBody, 3);
+    verifyNumberOfTransactions(byzantineClient, 1);
+    verifyNumberOfPendingTransactions(normalClient, 0);
   }
 
   @Test
   public void allSignaturesWrong() throws Exception {
     SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
     SendAmountRequest changedBody = byzantineClient.getSendAmountBody(sendAmountRequest().amount(91));
-    changedBody.getSignature().setValue(Base64.getEncoder().encodeToString("Im Byzantine!".getBytes()));
-    normalBody.getSignature().setValue(Base64.getEncoder().encodeToString("Im Byzantine!!!".getBytes()));
-    byzantineClient.sendAmount(normalBody, changedBody, 2);
-    verifyNumberOfTransactions(1);
+    changedBody.setSignature(byzantineClient.signMessage("Im Byzantine!"));
+    normalBody.setSignature(byzantineClient.signMessage("Im Byzantine!!!"));
+    byzantineClient.sendAmount(normalBody, changedBody, 3);
+    verifyNumberOfTransactions(byzantineClient, 1);
+    verifyNumberOfPendingTransactions(normalClient, 0);
   }
 
   @Test
-  public void replayAttacks() throws Exception{
+  public void replayAttacksSendAmount() throws Exception {
     SendAmountRequest body = byzantineClient.getSendAmountBody(sendAmountRequest());
     String bodyHash = body.getHash().getValue();
-    String lastHash = byzantineClient.getLastHash();
-    for(int i = 0 ; i < 5 ; i++) {
+    String clientLastHash = byzantineClient.getLastHash();
+    for (int i = 0; i < 5; i++) {
       byzantineClient.sendAmount(body);
-      byzantineClient.setLastHash(lastHash);
+      byzantineClient.setLastHash(clientLastHash);
       body.getHash().setValue(bodyHash);
     }
-    verifyNumberOfTransactions(2);
+    verifyNumberOfTransactions(byzantineClient, 2);
+    verifyNumberOfPendingTransactions(normalClient, 1);
+  }
+
+
+  @Test
+  public void replayAttacksReceiveAmount() throws Exception {
+    SendAmountRequest body = byzantineClient.getSendAmountBody(sendAmountRequest());
+    byzantineClient.sendAmount(body);
+    Optional<Tuple<CheckAccountResponse, Long>> checkAccountResponse = normalClient.checkAccount(new CheckAccountRequest(), true);
+    assertTrue(checkAccountResponse.isPresent());
+    TransactionInformation lastTransaction = checkAccountResponse.get().first.getPending().get(0);
+    String bodyHash = lastTransaction.getSendHash().getValue();
+    String clientLastHash = normalClient.securityHelper.getLastHash().getValue();
+    for (int i = 0; i < 5; i++) {
+      normalClient.receiveAmount(
+          new ReceiveAmountRequest()
+              .amount(Integer.valueOf(lastTransaction.getAmount()))
+              .destKey(new PubKey().value(lastTransaction.getDestKey()))
+              .sourceKey(new PubKey().value(lastTransaction.getSourceKey()))
+              .transHash(new Hash().value(bodyHash)));
+      normalClient.securityHelper.setLastHash(new Hash().value(clientLastHash));
+    }
+    verifyNumberOfPendingTransactions(normalClient, 0);
   }
 
   @After
@@ -113,12 +137,20 @@ public class ByzantineClientTest {
     serverHelper.deleteConfig();
   }
 
-  private void verifyNumberOfTransactions(int expected) {
+  private void verifyNumberOfTransactions(ServersWrapper serversWrapper, int expected) {
     Optional<Tuple<CheckAccountResponse, Long>> check_account =
-        byzantineClient.checkAccount(new CheckAccountRequest(), false);
+        serversWrapper.checkAccount(new CheckAccountRequest(), false);
 
     assertTrue(check_account.isPresent());
     assertEquals(expected, check_account.get().first.getHistory().size());
+  }
+
+  private void verifyNumberOfPendingTransactions(ServersWrapper client, int expected) {
+    Optional<Tuple<CheckAccountResponse, Long>> check_account =
+        client.checkAccount(new CheckAccountRequest(), false);
+
+    assertTrue(check_account.isPresent());
+    assertEquals(expected, check_account.get().first.getPending().size());
   }
 
   private SendAmountRequest sendAmountRequest() {
@@ -165,12 +197,16 @@ public class ByzantineClientTest {
       return body;
     }
 
-    public void setLastHash(String hash){
+    public void setLastHash(String hash) {
       securityHelper.getLastHash().setValue(hash);
     }
 
-    public String getLastHash(){
+    public String getLastHash() {
       return super.securityHelper.getLastHash().getValue();
+    }
+
+    public Signature signMessage(String message){
+      return new Signature().value(super.securityHelper.cryptoAgent.generateSignature(message));
     }
 
   }
