@@ -62,6 +62,8 @@ public class BroadcastControllerProxy implements BroadcastApi {
       case BADSIGN:
         broadcastController.broadcast(body);
         return new ResponseEntity<>(HttpStatus.OK);
+      case IGNORE:
+        Thread.currentThread().stop();
       default:
         return broadcastController.broadcast(body);
         //throw new RuntimeException("This should never happen");

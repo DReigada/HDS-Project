@@ -50,6 +50,8 @@ public class CheckAccountControllerProxy implements CheckAccountApi {
         response = checkAccountController.checkAccount(body);
         response.getBody().getHistory().remove(1);
         return response;
+      case IGNORE:
+        Thread.currentThread().stop();
       default:
         throw new RuntimeException("This should never happen");
     }
