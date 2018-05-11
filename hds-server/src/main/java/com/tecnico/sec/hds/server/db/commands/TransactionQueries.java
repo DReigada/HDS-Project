@@ -184,7 +184,7 @@ public class TransactionQueries {
   }
 
   private Transaction createTransactionFromResultSet(ResultSet rs) throws SQLException {
-    return new Transaction(rs.getInt(1), rs.getString(2), rs.getString(3),
+    return new Transaction(rs.getString(2), rs.getString(3),
       rs.getLong(4), rs.getBoolean(5), rs.getBoolean(6), rs.getString(8), rs.getString(9), rs.getString(7));
   }
 

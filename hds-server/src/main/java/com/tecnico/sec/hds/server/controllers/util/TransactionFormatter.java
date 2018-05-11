@@ -14,7 +14,6 @@ public class TransactionFormatter {
     Hash hash = new Hash().value(transaction.hash);
     Signature signature = new Signature().value(transaction.signature);
     TransactionInformation transactionInformation = new TransactionInformation();
-    transactionInformation.setTransID(transaction.transID);
     transactionInformation.setSourceKey(transaction.sourceKey);
     transactionInformation.setDestKey(transaction.destKey);
     transactionInformation.setAmount("" + transaction.amount);

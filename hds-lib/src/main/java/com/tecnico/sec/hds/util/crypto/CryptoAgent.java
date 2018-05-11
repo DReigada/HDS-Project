@@ -136,7 +136,9 @@ public class CryptoAgent {
       ecForVerify.update(msg);
       return ecForVerify.verify(sign);
     } catch (GeneralSecurityException e) {
-      throw new CryptoAgentException("CryptoAgent: Failed verifying signature", e);
+      System.err.println("CryptoAgent: Failed verifying signature");
+      e.printStackTrace();
+      return false;
     }
   }
 

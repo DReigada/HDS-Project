@@ -26,16 +26,17 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@FunctionalInterface
-interface ServerCall<R> {
-  R apply(DefaultApi t) throws ApiException;
-}
 
 public class ServersWrapper {
   public final SecurityHelper securityHelper;
-  private final ExecutorService executorService;
-  private final Map<String, DefaultApi> servers;
+  protected final ExecutorService executorService;
+  protected final Map<String, DefaultApi> servers;
   private final QuorumHelper quorumHelper;
+
+  @FunctionalInterface
+  protected interface ServerCall<R> {
+    R apply(DefaultApi t) throws ApiException;
+  }
 
   public ServersWrapper(String user, String pass) throws IOException, OperatorCreationException, GeneralSecurityException {
     this(user, pass, getServersConfig());
@@ -88,9 +89,9 @@ public class ServersWrapper {
 
   public void broadcast(BroadcastRequest body) {
     forEachServer(s -> {
-      System.out.println("Calling server");
+      System.out.println("Calling server: " + s.getApiClient().getBasePath());
       s.broadcast(body);
-      System.out.println("Called server");
+      System.out.println("Called server: " + s.getApiClient().getBasePath());
       return true;
     }).collect(Collectors.toList());
   }
@@ -281,6 +282,7 @@ public class ServersWrapper {
     securityHelper.signMessage(message, body::setSignature);
 
     Tuple<DefaultApi, SendAmountResponse> response = forEachServer(server -> server.sendAmount(body))
+        .filter(a -> a.second.isSuccess()) // TODO quorum ?
         .collect(Collectors.toList())
         .get(0);
 
@@ -290,11 +292,7 @@ public class ServersWrapper {
     if (securityHelper.verifyBankSignature(message, sendAmountResponse.getSignature().getValue(), response.first.getApiClient().getBasePath())
         && sendAmountResponse.isSuccess()) {
 
-      if (sendAmountResponse.isSuccess()) {
-        securityHelper.setLastHash(sendAmountResponse.getNewHash());
-      }
-
-
+      securityHelper.setLastHash(sendAmountResponse.getNewHash());
       return sendAmountResponse.getMessage();
     }
 
@@ -331,7 +329,7 @@ public class ServersWrapper {
     return quorumHelper.getReadQuorumFromResponses(forEachServer(serverCall), responseToList, responseVerifier);
   }
 
-  <A> Stream<Tuple<DefaultApi, A>> forEachServer(ServerCall<A> serverCall) {
+  protected <A> Stream<Tuple<DefaultApi, A>> forEachServer(ServerCall<A> serverCall) {
     ConcurrentLinkedQueue<Callable<Optional<Tuple<DefaultApi, A>>>> tasks = new ConcurrentLinkedQueue<>();
 
     for (HashMap.Entry<String, DefaultApi> entry : servers.entrySet()) {
