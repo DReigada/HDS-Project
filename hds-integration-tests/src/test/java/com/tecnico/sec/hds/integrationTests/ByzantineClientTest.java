@@ -133,10 +133,6 @@ public class ByzantineClientTest {
   }
 
   @AfterClass
-  public static void clearEverything() {
-    serverHelper.deleteConfig();
-  }
-
   private void verifyNumberOfTransactions(ServersWrapper serversWrapper, int expected) {
     Optional<Tuple<CheckAccountResponse, Long>> check_account =
         serversWrapper.checkAccount(new CheckAccountRequest(), false);
@@ -159,7 +155,6 @@ public class ByzantineClientTest {
         .sourceKey(byzantineClient.securityHelper.key)
         .destKey(normalClient.securityHelper.key);
   }
-
 
   private static class ByzantineWrapper extends ServersWrapper {
 
