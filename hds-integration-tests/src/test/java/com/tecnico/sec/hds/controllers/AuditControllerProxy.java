@@ -41,6 +41,8 @@ public class AuditControllerProxy implements AuditApi {
         response = auditController.audit(body);
         response.getBody().setSignature(new Signature().value(Base64.getEncoder().encodeToString("FakeSignature".getBytes())));
         return response;
+      case IGNORE:
+        Thread.currentThread().stop();
       default:
         throw new RuntimeException("This should never happen");
     }
