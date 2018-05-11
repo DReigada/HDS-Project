@@ -5,6 +5,14 @@ HDS Coin - the best cryptocurrency ever created
 
 `mvn clean install test`
 
+## Before Running the Program
+
+There are two files you might want change before running the clients and the servers. The files HDS-Project/hds-client/src/main/resources/conf/servers.conf and HDS-Project/hds-server/src/main/resources/conf/servers.conf must contain the url of all the servers, they have to contain the same urls and they must be in the format:
+# http://localhost:818i
+# http://localhost:818(i+1)
+
+
+
 ## Running the server
 
 `mvn -pl hds-server exec:java`
@@ -20,10 +28,6 @@ files with the keys and the password will be used to cipher your private key.
 If it is the first time using an account use register before any other command.
 If the command Send Amount or Receive Amount fail you might need to use the Audit command with your public key
 to get your most recent transaction hash.
-
-## Caution
-If you use the Audit command with the public key of someone else be sure to
-use it again with your public key as this command rewrites the last hash.
 
 
 #### Register

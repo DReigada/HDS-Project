@@ -6,6 +6,9 @@ import io.swagger.client.model.CheckAccountRequest;
 import io.swagger.client.model.CheckAccountResponse;
 import org.junit.Assert;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static junit.framework.TestCase.*;
@@ -21,10 +24,10 @@ public class TestHelpers {
     return checkAccount.get();
   }
 
-  public static void verifyBadCheck(Optional<Tuple<CheckAccountResponse, Long>> checkAccount){
+  public static void verifyBadCheck(Optional<Tuple<CheckAccountResponse, Long>> checkAccount) {
     assertFalse(checkAccount.isPresent());
   }
-
+  
   public static void verifyNumberOfTransactions(ServersWrapper serversWrapper, int expected) {
     Optional<Tuple<CheckAccountResponse, Long>> check_account =
         serversWrapper.checkAccount(new CheckAccountRequest(), false);
@@ -41,4 +44,13 @@ public class TestHelpers {
     Assert.assertEquals(expected, check_account.get().first.getPending().size());
   }
 
+  public static <A> void shuffleToDifferent(List<A> list) {
+    if (list.size() > 1) {
+      ArrayList<A> oldList = new ArrayList<>(list);
+      Collections.shuffle(list);
+      if (list.equals(oldList)) {
+        shuffleToDifferent(list);
+      }
+    }
+  }
 }
