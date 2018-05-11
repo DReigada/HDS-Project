@@ -56,6 +56,8 @@ public class CheckAccountControllerProxy implements CheckAccountApi {
         return checkAccountController.checkAccount(body);
       case NOECHOES:
         return checkAccountController.checkAccount(body);
+      case IGNORE:
+        Thread.currentThread().stop();
       default:
         throw new RuntimeException("This should never happen");
     }

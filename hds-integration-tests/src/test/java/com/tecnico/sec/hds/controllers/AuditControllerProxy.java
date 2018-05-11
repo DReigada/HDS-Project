@@ -45,6 +45,8 @@ public class AuditControllerProxy implements AuditApi {
         return auditController.audit(body);
       case NOECHOES:
         return auditController.audit(body);
+      case IGNORE:
+        Thread.currentThread().stop();
       default:
         throw new RuntimeException("This should never happen");
     }

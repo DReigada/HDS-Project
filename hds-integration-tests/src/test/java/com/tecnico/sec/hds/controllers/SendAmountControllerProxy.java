@@ -61,8 +61,10 @@ public class SendAmountControllerProxy implements SendAmountApi {
         serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
         serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
         return sendAmountController.sendAmount(body);
-      default:
-        throw new RuntimeException("This should never happen");
+      case IGNORE:
+        Thread.currentThread().stop();
+       default:
+         throw new RuntimeException("This should never happen");
     }
   }
 }

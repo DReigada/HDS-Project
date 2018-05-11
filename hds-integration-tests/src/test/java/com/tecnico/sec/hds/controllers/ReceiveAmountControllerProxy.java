@@ -61,6 +61,8 @@ public class ReceiveAmountControllerProxy implements ReceiveAmountApi {
         serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
         serversWrapper.broadcast(reliableBroadcastHelper.createEchoRequest(trans));
         return receiveAmountController.receiveAmount(body);
+      case IGNORE:
+        Thread.currentThread().stop();
       default:
         throw new RuntimeException("This should never happen");
     }

@@ -69,5 +69,6 @@ public class ServerHelper {
 
   public void stopServers() {
     serversApps.stream().parallel().forEach(ConfigurableApplicationContext::close);
+    ServerTypeWrapper.cleanServers();
   }
 }

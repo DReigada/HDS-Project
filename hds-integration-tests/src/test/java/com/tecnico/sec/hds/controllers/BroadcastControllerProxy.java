@@ -50,7 +50,10 @@ public class BroadcastControllerProxy implements BroadcastApi {
       case ECHOS10:
         return broadcastController.broadcast(body);
       case BADSIGN:
-        return broadcastController.broadcast(body);
+        broadcastController.broadcast(body);
+        return new ResponseEntity<>(HttpStatus.OK);
+      case IGNORE:
+        Thread.currentThread().stop();
       default:
         return broadcastController.broadcast(body);
         //throw new RuntimeException("This should never happen");
