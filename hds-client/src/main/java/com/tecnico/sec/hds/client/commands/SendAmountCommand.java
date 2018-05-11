@@ -27,7 +27,7 @@ public class SendAmountCommand extends AbstractCommand {
       Optional<String> response = client.server.sendAmount(sendAmount);
 
       if(response.isPresent()){
-        System.out.println(client.server.sendAmount(sendAmount));
+        System.out.println(response.get());
       } else {
         System.out.println("Could not get response from servers");
       }
