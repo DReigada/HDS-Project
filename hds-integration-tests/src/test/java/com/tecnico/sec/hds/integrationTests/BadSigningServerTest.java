@@ -2,6 +2,8 @@ package com.tecnico.sec.hds.integrationTests;
 
 import com.tecnico.sec.hds.ServersWrapper;
 import com.tecnico.sec.hds.app.ServerTypeWrapper;
+import com.tecnico.sec.hds.integrationTests.util.ServerHelper;
+import com.tecnico.sec.hds.integrationTests.util.TestHelpers;
 import com.tecnico.sec.hds.util.Tuple;
 import io.swagger.client.model.*;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -21,7 +23,7 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 
 
-public class BadSigningServerTests {
+public class BadSigningServerTest {
 
   private static ServerHelper serverHelper;
   private static List<String> serversUrls;

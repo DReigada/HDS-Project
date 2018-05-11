@@ -217,7 +217,8 @@ public class CryptoAgent {
       String message = transactions.get(i).sourceKey + transactions.get(i).destKey + transactions.get(i).amount
           + transactions.get(i).hash + transactions.get(i).receiveHash;
 
-      if (!verifySignature(message, transactions.get(i).signature, publicKey)) {
+      if (transactions.get(i).signature.isEmpty() ||
+          !verifySignature(message, transactions.get(i).signature, publicKey)) {
         return false;
       }
     }

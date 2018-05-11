@@ -2,6 +2,8 @@ package com.tecnico.sec.hds.integrationTests;
 
 import com.tecnico.sec.hds.ServersWrapper;
 import com.tecnico.sec.hds.app.ServerTypeWrapper;
+import com.tecnico.sec.hds.integrationTests.util.ServerHelper;
+import com.tecnico.sec.hds.integrationTests.util.TestHelpers;
 import com.tecnico.sec.hds.util.Tuple;
 import io.swagger.client.model.*;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -13,7 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
-import java.util.Optional;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
