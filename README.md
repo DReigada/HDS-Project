@@ -7,15 +7,19 @@ HDS Coin - the best cryptocurrency ever created
 
 ## Before Running the Program
 
-There are two files you might want change before running the clients and the servers. The files HDS-Project/hds-client/src/main/resources/conf/servers.conf and HDS-Project/hds-server/src/main/resources/conf/servers.conf must contain the url of all the servers, they have to contain the same urls and they must be in the format:
-# http://localhost:818i
-# http://localhost:818(i+1)
+There are two files might need to be changed before running the clients and the servers. The files HDS-Project/hds-client/src/main/resources/conf/servers.conf and HDS-Project/hds-server/src/main/resources/conf/servers.conf must contain the url of all the servers, they have to contain the same urls and they must be in the format (with an url for each server you want to run):
+```
+http://localhost:port
+http://localhost:port
+http://localhost:port
+```
+
 
 
 
 ## Running the server
 
-`mvn -pl hds-server exec:java`
+`mvn -pl hds-server exec:java -Dserver.port=port`
 
 ## Running the client
 
