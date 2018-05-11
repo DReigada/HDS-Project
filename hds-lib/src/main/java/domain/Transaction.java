@@ -2,8 +2,6 @@ package domain;
 
 public class Transaction {
 
-  public final int transID;
-
   public final String sourceKey;
 
   public final String destKey;
@@ -20,8 +18,7 @@ public class Transaction {
 
   public final String signature;
 
-  public Transaction(int transID, String sourceKey, String destKey, long amount, boolean pending, boolean receive, String hash, String receiveHash, String signature) {
-    this.transID = transID;
+  public Transaction(String sourceKey, String destKey, long amount, boolean pending, boolean receive, String hash, String receiveHash, String signature) {
     this.sourceKey = sourceKey;
     this.destKey = destKey;
     this.amount = amount;

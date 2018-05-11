@@ -160,8 +160,6 @@ definitions:
   TransactionInformation:
     type: object
     properties:
-      transID:
-        type: integer
       sourceKey:
         type: string
       destKey:
