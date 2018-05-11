@@ -14,20 +14,16 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static junit.framework.Assert.assertFalse;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
 
 
 public class BadSigningServerTest {
 
   private static ServerHelper serverHelper;
   private static List<String> serversUrls;
-  private static ArrayList<ServerTypeWrapper> serverTypes;
 
 
   @BeforeClass
@@ -38,13 +34,13 @@ public class BadSigningServerTest {
     List<String> badServerUrls = serverHelper.startServers(7, 10, ServerTypeWrapper.ServerType.BADSIGN);
 
     serversUrls.addAll(badServerUrls);
-    serverTypes = ServerTypeWrapper.get();
   }
 
   @AfterClass
   public static void afterClass() {
     serverHelper.stopServers();
     serverHelper.deleteConfig();
+    ServerTypeWrapper.cleanServers();
     new File("user1KeyStore.jce").delete();
     new File("user2KeyStore.jce").delete();
     new File("user3KeyStore.jce").delete();
@@ -55,7 +51,7 @@ public class BadSigningServerTest {
   public void maxBadServers() throws GeneralSecurityException, IOException, OperatorCreationException {
 
     ServersWrapper server = new ServersWrapper("user1", "pass1", serversUrls);
-    serverTypes.get(6).setType(ServerTypeWrapper.ServerType.NORMAL);
+    ServerTypeWrapper.changeServerType(6, ServerTypeWrapper.ServerType.NORMAL);
     server.register();
 
     TestHelpers.verifyAmount(server, 1000L);
@@ -79,9 +75,9 @@ public class BadSigningServerTest {
   }
 
   @Test
-  public void toMuchBadServers() throws GeneralSecurityException, IOException, OperatorCreationException{
+  public void toMuchBadServers() throws GeneralSecurityException, IOException, OperatorCreationException {
 
-    serverTypes.get(6).setType(ServerTypeWrapper.ServerType.BADSIGN);
+    ServerTypeWrapper.changeServerType(6, ServerTypeWrapper.ServerType.BADSIGN);
     ServersWrapper server = new ServersWrapper("user2", "pass2", serversUrls);
 
     server.register();
@@ -96,9 +92,9 @@ public class BadSigningServerTest {
   }
 
   @Test
-  public void scenario() throws GeneralSecurityException, IOException, OperatorCreationException{
+  public void scenario() throws GeneralSecurityException, IOException, OperatorCreationException {
 
-    serverTypes.get(6).setType(ServerTypeWrapper.ServerType.NORMAL);
+    ServerTypeWrapper.changeServerType(6, ServerTypeWrapper.ServerType.NORMAL);
     ServersWrapper server = new ServersWrapper("user3", "pass3", serversUrls);
 
     server.register();
@@ -112,7 +108,7 @@ public class BadSigningServerTest {
 
     Optional<Tuple<CheckAccountResponse, Long>> checkAccount2 = server.checkAccount(new CheckAccountRequest(), false);
 
-    serverTypes.get(6).setType(ServerTypeWrapper.ServerType.BADSIGN);
+    ServerTypeWrapper.changeServerType(6, ServerTypeWrapper.ServerType.BADSIGN);
 
   }
 

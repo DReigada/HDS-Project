@@ -38,6 +38,7 @@ public class SendAmountControllerProxy implements SendAmountApi {
 
     switch (serverTypeWrapper.getType()){
       case NORMAL:
+      case BADORDER:
         return sendAmountController.sendAmount(body);
       case BYZANTINE:
         return null;

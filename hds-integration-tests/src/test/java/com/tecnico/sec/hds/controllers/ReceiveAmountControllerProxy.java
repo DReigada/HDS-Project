@@ -38,6 +38,7 @@ public class ReceiveAmountControllerProxy implements ReceiveAmountApi {
 
     switch (serverTypeWrapper.getType()) {
       case NORMAL:
+      case BADORDER:
         return receiveAmountController.receiveAmount(body);
       case BYZANTINE:
         return null;

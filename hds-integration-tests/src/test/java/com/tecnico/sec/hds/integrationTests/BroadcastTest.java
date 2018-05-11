@@ -17,20 +17,19 @@ import java.util.List;
 public class BroadcastTest {
   private static ServerHelper serverHelper;
   private static List<String> serversUrls;
-  private static ArrayList<ServerTypeWrapper> serverTypes;
 
   @BeforeClass
   public static void start() {
     serverHelper = new ServerHelper();
     serverHelper.writeConfig(10);
     serversUrls = serverHelper.startServers(0, 10, ServerTypeWrapper.ServerType.NORMAL);
-    serverTypes = ServerTypeWrapper.get();
   }
 
   @AfterClass
   public static void afterClass() {
     serverHelper.stopServers();
     serverHelper.deleteConfig();
+    ServerTypeWrapper.cleanServers();
     new File("user1KeyStore.jce").delete();
   }
 
