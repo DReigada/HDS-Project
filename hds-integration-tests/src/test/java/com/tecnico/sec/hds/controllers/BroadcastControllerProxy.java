@@ -42,7 +42,6 @@ public class BroadcastControllerProxy implements BroadcastApi {
       case NORMAL:
         return broadcastController.broadcast(body);
       case BYZANTINE:
-        broadcastController.
         return null;
       case NOECHOES:
         return new ResponseEntity<>(HttpStatus.OK);
