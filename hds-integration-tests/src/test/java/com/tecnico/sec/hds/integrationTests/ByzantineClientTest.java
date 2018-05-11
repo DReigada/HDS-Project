@@ -40,23 +40,6 @@ public class ByzantineClientTest {
     byzantineClient.register();
   }
 
-
-  @Test
-  public void transactionDiffTo2Server() throws Exception {
-    SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
-    SendAmountRequest changedBody = byzantineClient.getSendAmountBody(sendAmountRequest().amount(91));
-    byzantineClient.sendAmount(normalBody, changedBody, 2);
-
-    /*byzantineClient.setWriteBackSync(true);
-
-    byzantineClient.checkAccount(new CheckAccountRequest(), true);
-    byzantineClient.setWriteBackSync(false);*/
-
-    Thread.sleep(3000);
-    verifyNumberOfTransactions(byzantineClient, 2);
-    verifyNumberOfPendingTransactions(normalClient, 1);
-  }
-
   @Test
   public void transactionDiffTo3Server() throws Exception {
     SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
