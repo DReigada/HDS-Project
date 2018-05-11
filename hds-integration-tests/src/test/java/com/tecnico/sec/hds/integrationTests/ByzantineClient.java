@@ -2,48 +2,81 @@ package com.tecnico.sec.hds.integrationTests;
 
 import com.tecnico.sec.hds.ServersWrapper;
 import com.tecnico.sec.hds.app.ServerTypeWrapper;
-import com.tecnico.sec.hds.util.TransactionGetter;
 import com.tecnico.sec.hds.util.Tuple;
 import com.tecnico.sec.hds.util.crypto.ChainHelper;
-import domain.Transaction;
-import io.swagger.client.ApiException;
-import io.swagger.client.api.DefaultApi;
-import io.swagger.client.model.*;
+import io.swagger.client.model.CheckAccountRequest;
+import io.swagger.client.model.CheckAccountResponse;
+import io.swagger.client.model.SendAmountRequest;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.*;
+import java.util.Base64;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ByzantineClient {
-  private static bla byzantineClient;
+  private static ByzantineWrapper byzantineClient;
   private static ServersWrapper normalClient;
   private static ServerHelper serverHelper;
 
-  @AfterClass
-  public static void clearEverything() {
-    serverHelper.deleteConfig();
-  }
-
-  @Before
-  public void start() throws GeneralSecurityException, IOException, OperatorCreationException {
+  @BeforeClass
+  public static void start() {
     System.setProperty("hds.coin.crypto.useLocalhost", "false");
     serverHelper = new ServerHelper();
     serverHelper.writeConfig(4);
-    List<String> serversUrls = serverHelper.startServers(0, 4, ServerTypeWrapper.ServerType.NORMAL);
+  }
 
-    byzantineClient = new bla("user1", "pass1", serversUrls);
+  @Before
+  public void populate() throws GeneralSecurityException, IOException, OperatorCreationException {
+    List<String> serversUrls = serverHelper.startServers(0, 4, ServerTypeWrapper.ServerType.NORMAL);
+    byzantineClient = new ByzantineWrapper("user1", "pass1", serversUrls);
     normalClient = new ServersWrapper("user2", "pass2", serversUrls);
     normalClient.register();
     byzantineClient.register();
+  }
+
+
+  @Test
+  public void transactionDiffTo1Server() throws Exception {
+    SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
+    SendAmountRequest changedBody = byzantineClient.getSendAmountBody(sendAmountRequest().amount(91));
+    byzantineClient.sendAmount(normalBody, changedBody, 1);
+    verifyNumberOfTransactions(2);
+  }
+
+  @Test
+  public void transactionDiffTo2Server() throws Exception {
+    SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
+    SendAmountRequest changedBody = byzantineClient.getSendAmountBody(sendAmountRequest().amount(91));
+    byzantineClient.sendAmount(normalBody, changedBody, 2);
+    verifyNumberOfTransactions(1);
+  }
+
+  @Test
+  public void wrongSignTransactionDiffTo2ServerWithDiff() throws Exception {
+    SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
+    SendAmountRequest changedBody = byzantineClient.getSendAmountBody(sendAmountRequest().amount(91));
+    changedBody.getSignature().setValue(Base64.getEncoder().encodeToString("Im Byzantine!".getBytes()));
+    byzantineClient.sendAmount(normalBody, changedBody, 2);
+    verifyNumberOfTransactions(1);
+  }
+
+  @Test
+  public void allSignaturesWrong() throws Exception {
+    SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
+    SendAmountRequest changedBody = byzantineClient.getSendAmountBody(sendAmountRequest().amount(91));
+    changedBody.getSignature().setValue(Base64.getEncoder().encodeToString("Im Byzantine!".getBytes()));
+    normalBody.getSignature().setValue(Base64.getEncoder().encodeToString("Im Byzantine!!!".getBytes()));
+    byzantineClient.sendAmount(normalBody, changedBody, 2);
+    verifyNumberOfTransactions(1);
   }
 
   @After
@@ -61,69 +94,17 @@ public class ByzantineClient {
     new File("banklocalhost_8183KeyStore.jce").delete();
   }
 
-  @Test
-  public void transactionDiffTo1Server() throws Exception {
-    SendAmountRequest body = sendAmountRequest();
-    SendAmountRequest normalBody = byzantineClient.getSendAmountBody(body);
-    SendAmountRequest changedBody = byzantineClient.getSendAmountBody(body.amount(91));
-    byzantineClient.sendAmount(normalBody, changedBody, 1);
-    boolean transactionResponses = compareTransactions(byzantineClient.checkAccountFromAllServers(),
-        normalBody,
-        changedBody);
-    assertFalse(transactionResponses);
+  @AfterClass
+  public static void clearEverything() {
+    serverHelper.deleteConfig();
   }
 
-  @Test
-  public void transactionDiffTo2Server() throws Exception {
-    SendAmountRequest normalBody = byzantineClient.getSendAmountBody(sendAmountRequest());
-    SendAmountRequest changedBody = byzantineClient.getSendAmountBody(sendAmountRequest().amount(91));
-    byzantineClient.sendAmount(normalBody, changedBody, 2);
-
+  private void verifyNumberOfTransactions(int expected) {
     Optional<Tuple<CheckAccountResponse, Long>> check_account =
-        byzantineClient.checkAccount(new CheckAccountRequest(), true);
+        byzantineClient.checkAccount(new CheckAccountRequest(), false);
 
     assertTrue(check_account.isPresent());
-    assertEquals(1, check_account.get().first.getHistory().size());
-  }
-
-  @Test
-  public void wrongSignTransactionDiffTo2ServerWithDiff() throws Exception {
-    SendAmountRequest body = sendAmountRequest();
-    SendAmountRequest normalBody = byzantineClient.getSendAmountBody(body);
-    SendAmountRequest changedBody = byzantineClient.getSendAmountBody(body.amount(91));
-    changedBody.signature(new Signature().value(Base64.getEncoder().encodeToString("Im Byzantine!".getBytes())));
-    byzantineClient.sendAmount(normalBody, changedBody, 2);
-    boolean transactionResponses = compareTransactions(byzantineClient.checkAccountFromAllServers(),
-        normalBody,
-        changedBody);
-    assertTrue(transactionResponses);
-  }
-
-  @Test
-  public void allWrongSignatures() throws Exception {
-    SendAmountRequest body = sendAmountRequest();
-    SendAmountRequest normalBody = byzantineClient.getSendAmountBody(body);
-    SendAmountRequest changedBody = byzantineClient.getSendAmountBody(body.amount(91));
-    changedBody.signature(new Signature().value(Base64.getEncoder().encodeToString("Im Byzantine!".getBytes())));
-    normalBody.signature(new Signature().value(Base64.getEncoder().encodeToString("Im Byzantine!!!".getBytes())));
-    byzantineClient.sendAmount(normalBody, changedBody, 2);
-    boolean transactionResponses = compareTransactions(byzantineClient.checkAccountFromAllServers(),
-        normalBody,
-        changedBody);
-    assertTrue(transactionResponses);
-  }
-
-
-  private boolean compareTransactions(List<Transaction> transactionResponses,
-                                      SendAmountRequest normalBody,
-                                      SendAmountRequest changedBody) {
-
-    return transactionResponses.stream()
-        .anyMatch(t ->
-            !(t.hash.equals(normalBody.getHash().getValue()) &&
-                t.amount == 1 ||
-                t.hash.equals(changedBody.getHash().getValue()) &&
-                    t.amount == 91));
+    assertEquals(expected, check_account.get().first.getHistory().size());
   }
 
   private SendAmountRequest sendAmountRequest() {
@@ -134,24 +115,13 @@ public class ByzantineClient {
   }
 
 
-  private static class bla extends ServersWrapper {
+  private static class ByzantineWrapper extends ServersWrapper {
 
-    public bla(String user, String pass, List<String> serversUrls) throws IOException, GeneralSecurityException, OperatorCreationException {
+    public ByzantineWrapper(String user, String pass, List<String> serversUrls) throws IOException, GeneralSecurityException, OperatorCreationException {
       super(user, pass, serversUrls);
     }
 
-    public List<Transaction> checkAccountFromAllServers() throws ApiException {
-      CheckAccountRequest checkAccount = new CheckAccountRequest().publicKey(securityHelper.key);
-      List<Transaction> checkAccountResponses = new ArrayList<>();
-      for (DefaultApi defaultApi : servers.values()) {
-        List<TransactionInformation> response = defaultApi.checkAccount(checkAccount).getHistory();
-        Transaction transaction = TransactionGetter.InformationToTransaction(response).get(0);
-        checkAccountResponses.add(transaction);
-      }
-      return checkAccountResponses;
-    }
-
-    public String sendAmount(SendAmountRequest normalBody, SendAmountRequest changedBody, int n) {
+    public void sendAmount(SendAmountRequest normalBody, SendAmountRequest changedBody, int n) {
       forEachServer(server -> {
         Set<String> serversNoneByzantine = servers.keySet().stream().skip(n).collect(Collectors.toSet());
         if (serversNoneByzantine.contains(server.getApiClient().getBasePath())) {
@@ -159,10 +129,7 @@ public class ByzantineClient {
         } else {
           return server.sendAmount(changedBody);
         }
-      })
-          .collect(Collectors.toList());
-
-      return "asdf";
+      }).collect(Collectors.toList());
     }
 
     public SendAmountRequest getSendAmountBody(SendAmountRequest body) throws GeneralSecurityException {
